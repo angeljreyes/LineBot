@@ -15,22 +15,6 @@ class About(commands.Cog):
 		# self.send = bot.get_cog('GlobalCog').send
 
 
-	# help
-# 	@commands.cooldown(1, 1.5, commands.BucketType.user)
-# 	@commands.command(name='help')
-# 	async def _help(self, ctx, command=None):
-# 		if command == None:
-# 			emb = helpsys.get_all(ctx)
-# 			await self.send(ctx, embed=emb)
-# 		elif self.bot.get_command(command) in self.bot.commands:
-# 			command = self.bot.get_command(command)
-# 			emb = helpsys.get_cmd(ctx, command.name)
-# 			await self.send(ctx, embed=emb)
-# 		else:
-# 			await self.send(ctx, core.Warning.error(f'El comando **{await commands.clean_content().convert(ctx, command)}** no existe'))
-# 			ctx.command.reset_cooldown(ctx)
-
-
 	# ping
 	@app_commands.command(name='ping')
 	async def _ping(self, interaction: discord.Interaction):
@@ -41,99 +25,55 @@ class About(commands.Cog):
 		await response.edit(content=content + f' **{ping} ms**.')
 
 
-# 	# uptime
-# 	@commands.command()
-# 	async def uptime(self, ctx):
-# 		delta = core.fix_delta(datetime.utcnow() - core.bot_ready_at)
-# 		await self.send(ctx, core.Warning.info(f'Online por **{delta}**'))
+	# links
+	@app_commands.command()
+	async def links(self, interaction: discord.Interaction):
+		# emb = discord.Embed(title='Links', colour=core.default_color(interaction))
+		# for link in core.links:
+		# 	emb.add_field(name=link, value=f'[Aquí]({core.links[link]})')
+		view = discord.ui.View()
+		for link in core.links:
+			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
+		await interaction.response.send_message(view=view)
 
 
-# 	# links
-# 	@commands.command(aliases=('invite', 'vote'))
-# 	async def links(self, ctx):
-# 		emb = discord.Embed(title='Links', colour=core.default_color(ctx))
-# 		for link in core.links:
-# 			emb.add_field(name=link, value=f'[Aquí]({core.links[link]})')
-# 		await self.send(ctx, embed=emb)
+	#changelog
+	@app_commands.command()
+	@app_commands.autocomplete(version=core.changelog_autocomplete)
+	@app_commands.checks.cooldown(1, 3.0)
+	async def changelog(self, interaction: discord.Interaction, version: str = core.bot_version):
+		"""
+		version: str
+			Una versión de Line Bot
+		"""
+		if version == 'list':
+			# Selects released versions if the bot is stable and all versions if it's dev
+			sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[core.bot_mode]
+			core.cursor.execute(sql)
+			versions = core.cursor.fetchall()
+			core.conn.commit()
+			versions.reverse()
+			embed = discord.Embed(title='Changelog', colour=core.default_color(interaction))
+			version_list = ', '.join([f'`{version[0]}`' for version in versions])
+			embed.add_field(name='Lista de versiones:', value=version_list)
+			embed.set_footer(text=f'Cantidad de versiones: {len(versions)}')
+			await interaction.response.send_message(embed=embed)
 
-
-# 	#prefix
-# 	@commands.cooldown(1, 5.0, commands.BucketType.guild)
-# 	@commands.command(aliases=['lineprefix'])
-# 	@commands.guild_only()
-# 	async def prefix(self, ctx, prefix=None):
-# 		if not ctx.channel.permissions_for(ctx.message.author).manage_guild:
-# 			await self.send(ctx, core.Warning.error('Necesitas permiso de administrador para cambiar el prefijo del servidor'))
-# 			ctx.command.reset_cooldown(ctx)
-
-# 		else:
-# 			if prefix == None:
-# 				await self.send(ctx, embed=helpsys.get_cmd(ctx, 'prefix'))
-# 				return
-
-# 			elif len(prefix) > 16:
-# 				await self.send(ctx, core.Warning.error('El límite de carácteres de un prefijo es 16'))
-# 				ctx.command.reset_cooldown(ctx)
-# 				return
-
-# 			elif prefix == core.default_prefix:
-# 				core.cursor.execute(f"DELETE FROM {core.prefix_table} WHERE ID={ctx.guild.id}")
-
-# 			else:
-# 				core.cursor.execute(f"SELECT PREFIX FROM {core.prefix_table} WHERE ID={ctx.guild.id}")
-# 				check = core.cursor.fetchall()
-# 				if check == []:
-# 					core.cursor.execute(f"INSERT INTO {core.prefix_table} VALUES({ctx.guild.id},?)", (prefix,))
-# 				else:
-# 					core.cursor.execute(f"UPDATE {core.prefix_table} SET PREFIX=? WHERE ID={ctx.guild.id}", (prefix,))
-
-# 			core.conn.commit()
-# 			del self.bot.get_cog('GlobalCog').cached_prefixes[ctx.guild.id]
-# 			await self.send(ctx, core.Warning.success(f'El prefijo ha sido actualizado correctamente a `{await commands.clean_content().convert(ctx, prefix)}`'))
-
-
-# 	#changelog
-# 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-# 	@commands.command(aliases=['release', 'version'])
-# 	async def changelog(self, ctx, version=None):
-# 		title = 'Changelog'
-# 		sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[core.bot_mode]
-		
-# 		if version == 'list':
-# 			core.cursor.execute(sql)
-# 			versions = core.cursor.fetchall()
-# 			core.conn.commit()
-# 			versions.reverse()
-# 			embed = discord.Embed(title='Changelog', colour=core.default_color(ctx))
-# 			version_list = ', '.join([f'`{version[0]}`' for version in versions])
-# 			embed.add_field(name='Lista de versiones:', value=version_list)
-# 			embed.set_footer(text=f'Cantidad de versiones: {len(versions)}')
-# 			await self.send(ctx, embed=embed)
-
-# 		else:
-# 			if version == None:
-# 				core.cursor.execute(f"SELECT * FROM CHANGELOG WHERE VERSION='{core.bot_version}'")
-# 				summary = core.cursor.fetchall()[0]
-# 			else:
-# 				core.cursor.execute(sql)
-# 				versions = core.cursor.fetchall()
-# 				core.conn.commit()
-# 				if (version,) in versions:
-# 					core.cursor.execute(f"SELECT * FROM CHANGELOG WHERE VERSION=?", (version,))
-# 					summary = core.cursor.fetchall()[0]
-# 				else:
-# 					await self.send(ctx, core.Warning.error('Versión inválida'))
-# 					ctx.command.reset_cooldown(ctx)
-# 					return
-# 			core.conn.commit()
-# 			embed = discord.Embed(title=f'Versión {summary[0]} - {summary[1]}', description=summary[2], colour=core.default_color(ctx))
-# 			embed.set_footer(text=f'Escribe "{ctx.prefix}changelog list" para ver la lista de versiones')
-# 			await self.send(ctx, embed=embed)
+		else:
+			core.cursor.execute(f"SELECT * FROM CHANGELOG WHERE VERSION=?", (version,))
+			try:
+				summary = core.cursor.fetchall()[0]
+			except IndexError:
+				await interaction.response.send_message(core.Warning.error('Versión inválida'), ephemeral=True)
+				return
+			core.conn.commit()
+			embed = discord.Embed(title=f'Versión {summary[0]} - {summary[1]}', description=summary[2], colour=core.default_color(interaction))
+			await interaction.response.send_message(embed=embed)
 
 
 # 	# color
 # 	@commands.cooldown(1, 1.5, commands.BucketType.user)
-# 	@commands.command()
+# 	@app_commands.command()
 # 	async def color(self, ctx, *, value=None):
 # 		components = discord.ActionRow(
 # 			discord.SelectMenu(
@@ -192,7 +132,7 @@ class About(commands.Cog):
 
 # 	# botinfo
 # 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-# 	@commands.command(aliases=['stats'])
+# 	@app_commands.command(aliases=['stats'])
 # 	async def botinfo(self, ctx):
 # 		embed = discord.Embed(title='Información del bot', colour=core.default_color(ctx))
 # 		data_dict = {
@@ -212,7 +152,7 @@ class About(commands.Cog):
 
 # 	# commandstats
 # 	@commands.cooldown(1, 15.0, commands.BucketType.guild)
-# 	@commands.command(aliases=['commanduses', 'cmdstats', 'cmduses'])
+# 	@app_commands.command(aliases=['commanduses', 'cmdstats', 'cmduses'])
 # 	async def commandstats(self, ctx, command=None):
 # 		if command == None:
 # 			core.cursor.execute("SELECT * FROM COMMANDSTATS")

@@ -45,78 +45,78 @@ returned_value = None
 
 descs = {
 	'ping': 'Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando',
-	'help': 'Muestra una página de ayuda general o de un comando específico///[comando]',
+	'help': 'Muestra una página de ayuda general o de un comando específico',
 	'soy': 'Descubre quién eres',
-	'say': 'Haz que el bot diga algo///<texto>',
-	'emojitext': 'Devuelve el texto transformado en emojis///<texto>',
-	'replace': 'Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro. Usa comillas para para los 2 primeros parámetros para usar espacios: `"text 1" "texto 2" texto 3`///<reemplazar esto> <por esto> <en este texto>',
-	'spacedtext': 'Devuelve el texto enviado con cada letra espaciada el número de veces indicado///<número de espacios> <texto>',
-	'vaporwave': 'Devuelve el texto en vaporwave///<texto>',
-	'choose': 'Devuelve una de las opciones dadas, o "Si" o "No" si no le das opciones. Las opciones se separan por comas///[opciones]',
-	'poll': 'Crea encuestas de manera sencilla. Los emojis se separan por espacios poniendo `-e` delante, si no se epecifican emojis e usaran :+1: y :-1:///<cuerpo de la encuesta> [-e emojis]',
-	'kao': 'Devuelve una lista de kaomojis o un kaomoji específico///[kaomoji] [delete]',
-	'purge': 'Elimina la cantidad de mensajes indicada///<número de mensajes a eliminar>',
-	'avatar': 'Obtiene tú foto de perfil o la de otro usuario///[usuario]',
-	'kick': 'Kickea o expulsa a un miembro del servidor///<miembro> [razón]',
-	'ban': 'Banea a un miembro del servidor///<miembro> [razón]',
-	'unban': 'Revoca el baneo a un usuario///<ID del usuario> [razón]',
-	'defemoji': 'Envia emojis en el estado por defecto de tu dispositivo: \\😂. Si el emoji es personalizado de un server, se enviará su ID///<emojis>',
-	'sarcastic': 'ConVIeRtE el TEXtO a SarcAStiCO///<texto>',
-	'iq': 'Calcula tu IQ o el de otra persona///[miembro]',
-	'tag': 'Añade o usa tags tuyos o de otras personas///<nombre del tag>\ntoggle\ngift <usuario>\nrename <tag> <nuevo nombre>\nedit <tag> <nuevo contenido>\nadd <nombre del tag> <contenido del tag> [flags: -img, -nsfw]\nremove <nombre del tag>\nowner <tag>\nlist [usuario]\nserverlist',
+	'say': 'Haz que el bot diga algo',
+	'emojitext': 'Devuelve el texto transformado en emojis',
+	'replace': 'Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro. Usa comillas para para los 2 primeros parámetros para usar espacios: `"text 1" "texto 2" texto 3`',
+	'spacedtext': 'Devuelve el texto enviado con cada letra espaciada el número de veces indicado',
+	'vaporwave': 'Devuelve el texto en vaporwave',
+	'choose': 'Devuelve una de las opciones dadas, o "Si" o "No" si no le das opciones. Las opciones se separan por comas',
+	'poll': 'Crea encuestas de manera sencilla. Los emojis se separan por espacios poniendo `-e` delante, si no se epecifican emojis e usaran :+1: y :-1:',
+	'kao': 'Devuelve una lista de kaomojis o un kaomoji específico',
+	'purge': 'Elimina la cantidad de mensajes indicada',
+	'avatar': 'Obtiene tú foto de perfil o la de otro usuario',
+	'kick': 'Kickea o expulsa a un miembro del servidor',
+	'ban': 'Banea a un miembro del servidor',
+	'unban': 'Revoca el baneo a un usuario',
+	'defemoji': 'Envia emojis en el estado por defecto de tu dispositivo: \\😂. Si el emoji es personalizado de un server, se enviará su ID',
+	'sarcastic': 'ConVIeRtE el TEXtO a SarcAStiCO',
+	'iq': 'Calcula tu IQ o el de otra persona',
+	'tag': 'Añade o usa tags tuyos o de otras personas',
 	'links': 'Obtén los links oficiales del bot',
 	'someone': 'Menciona a alguien aleatorio del server',
-	'ocr': 'Transcribe el texto de la última imagen enviada en el chat///[URL|imagen]',
-	'joke': 'Envia un chiste que da menos risa que los de Siri///[ID del chiste] [-img]',
+	'ocr': 'Transcribe el texto de la última imagen enviada en el chat]',
+	'joke': 'Envia un chiste que da menos risa que los de Siri',
 	'nothing': 'Literalmente no hace nada',
-	'gay': 'Detecta como de homosexual eres///[usuario]',
-	'prefix': 'Cambia el prefijo del bot a nivel de server. Para crear un prefijo con espacios, escribelo entre comillas: `"prefijo"`///<prefijo>',
-	'changelog': 'Revisa el registro de cambios de cada versión del bot, o de la última dejando en blanco los parámetros///[versión]\nlist',
-	'color': 'Cambia el color de los embeds del bot///<color>\nlist\ndefault',
-	'wiktionary': 'Busca una palabra en inglés en el diccionario de Wiktionary///<palabra o expresión>',
-	'dle': 'Busca una palabra en español en el Diccionario de la lengua española///<palabra>',
+	'gay': 'Detecta como de homosexual eres',
+	'prefix': 'Cambia el prefijo del bot a nivel de server. Para crear un prefijo con espacios, escribelo entre comillas: `"prefijo"`',
+	'changelog': 'Revisa el registro de cambios de la última versión del bot o de una especificada',
+	'color': 'Cambia el color de los embeds del bot',
+	'wiktionary': 'Busca una palabra en inglés en el diccionario de Wiktionary',
+	'dle': 'Busca una palabra en español en el Diccionario de la lengua española',
 	'die': 'Apaga el bot',
-	'getmsg': 'Obtiene los datos de un mensaje///<id>',
-	'eval': 'Ejecuta código///<código>',
-	'reload': 'Recarga un módulo///<módulo>',
-	'unload': 'Descarga un módulo///<módulo>',
-	'load': 'Carga un módulo///<módulo>',
-	'binary': 'Codifica o decodifica código binario///encode <texto>\ndecode <texto>',
-	'morse': 'Codifica o decodifica código morse///encode <texto>\ndecode <texto>',
-	'hackban': 'Banea a un usuario sin necesidad de que esté en el server///<ID del usuario> [razón]',
-	'userinfo': 'Obtiene información de un usuario. Habrá más información si este usuario se encuentra en este servidor///[usuario]',
-	'roleinfo': 'Obtiene información de un rol///<rol>',
-	'channelinfo': 'Obtiene la información de un canal de cualquier tipo o una categoría///[canal o categoría]',
+	'getmsg': 'Obtiene los datos de un mensaje',
+	'eval': 'Ejecuta código',
+	'reload': 'Recarga un módulo',
+	'unload': 'Descarga un módulo',
+	'load': 'Carga un módulo',
+	'binary': 'Codifica o decodifica código binario',
+	'morse': 'Codifica o decodifica código morse',
+	'hackban': 'Banea a un usuario sin necesidad de que esté en el server',
+	'userinfo': 'Obtiene información de un usuario. Habrá más información si este usuario se encuentra en este servidor',
+	'roleinfo': 'Obtiene información de un rol',
+	'channelinfo': 'Obtiene la información de un canal de cualquier tipo o una categoría',
 	'serverinfo': 'Obtiene la información de este servidor',
-	'blacklist': 'Mete o saca a un usuario de la blacklist///<user>',
-	'uppercase': 'Convierte un texto a mayúsculas///<texto>',
-	'lowercase': 'Convierte un texto a minúsculas///<texto>',
-	'swapcase': 'Intercambia las minúsculas y las mayúsculas de un texto///<texto>',
-	'capitalize': 'Convierte la primera letra de cada palabra a mayúsculas///<texto>',
-	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto. Recuerda que puedes usar comillas para usar espacios en el primer texto. Puedes pasar comillas vacías ("") para contar caracteres y palabras en general en un texto///<letra o palabras> <texto>',
+	'blacklist': 'Mete o saca a un usuario de la blacklist',
+	'uppercase': 'Convierte un texto a mayúsculas',
+	'lowercase': 'Convierte un texto a minúsculas',
+	'swapcase': 'Intercambia las minúsculas y las mayúsculas de un texto',
+	'capitalize': 'Convierte la primera letra de cada palabra a mayúsculas',
+	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto. Recuerda que puedes usar comillas para usar espacios en el primer texto. Puedes pasar comillas vacías ("") para contar caracteres y palabras en general en un texto',
 	'botinfo': 'Obtiene información sobre el bot',
-	'tictactoe': 'Juega una partida de Tic Tac Toe contra la maquina o contra un amigo///[usuario]',
-	'reverse': 'Revierte un texto///<texto>',
-	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos///<desde el 0 hasta este número>\n<desde este número> <hasta este>',
-	'8ball': 'Preguntale algo el bot para que te responda///<pregunta>',
-	'didyoumean': 'Escribe un texto que te corrija Google a otro. Separa los 2 textos por punto y coma entre espacios: ` ; `///<Texto 1> ; <Texto 2>',
-	'drake': 'Haz un meme con la plantilla de drake. Separa los 2 textos por punto y coma entre espacios: ` ; `///<Texto 1> ; <Texto 2>',
-	'bad': 'Ta mal///[imagen]',
-	'amiajoke': 'Am I a joke to you?///[imagen]',
-	'jokeoverhead': 'El que no entendía la broma///[imagen]',
-	'salty': 'El ardido///[imagen]',
+	'tictactoe': 'Juega una partida de Tic Tac Toe contra la maquina o contra un amigo',
+	'reverse': 'Revierte un texto',
+	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
+	'8ball': 'Preguntale algo el bot para que te responda',
+	'didyoumean': 'Escribe un texto que te corrija Google a otro. Separa los 2 textos por punto y coma entre espacios: ` ; `',
+	'drake': 'Haz un meme con la plantilla de drake. Separa los 2 textos por punto y coma entre espacios: ` ; `',
+	'bad': 'Ta mal',
+	'amiajoke': 'Am I a joke to you?',
+	'jokeoverhead': 'El que no entendía la broma',
+	'salty': 'El ardido',
 	'birb': 'Random birb',
 	'dog': 'Imagen random de un perro',
 	'cat': 'Imagen random de un gato',
 	'sadcat': 'Imagen random de un gato triste',
-	'calling': 'Tom llamando hm///<texto>',
-	'captcha': 'Cursed captcha///<texto>',
-	'facts': 'facts///<texto>',
-	'supreme': 'Texto con fuente de Supreme///<light o dark> <texto>',
-	'commandstats': 'Muestra cuales son los comandos más usados o cuantos veces se ha usado un comando///[comando]',
-	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias///[búsqueda]',
-	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases///<usuario>',
-	'percentencoding': 'Codifica o decodifica código porcentaje o código URL///encode <texto>\ndecode <texto>'
+	'calling': 'Tom llamando hm',
+	'captcha': 'Cursed captcha',
+	'facts': 'facts',
+	'supreme': 'Texto con fuente de Supreme',
+	'commandstats': 'Muestra cuales son los comandos más usados o cuantos veces se ha usado un comando',
+	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias',
+	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases',
+	'percentencoding': 'Codifica o decodifica código porcentaje o código URL'
 }
 
 colors = {
@@ -159,22 +159,41 @@ bools = {True: 'Sí', False: 'No'}
 
 links = {
 	'Invítame a un servidor': 'https://discord.com/oauth2/authorize?client_id=582009564724199434&scope=bot&permissions=-9',
-	'Mi página de DBL': 'https://top.gg/bot/582009564724199434',
+	'Mi página de top.gg': 'https://top.gg/bot/582009564724199434',
 	'Vota por mí': 'https://top.gg/bot/582009564724199434/vote'
 }
 
 
-def default_color(ctx):
-	cursor.execute(f"SELECT VALUE FROM COLORS WHERE ID={ctx.message.author.id}")
+async def changelog_autocomplete(interaction: discord.Interaction, current: str):
+	sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[bot_mode]
+	cursor.execute(sql)
+	db_version_data = cursor.fetchall()
+	conn.commit()
+	db_version_data.reverse()
+	if len(db_version_data) > 25:
+		db_version_data = db_version_data[0: 24]
+	versions = [app_commands.Choice(name=version[0], value=version[0]) for version in db_version_data]
+	versions.append(app_commands.Choice(name='Ver todo', value='list'))
+	return versions
+
+
+def command_mention(interaction):
+	return f'</{interaction.command.name}:{interaction.command.id}>'
+
+
+def default_color(interaction):
+	# Check the color of the user in the database
+	cursor.execute(f"SELECT VALUE FROM COLORS WHERE ID={interaction.user.id}")
 	color = cursor.fetchall()
-	if ctx.guild == None:
+	if interaction.guild == None and color == []:
 		return discord.Colour.blue()
 	elif color == []:
 		try:
-			return ctx.guild.me.color
+			return interaction.guild.me.color
 		except AttributeError:
 			return discord.Color.blue()
 	else:
+		# If the color value is 0, return a random color
 		if color[0][0] == 0:
 			return colors[choice(tuple(colors)[1:])].value
 		return int(color[0][0])
