@@ -6,7 +6,6 @@ from discord.ext import commands
 from requests import get
 
 import core
-import helpsys
 from alexflipnote import Client
 
 

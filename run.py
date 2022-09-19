@@ -11,6 +11,26 @@ import core
 # Set up icecream
 install()
 
+# Create the bot client
+class LineBot(commands.Bot):
+    async def setup_hook(self):
+        # Load the extensions which contain commands and utilities
+        for extension in (
+            'listeners',
+            'bot',
+            # 'modtxt',
+            # 'mod',
+            # 'util',
+            # 'fun',
+            # 'owner',
+            # 'image'
+        ):
+            await bot.load_extension('extensions.' + extension)
+
+        # Add descriptions to the commands from the core.descs dict and syncs the commands
+        core.config_commands(self)
+        await self.tree.sync(guild=core.bot_guild)
+
 # Set the intents
 intents = discord.Intents.all()
 intents.bans = False
@@ -19,31 +39,6 @@ intents.webhooks = False
 intents.invites = False
 intents.voice_states = False
 intents.message_content = False
-
-# Create the client
-class LineBot(commands.Bot):
-    def __innit__(self):
-        # Set the intents
-        intents = discord.Intents.all()
-        intents.bans = False
-        intents.integrations = False
-        intents.webhooks = False
-        intents.invites = False
-        intents.voice_states = False
-        intents.message_content = False
-        super().__innit__(intents=intents)
-
-    async def setup_hook(self):
-        # Load the extensions which contain commands and utilities
-        # for extension in ('globalcog', 'listeners', 'modtxt', 'mod', 'util', 'fun', 'bot', 'owner', 'image'):
-        #     await bot.load_extension('extensions.' + extension)
-        await self.load_extension('extensions.bot')
-        # Add descriptions to the commands from the core.descs dict
-        core.config_commands(self)
-        await self.tree.sync(guild=discord.Object(id=724380436775567440))
-
-    async def on_ready(self):
-        core.logger.info(f'Bot iniciado como {self.user}')
 
 bot = LineBot(command_prefix='l!', help_command=None, owner_id=337029735144226825, case_insensitive=True, intents=intents)
 
@@ -62,7 +57,7 @@ async def main():
     #     botdata.logger.info(f'El bot ha entrado a un servidor: {repr(guild)}')
 
 
-    # Log in the bot
+    # Start the bot
     async with bot:
         core.cursor.execute(f"SELECT VALUE FROM RESOURCES WHERE KEY='{core.bot_mode}_token'")
         token = core.cursor.fetchall()[0][0]

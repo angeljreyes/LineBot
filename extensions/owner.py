@@ -7,7 +7,6 @@ import discord
 from discord.ext import commands
 
 import core
-import helpsys
 
 
 class Owner(commands.Cog):

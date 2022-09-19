@@ -44,7 +44,7 @@ class About(commands.Cog):
 # 	# uptime
 # 	@commands.command()
 # 	async def uptime(self, ctx):
-# 		delta = core.fix_delta(datetime.utcnow() - self.bot.get_cog('GlobalCog').ready_at)
+# 		delta = core.fix_delta(datetime.utcnow() - core.bot_ready_at)
 # 		await self.send(ctx, core.Warning.info(f'Online por **{delta}**'))
 
 
@@ -200,7 +200,7 @@ class About(commands.Cog):
 # 			'Uso de RAM y CPU': f'RAM: {Process().memory_info().vms//1000000} MB \
 # / {virtual_memory().used//1000000/1000} GB / {virtual_memory().total//1000000000} GB\n\
 # CPU: {Process().cpu_percent()}% / {cpu_percent()}%',
-# 			'Uptime': core.fix_delta(datetime.utcnow() - self.bot.get_cog('GlobalCog').ready_at),
+# 			'Uptime': core.fix_delta(datetime.utcnow() - core.bot_ready_at),
 # 			'Cantidad de servidores': len(ctx.bot.guilds),
 # 			'Cantidad de usuarios': len(ctx.bot.users),
 # 			'Dueño del bot': ctx.bot.get_user(ctx.bot.owner_id).mention,
@@ -238,4 +238,4 @@ class About(commands.Cog):
 
 
 async def setup(bot):
-	await bot.add_cog(About(bot), guild=discord.Object(id=724380436775567440))
+	await bot.add_cog(About(bot), guild=core.bot_guild)

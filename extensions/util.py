@@ -14,7 +14,6 @@ from modded_libraries.signi import get_defs
 from wiktionaryparser import WiktionaryParser as WikPar
 
 import core
-import helpsys
 
 rule34 = rule34.Rule34(asyncio.get_event_loop())
 

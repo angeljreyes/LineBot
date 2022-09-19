@@ -12,12 +12,13 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import helpsys
 import logging
 
 # stable / dev
 bot_mode = 'dev'
 bot_version = '2.0'
+bot_ready_at = datetime.utcnow()
+bot_guild = discord.Object(id=724380436775567440)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
@@ -43,7 +44,7 @@ cursor = conn.cursor()
 returned_value = None
 
 descs = {
-	'ping': 'Muestra lo que tarda el bot en enviar un mensaje desde que mandaste el comando en milisegundos',
+	'ping': 'Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando',
 	'help': 'Muestra una página de ayuda general o de un comando específico///[comando]',
 	'soy': 'Descubre quién eres',
 	'say': 'Haz que el bot diga algo///<texto>',
@@ -67,19 +68,19 @@ descs = {
 	'someone': 'Menciona a alguien aleatorio del server',
 	'ocr': 'Transcribe el texto de la última imagen enviada en el chat///[URL|imagen]',
 	'joke': 'Envia un chiste que da menos risa que los de Siri///[ID del chiste] [-img]',
-	'nothing': 'Literalmente no hace nada -s',
+	'nothing': 'Literalmente no hace nada',
 	'gay': 'Detecta como de homosexual eres///[usuario]',
 	'prefix': 'Cambia el prefijo del bot a nivel de server. Para crear un prefijo con espacios, escribelo entre comillas: `"prefijo"`///<prefijo>',
 	'changelog': 'Revisa el registro de cambios de cada versión del bot, o de la última dejando en blanco los parámetros///[versión]\nlist',
 	'color': 'Cambia el color de los embeds del bot///<color>\nlist\ndefault',
 	'wiktionary': 'Busca una palabra en inglés en el diccionario de Wiktionary///<palabra o expresión>',
 	'dle': 'Busca una palabra en español en el Diccionario de la lengua española///<palabra>',
-	'die': 'Apaga el bot -s',
-	'getmsg': 'Obtiene los datos de un mensaje///<id> -s',
-	'eval': 'Ejecuta código///<código> -s',
-	'reload': 'Recarga un módulo///<módulo> -s',
-	'unload': 'Descarga un módulo///<módulo> -s',
-	'load': 'Carga un módulo///<módulo> -s',
+	'die': 'Apaga el bot',
+	'getmsg': 'Obtiene los datos de un mensaje///<id>',
+	'eval': 'Ejecuta código///<código>',
+	'reload': 'Recarga un módulo///<módulo>',
+	'unload': 'Descarga un módulo///<módulo>',
+	'load': 'Carga un módulo///<módulo>',
 	'binary': 'Codifica o decodifica código binario///encode <texto>\ndecode <texto>',
 	'morse': 'Codifica o decodifica código morse///encode <texto>\ndecode <texto>',
 	'hackban': 'Banea a un usuario sin necesidad de que esté en el server///<ID del usuario> [razón]',
@@ -87,7 +88,7 @@ descs = {
 	'roleinfo': 'Obtiene información de un rol///<rol>',
 	'channelinfo': 'Obtiene la información de un canal de cualquier tipo o una categoría///[canal o categoría]',
 	'serverinfo': 'Obtiene la información de este servidor',
-	'blacklist': 'Mete o saca a un usuario de la blacklist///<user> -s',
+	'blacklist': 'Mete o saca a un usuario de la blacklist///<user>',
 	'uppercase': 'Convierte un texto a mayúsculas///<texto>',
 	'lowercase': 'Convierte un texto a minúsculas///<texto>',
 	'swapcase': 'Intercambia las minúsculas y las mayúsculas de un texto///<texto>',
@@ -163,24 +164,6 @@ links = {
 }
 
 
-# def get_prefix(bot, message, ignore_mention=False):
-# 	if message.channel.type == discord.ChannelType.private:
-# 		return default_prefix
-
-# 	else:
-# 		if message.content.replace('!', '').startswith(f'<@{bot.user.id}>') and not ignore_mention:
-# 			return f'<@!{bot.user.id}> ' if message.content.startswith('<@!') else f'<@{bot.user.id}> '
-# 		elif message.guild.id in bot.get_cog('GlobalCog').cached_prefixes:
-# 			return bot.get_cog('GlobalCog').cached_prefixes[message.guild.id]
-# 		else:
-# 			cursor.execute(f"SELECT PREFIX FROM {prefix_table} WHERE ID={message.guild.id}")
-# 			prefix = cursor.fetchall()
-# 			conn.commit()
-# 			prefix = prefix[0][0] if prefix != [] else default_prefix
-# 			bot.get_cog('GlobalCog').cached_prefixes.update({message.guild.id: prefix})
-# 			return prefix
-
-
 def default_color(ctx):
 	cursor.execute(f"SELECT VALUE FROM COLORS WHERE ID={ctx.message.author.id}")
 	color = cursor.fetchall()
@@ -197,29 +180,30 @@ def default_color(ctx):
 		return int(color[0][0])
 
 
-async def askyn(ctx, message:str, timeout=12.0, user=None):
-	class View(discord.ui.View):
-		result = None
-		def check(self, button, interaction):
-			if interaction.user == ctx.author:
-				result = button.custom_id == 'yes'
+# async def askyn(ctx, message:str, timeout=12.0, user=None):
+# 	class View(discord.ui.View):
+# 		result = None
+# 		def check(self, button, interaction):
+# 			if interaction.user == ctx.author:
+# 				result = button.custom_id == 'yes'
 
-		@discord.ui.button(custom_id='yes', style=discord.ButtonStyle.green, emoji=check_emoji)
-		async def yes_callback(self, button, interaction):
-			return self.check(button, interaction)
+# 		@discord.ui.button(custom_id='yes', style=discord.ButtonStyle.green, emoji=check_emoji)
+# 		async def yes_callback(self, button, interaction):
+# 			return self.check(button, interaction)
 
-		@discord.ui.button(custom_id='no', style=discord.ButtonStyle.red, emoji=cross_emoji)
-		async def no_callback(self, button, interaction):
-			return self.check(button, interaction)
+# 		@discord.ui.button(custom_id='no', style=discord.ButtonStyle.red, emoji=cross_emoji)
+# 		async def no_callback(self, button, interaction):
+# 			return self.check(button, interaction)
 
-		async def on_timeout(self):
-			for child in self.children:
-				child.disabled = True
-			await question.edit(view=view)
-			return None
+# 		async def on_timeout(self):
+# 			for child in self.children:
+# 				child.disabled = True
+# 			await question.edit(view=view)
+# 			return None
 
-	user = ctx.author if user == None else user
-	await ctx.bot.get_cog('GlobalCog').send(ctx, Warning.question(message), view=View())
+# 	user = ctx.author if user == None else user
+# 	await ctx.bot.get_cog('GlobalCog').send(ctx, Warning.question(message), view=View())
+	# //////////
 	# def check(interaction, button):
 	# 	return interaction.message.id == question.id and interaction.author.id == user.id
 	# try:
@@ -233,22 +217,22 @@ async def askyn(ctx, message:str, timeout=12.0, user=None):
 	# return button.custom_id == 'yes'
 
 
-async def ask(ctx, message:str, *, timeout=12.0, user=None, regex=None, raises=False):
-	user = ctx.author if user == None else user
-	question = await ctx.send(Warning.question(message))
-	def check(message):
-		return message.author.id == user.id and (fullmatch(regex, message.content) if regex != None else True) and message.channel.id == ctx.channel.id
-	try:
-		message = await ctx.bot.wait_for('message', timeout=timeout, check=check)
-	except asyncio.TimeoutError:
-		if raises:
-			await question.delete()
-			raise asyncio.TimeoutError
-		else:
-			await ctx.bot.get_cog('GlobalCog').send(ctx, Warning.error(f'{user.mention} No respondiste a tiempo'))
-			return None
-	await ctx.channel.delete_messages((question, message))
-	return message.content
+# async def ask(ctx, message:str, *, timeout=12.0, user=None, regex=None, raises=False):
+# 	user = ctx.author if user == None else user
+# 	question = await ctx.send(Warning.question(message))
+# 	def check(message):
+# 		return message.author.id == user.id and (fullmatch(regex, message.content) if regex != None else True) and message.channel.id == ctx.channel.id
+# 	try:
+# 		message = await ctx.bot.wait_for('message', timeout=timeout, check=check)
+# 	except asyncio.TimeoutError:
+# 		if raises:
+# 			await question.delete()
+# 			raise asyncio.TimeoutError
+# 		else:
+# 			await ctx.bot.get_cog('GlobalCog').send(ctx, Warning.error(f'{user.mention} No respondiste a tiempo'))
+# 			return None
+# 	await ctx.channel.delete_messages((question, message))
+# 	return message.content
 
 
 async def get_channel_image(ctx):
@@ -308,7 +292,7 @@ def check_blacklist(ctx, user=None, raises=True):
 
 
 def config_commands(bot):
-	for command in bot.commands:
+	for command in bot.tree.get_commands(guild=bot_guild):
 		if command.name in descs:
 			command.description = descs[command.name]
 
