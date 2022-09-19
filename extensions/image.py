@@ -2,6 +2,7 @@ import json
 from urllib.parse import quote
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from requests import get
 
@@ -21,7 +22,7 @@ class Image(commands.Cog):
 
 	# # didyoumean
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command(aliases=['didumean', 'dym', 'dum'])
+	# @app_commands.command(aliases=['didumean', 'dym', 'dum'])
 	# async def didyoumean(self, ctx, *, text=None):
 	# 	if text != None:
 	# 		if ' ; ' in text:
@@ -38,7 +39,7 @@ class Image(commands.Cog):
 
 	# # drake
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def drake(self, ctx, *, text=None):
 	# 	if text != None:
 	# 		if ' ; ' in text:
@@ -55,7 +56,7 @@ class Image(commands.Cog):
 
 	# # bad
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def bad(self, ctx, url=None):
 	# 	if url == None:
 	# 		image = await botdata.get_channel_image(ctx)
@@ -72,7 +73,7 @@ class Image(commands.Cog):
 
 	# # amiajoke
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command(aliases=['amiajoketoyou', 'aiaj', 'aiajty'])
+	# @app_commands.command(aliases=['amiajoketoyou', 'aiaj', 'aiajty'])
 	# async def amiajoke(self, ctx, url=None):
 	# 	if url == None:
 	# 		image = await botdata.get_channel_image(ctx)
@@ -89,7 +90,7 @@ class Image(commands.Cog):
 
 	# # jokeoverhead
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command(aliases=['joh', 'woosh'])
+	# @app_commands.command(aliases=['joh', 'woosh'])
 	# async def jokeoverhead(self, ctx, url=None):
 	# 	if url == None:
 	# 		image = await botdata.get_channel_image(ctx)
@@ -106,7 +107,7 @@ class Image(commands.Cog):
 
 	# # salty
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def salty(self, ctx, url=None):
 	# 	if url == None:
 	# 		image = await botdata.get_channel_image(ctx)
@@ -123,7 +124,7 @@ class Image(commands.Cog):
 
 	# # calling
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def calling(self, ctx, *, text=None):
 	# 	if text == None:
 	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
@@ -137,7 +138,7 @@ class Image(commands.Cog):
 
 	# # supreme
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def supreme(self, ctx, theme=None, *, text=None):
 	# 	if None in (theme, text):
 	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
@@ -156,7 +157,7 @@ class Image(commands.Cog):
 
 	# # captcha
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def captcha(self, ctx, *, text=None):
 	# 	if text == None:
 	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
@@ -170,7 +171,7 @@ class Image(commands.Cog):
 
 	# # facts
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @commands.command()
+	# @app_commands.command()
 	# async def facts(self, ctx, *, text=None):
 	# 	if text == None:
 	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
@@ -184,35 +185,35 @@ class Image(commands.Cog):
 
 	# birb
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def birb(self, ctx):
 		await self.send(ctx, await self.api.birb())
 
 
 	# dog
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def dog(self, ctx):
 		await self.send(ctx, await self.api.dogs())
 
 
 	# cat
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def cat(self, ctx):
 		await self.send(ctx, await self.api.cats())
 
 
 	# sadcat
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def sadcat(self, ctx):
 		await self.send(ctx, await self.api.sadcat())
 
 
 	# mcskin
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['skin'])
+	@app_commands.command(aliases=['skin'])
 	async def mcskin(self, ctx, *, user=None):
 		if user == None:
 			await self.send(ctx, embed=helpsys.get_cmd(ctx))

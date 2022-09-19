@@ -3,6 +3,7 @@ from random import choice
 from re import match
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import core
@@ -16,7 +17,7 @@ class Modtxt(commands.Cog):
 
 	# emojitext
 	@commands.cooldown(5, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['emojitxt', 'etext', 'etxt'])
+	@app_commands.command(aliases=['emojitxt', 'etext', 'etxt'])
 	async def emojitext(self, ctx, *, arg=None):
 		if arg == None:
 			await self.send(ctx, core.Warning.error('Escribe un texto para transformar a emojis'))
@@ -52,7 +53,7 @@ class Modtxt(commands.Cog):
 
 	# replace
 	@commands.cooldown(5, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def replace(self, ctx, replacing=None, replacement=None, *, text=None):
 		if None in (replacing, replacement, text):
 			await self.send(ctx, embed=helpsys.get_cmd(ctx, 'replace'))
@@ -62,7 +63,7 @@ class Modtxt(commands.Cog):
 
 	# spacedtext
 	@commands.cooldown(2, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['spacetext', 'spacedtxt', 'spacetxt'])
+	@app_commands.command(aliases=['spacetext', 'spacedtxt', 'spacetxt'])
 	async def spacedtext(self, ctx, spaces=None, *, arg=None):
 		if None in (spaces, arg) or not spaces.isnumeric(): 
 			await self.send(ctx, embed=helpsys.get_cmd(ctx, 'spacedtext'))
@@ -77,7 +78,7 @@ class Modtxt(commands.Cog):
 
 	# vaporwave
 	@commands.cooldown(3, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['vapor'])
+	@app_commands.command(aliases=['vapor'])
 	async def vaporwave(self, ctx, *, arg='Sample text'):
 		output = ""
 		other_chars = {32: 12288, 162: 65504, 163: 65505, 165: 65509, 166: 65508, 172: 65506, 175: 65507, 8361: 65510, 10629: 65375, 10630: 65376}
@@ -94,42 +95,42 @@ class Modtxt(commands.Cog):
 
 	# sarcastic
 	@commands.cooldown(2, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def sarcastic(self, ctx, *, text='escribe algo pues'):
 		await self.send(ctx, ''.join((choice((letter.lower(), letter.upper())) for letter in text)))
 
 
 	# uppercase
 	@commands.cooldown(2, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def uppercase(self, ctx, *, text='escribe algo'):
 		await self.send(ctx, await commands.clean_content().convert(ctx, text.upper()))
 
 
 	# lowercase
 	@commands.cooldown(2, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def lowercase(self, ctx, *, text='escribe algo'):
 		await self.send(ctx, await commands.clean_content().convert(ctx, text.lower()))
 
 
 	# swapcase
 	@commands.cooldown(2, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def swapcase(self, ctx, *, text='escribe algo'):
 		await self.send(ctx, await commands.clean_content().convert(ctx, text.swapcase()))
 
 
 	# capitalize
 	@commands.cooldown(2, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def capitalize(self, ctx, *, text='escribe algo'):
 		await self.send(ctx, await commands.clean_content().convert(ctx, text.title()))
 
 
 	# reverse
 	@commands.cooldown(2, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def reverse(self, ctx, *, text='escribe algo'):
 		await self.send(ctx, await commands.clean_content().convert(ctx, text[::-1]))
 

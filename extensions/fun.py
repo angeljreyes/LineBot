@@ -2,8 +2,10 @@ import asyncio
 from random import choice, randint
 
 import discord
-import modded_libraries.tictactoe as ttt
+from discord import app_commands
 from discord.ext import commands
+
+import modded_libraries.tictactoe as ttt
 from requests import get
 
 import core
@@ -16,7 +18,7 @@ class Fun(commands.Cog):
 
 
 	# soy
-	@commands.command()
+	@app_commands.command()
 	async def soy(self, ctx):
 		await self.send(ctx, choice((
 		'Eres re gay, te encanta chuparla',
@@ -37,7 +39,7 @@ class Fun(commands.Cog):
 
 	# say
 	@commands.cooldown(5, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def say(self, ctx, *, arg=None):
 		if arg != None:
 			if ctx.channel.type != discord.ChannelType.private:
@@ -47,7 +49,7 @@ class Fun(commands.Cog):
 
 
 	# iq
-	@commands.command(name='iq')
+	@app_commands.command(name='iq')
 	async def _iq(self, ctx, user:discord.Member=''):
 		iqs = (
 			'-10, tu cabeza está en blanco, ni siquiera deberias estar respirando :thinking:',
@@ -71,7 +73,7 @@ class Fun(commands.Cog):
 
 	# joke
 	@commands.cooldown(1, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def joke(self, ctx, *, args=None):
 		if args == None or not args.endswith('-img'):
 			isImg = False
@@ -108,13 +110,13 @@ class Fun(commands.Cog):
 
 
 	# nothing
-	@commands.command()
+	@app_commands.command()
 	async def nothing(self, ctx):
 		pass
 
 
 	# gay
-	@commands.command()
+	@app_commands.command()
 	async def gay(self, ctx, *, user=None):
 		user = ctx.message.author.display_name if user == None else (await commands.MemberConverter().convert(ctx, user)).display_name
 		percent = randint(0, 100)
@@ -141,7 +143,7 @@ class Fun(commands.Cog):
 
 	# tictactoe
 	@commands.max_concurrency(1, commands.BucketType.user)
-	@commands.command(aliases=['ttt'])
+	@app_commands.command(aliases=['ttt'])
 	async def tictactoe(self, ctx, *, user=None):
 		if user == None or (await commands.MemberConverter().convert(ctx, user)).id == ctx.guild.me.id:
 			user = ctx.guild.me
@@ -231,7 +233,7 @@ class Fun(commands.Cog):
 
 	# 8ball
 	@commands.cooldown(1, 2.5, commands.BucketType.user)
-	@commands.command(name='8ball', aliases=['8b'])
+	@app_commands.command(name='8ball', aliases=['8b'])
 	async def _8ball(self, ctx, *, question=None):
 		if question == None:
 			await self.send(ctx, core.Warning.error('Escribe una pregunta'))

@@ -1,4 +1,5 @@
 import discord, asyncio, core
+from discord import app_commands
 from discord.ext import commands
 
 
@@ -10,7 +11,7 @@ class Mod(commands.Cog):
 
 	# purge
 	@commands.cooldown(1, 4.0, commands.BucketType.user)
-	@commands.command(aliases=['clear'])
+	@app_commands.command(aliases=['clear'])
 	@commands.has_permissions(manage_messages=True)
 	@commands.guild_only()
 	async def purge(self, ctx, amount='a'):	
@@ -27,7 +28,7 @@ class Mod(commands.Cog):
 
 
 	# kick
-	@commands.command()
+	@app_commands.command()
 	@commands.has_permissions(kick_members=True)
 	@commands.guild_only()
 	async def kick(self, ctx, member=None, reason=''):
@@ -45,7 +46,7 @@ class Mod(commands.Cog):
 
 
 	# ban
-	@commands.command()
+	@app_commands.command()
 	@commands.has_permissions(ban_members=True)
 	@commands.guild_only()
 	async def ban(self, ctx, member=None, reason=''):
@@ -63,7 +64,7 @@ class Mod(commands.Cog):
 
 
 	# hackban
-	@commands.command()
+	@app_commands.command()
 	@commands.has_permissions(ban_members=True)
 	@commands.guild_only()
 	async def hackban(self, ctx, user=None, reason=''):
@@ -83,7 +84,7 @@ class Mod(commands.Cog):
 
 
 	# unban
-	@commands.command()
+	@app_commands.command()
 	@commands.has_permissions(ban_members=True)
 	@commands.guild_only()
 	async def unban(self, ctx, user=None, reason=''):

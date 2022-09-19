@@ -4,6 +4,7 @@ from re import DOTALL, findall, fullmatch
 from timeit import default_timer as timer
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import core
@@ -16,7 +17,7 @@ class Owner(commands.Cog):
 
 
 	# die
-	@commands.command()
+	@app_commands.command()
 	async def die(self, ctx):
 		await ctx.message.add_reaction(u'\U0001f480')
 		print('\nBot apagado')
@@ -24,14 +25,14 @@ class Owner(commands.Cog):
 
 
 	# getmsg
-	@commands.command()
+	@app_commands.command()
 	async def getmsg(self, ctx, id):
 		print(await ctx.fetch_message(id))
 		await ctx.message.add_reaction(u'\U00002705')
 
 
 	# eval
-	@commands.command()
+	@app_commands.command()
 	async def eval(self, ctx, *, code):
 		use_embed = True
 		if code.endswith(' -s'):
@@ -85,7 +86,7 @@ class Owner(commands.Cog):
 
 
 	# reload
-	@commands.command()
+	@app_commands.command()
 	async def reload(self, ctx, extension=''):
 		self.bot.reload_extension(extension)
 		core.config_commands(self.bot)
@@ -93,14 +94,14 @@ class Owner(commands.Cog):
 
 
 	# unload
-	@commands.command()
+	@app_commands.command()
 	async def unload(self, ctx, extension=''):
 		self.bot.unload_extension(extension)
 		await ctx.message.add_reaction(u'\U00002705')
 
 
 	# load
-	@commands.command()
+	@app_commands.command()
 	async def load(self, ctx, extension=''):
 		self.bot.load_extension(extension)
 		core.config_commands(self.bot)
@@ -108,7 +109,7 @@ class Owner(commands.Cog):
 
 
 	# blacklist
-	@commands.command()
+	@app_commands.command()
 	async def blacklist(self, ctx, *, user):
 		user = await core.get_user(ctx, user)
 		if core.check_blacklist(ctx, user, False):
@@ -123,7 +124,7 @@ class Owner(commands.Cog):
 
 
 	#button_test
-	@commands.command()
+	@app_commands.command()
 	async def test(self, ctx):
 		components = [
 			discord.ActionRow(

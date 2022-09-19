@@ -6,9 +6,11 @@ from re import findall, fullmatch, search
 from urllib.parse import quote, unquote
 
 import discord
+from discord import app_commands
+from discord.ext import commands
+
 import rule34
 from aiohttp import ClientOSError
-from discord.ext import commands
 from requests import get
 from modded_libraries.signi import get_defs
 from wiktionaryparser import WiktionaryParser as WikPar
@@ -107,7 +109,7 @@ class Util(commands.Cog):
 
 	# choose
 	@commands.cooldown(5, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['choice'])
+	@app_commands.command(aliases=['choice'])
 	async def choose(self, ctx, *, args=''):
 		if args != '':
 			args = args.replace(', ', ',')
@@ -124,7 +126,7 @@ class Util(commands.Cog):
 
 	# poll
 	@commands.cooldown(1, 6.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def poll(self, ctx, *, args=None):
 		if args == None: 
 			await self.send(ctx, embed=helpsys.get_cmd(ctx, 'poll'))
@@ -152,7 +154,7 @@ class Util(commands.Cog):
 
 	# kao
 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def kao(self, ctx, kaomoji='', delete=''):
 		kaomojis = {
 			'lenny':'( ͡° ͜ʖ ͡°)',
@@ -189,7 +191,7 @@ class Util(commands.Cog):
 
 	# avatar
 	@commands.cooldown(1, 2.5, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def avatar(self, ctx, *, user=''):
 		user = ctx.message.author if user == '' else await core.get_user(ctx, user)
 		await self.send(ctx, embed=discord.Embed(
@@ -199,7 +201,7 @@ class Util(commands.Cog):
 
 
 	# defemoji
-	@commands.command(aliases=['defaultemoji'])
+	@app_commands.command(aliases=['defaultemoji'])
 	async def defemoji(self, ctx, *, emojis=None):
 		if emojis == None:
 			await self.send(ctx, 'Escribe algunos emojis para ver su estado por defecto')
@@ -439,7 +441,7 @@ class Util(commands.Cog):
 
 	# someone
 	@commands.cooldown(3, 5.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	@commands.has_permissions(mention_everyone=True)
 	async def someone(self, ctx):
 		await self.send(ctx, choice(ctx.guild.members).mention)
@@ -447,7 +449,7 @@ class Util(commands.Cog):
 
 	# ocr
 	@commands.cooldown(1, 5.0, commands.BucketType.channel)
-	@commands.command()
+	@app_commands.command()
 	async def ocr(self, ctx):
 		images = await core.get_channel_image(ctx)
 		url = ('https://api.tsu.sh/google/ocr?q=' + images) if images != None else None
@@ -461,7 +463,7 @@ class Util(commands.Cog):
 
 	# dle
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['rae'])
+	@app_commands.command(aliases=['rae'])
 	async def dle(self, ctx, *, query=None):
 		if query == None:
 			await self.send(ctx, core.Warning.error('Escribe una palabra en español para buscar su significado'))
@@ -499,7 +501,7 @@ class Util(commands.Cog):
 
 	# wiktionary
 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@commands.command(aliases=['wikt', 'wt'])
+	@app_commands.command(aliases=['wikt', 'wt'])
 	async def wiktionary(self, ctx, *, query=None):
 		if query == None:
 			await self.send(ctx, core.Warning.error(f'Escribe una palabra en inglés para buscar su significado. Para buscar palabras en español, usa `{ctx.prefix}dle`'))
@@ -645,7 +647,7 @@ class Util(commands.Cog):
 
 	# userinfo
 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-	@commands.command(aliases=['user'])
+	@app_commands.command(aliases=['user'])
 	@commands.guild_only()
 	async def userinfo(self, ctx, *, user=None):
 		user = ctx.author if user == None else await core.get_user(ctx, user)
@@ -693,7 +695,7 @@ class Util(commands.Cog):
 
 	# roleinfo
 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-	@commands.command(aliases=['role'])
+	@app_commands.command(aliases=['role'])
 	@commands.guild_only()
 	async def roleinfo(self, ctx, *, role=None):
 		if role == None:
@@ -720,7 +722,7 @@ class Util(commands.Cog):
 
 	# channelinfo
 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-	@commands.command(aliases=('channel', 'categoryinfo', 'category'))
+	@app_commands.command(aliases=('channel', 'categoryinfo', 'category'))
 	async def channelinfo(self, ctx, *, channel=None):
 		channel = ctx.channel if channel == None else await core.ChannelConverter().convert(ctx, channel)
 		data_dict = {
@@ -771,7 +773,7 @@ class Util(commands.Cog):
 
 	# serverinfo
 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-	@commands.command(aliases=('server', 'guildinfo', 'guild'))
+	@app_commands.command(aliases=('server', 'guildinfo', 'guild'))
 	@commands.guild_only()
 	async def serverinfo(self, ctx):
 		guild = ctx.guild
@@ -822,7 +824,7 @@ Usuarios: {len(tuple(filter(lambda x: not x.bot, guild.members)))}
 
 	# count
 	@commands.cooldown(1, 2.0, commands.BucketType.user)
-	@commands.command()
+	@app_commands.command()
 	async def count(self, ctx, to_count=None, *, text=None):
 		if None in (to_count, text):
 			await self.send(ctx, embed=helpsys.get_cmd(ctx))
@@ -854,7 +856,7 @@ Usuarios: {len(tuple(filter(lambda x: not x.bot, guild.members)))}
 
 
 	# randomnumber
-	@commands.command(aliases=['randint', 'randnum', 'ri', 'rn', 'dice', 'roll', 'rolldice'])
+	@app_commands.command(aliases=['randint', 'randnum', 'ri', 'rn', 'dice', 'roll', 'rolldice'])
 	async def randomnumber(self, ctx, *, args=None):
 		args = list(filter(lambda x: x != '', args.replace(' ', ',').split(','))) if args != None else ['a']
 		if len(list(filter(lambda x: not fullmatch(r'[-]?[0-9]+', x), args))) != 0 or len(args) == 0:
@@ -892,7 +894,7 @@ Usuarios: {len(tuple(filter(lambda x: not x.bot, guild.members)))}
 
 	#r34
 	@commands.cooldown(2, 7.0, commands.BucketType.user)
-	@commands.command(aliases=['rule34'])
+	@app_commands.command(aliases=['rule34'])
 	@commands.is_nsfw()
 	async def r34(self, ctx, *, query=''):
 		async with ctx.typing():
