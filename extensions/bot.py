@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from time import perf_counter
 
 import discord
 from discord import app_commands
@@ -18,11 +19,12 @@ class About(commands.Cog):
 	# ping
 	@app_commands.command(name='ping')
 	async def _ping(self, interaction: discord.Interaction):
-		content = core.Warning.info('El ping es de')[:-1]
+		content = core.Warning.info('Pong!')[:-1]
+		counter_start = perf_counter()
 		await interaction.response.send_message(content)
-		response = await interaction.original_response()
-		ping = (interaction.created_at - response.created_at).microseconds // 1000
-		await response.edit(content=content + f' **{ping} ms**.')
+		counter_stop = perf_counter()
+		ping = round((counter_stop - counter_start) * 1000)
+		await interaction.edit_original_response(content=f'{content} El ping es de **{ping} ms**.')
 
 
 	# links
@@ -41,6 +43,7 @@ class About(commands.Cog):
 	@app_commands.command()
 	@app_commands.autocomplete(version=core.changelog_autocomplete)
 	@app_commands.checks.cooldown(1, 3.0)
+	@app_commands.rename(version='versión')
 	async def changelog(self, interaction: discord.Interaction, version: str = core.bot_version):
 		"""
 		version: str
@@ -71,63 +74,47 @@ class About(commands.Cog):
 			await interaction.response.send_message(embed=embed)
 
 
-# 	# color
-# 	@commands.cooldown(1, 1.5, commands.BucketType.user)
-# 	@app_commands.command()
-# 	async def color(self, ctx, *, value=None):
-# 		components = discord.ActionRow(
-# 			discord.SelectMenu(
-# 				custom_id='Color',
-# 				options=[discord.SelectOption(label='Default', value='default')] + [
-# 					discord.SelectOption(
-# 						label=color.capitalize(),
-# 						value=color
-# 					) for color in core.colors
-# 				]
-# 			)
-# 		)
-# 		msg = await self.send(ctx, 'Elige un color para tus embeds:', components=components)
-# 		def check(interaction, select_menu):
-# 			return interaction.author.id == ctx.author.id and select_menu.message.id == ctx.message.id
-# 		try:
-# 			interaction, select_menu = await ctx.bot.wait_for('selection_select', timeout=120, check=check)
-# 		except asyncio.TimeoutError:
-# 			await msg.edit(components=components.disable_all_select_menus())
-# 			return
-# 		await interaction.defer()
-# 		value = select_menu.value
+	# color
+	@app_commands.command()
+	@app_commands.autocomplete(value=core.color_autocomplete)
+	@app_commands.checks.cooldown(1, 3)
+	@app_commands.rename(value='valor')
+	async def color(self, interaction: discord.Interaction, value: str = ''):
+		"""
+		value: str
+			Elige un color de la lista o escribe un #hex o rgb(r, g ,b)
+		"""
+		if value == '':
+			embed = discord.Embed(description=':arrow_left: Este es tu color actual', colour=core.default_color(interaction))
+			await interaction.response.send_message(embed=embed, ephemeral=True)
+			return
 
-# 		# if value == 'list':
-# 		# 	color_string = ''
-# 		# 	for color in botdata.colors:
-# 		# 		color_string += f'- {color}\n'
-# 		# 	color_embed = discord.Embed(title='Colores disponibles', description=color_string, colour=botdata.default_color(ctx))
-# 		# 	await self.send(ctx, embed=color_embed)
+		elif value == 'default':
+			core.cursor.execute(f"DELETE FROM COLORS WHERE ID={interaction.user.id}")
+			await interaction.response.send_message(embed=discord.Embed(description=core.Warning.success('El color ha sido reestablecido'), colour=core.default_color(interaction)), ephemeral=True)
 
-# 		if value == 'default':
-# 			core.cursor.execute(f"DELETE FROM COLORS WHERE ID={ctx.message.author.id}")
-# 			await interaction.edit(core.Warning.success('El color ha sido reestablecido', components=[]))
+		else:
+			if value == 'random':
+				new_value = 0
+			else:
+				try:
+					new_value = (await commands.ColourConverter().convert(interaction, value)).value
+				except:
+					await interaction.response.send_message(core.Warning.error(f'Selecciona un color válido, escribe un código hex `#00ffaa`, rgb `rgb(123, 123, 123)` o selecciona "Color por defecto" para reestablecer el color al del rol del bot'), ephemeral=True)
+					return
 
-# 		else:
-# 			if value == 'random':
-# 				new_value = 0
-# 			else:
-# 				try:
-# 					new_value = (await commands.ColourConverter().convert(ctx, value)).value
-# 				except:
-# 					await interaction.edit(core.Warning.error(f'Selecciona un color válido, escribe un código hex (`{ctx.prefix}color #00ffaa`) o selecciona "Default" para reestablecer el color al del rol del bot.'))
-# 					ctx.command.reset_cooldown(ctx)
-# 					return
+			core.cursor.execute(f"SELECT ID FROM COLORS WHERE ID={interaction.user.id}")
+			check = core.cursor.fetchall()
+			# Check if the user is registered in the database or not
+			if check == []:
+				core.cursor.execute(f"INSERT INTO COLORS VALUES({interaction.user.id}, ?)", (new_value,))
+			else:
+				core.cursor.execute(f"UPDATE COLORS SET VALUE=? WHERE ID={interaction.user.id}", (new_value,))
+			embed = discord.Embed(description=core.Warning.success(f'El color ha sido cambiado a **{value}**'), colour=core.default_color(interaction))
+			await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# 			core.cursor.execute(f"SELECT ID FROM COLORS WHERE ID={ctx.message.author.id}")
-# 			check = core.cursor.fetchall()
-# 			if check == []:
-# 				core.cursor.execute(f"INSERT INTO COLORS VALUES({ctx.message.author.id}, ?)", (new_value,))
-# 			else:
-# 				core.cursor.execute(f"UPDATE COLORS SET VALUE=? WHERE ID={ctx.message.author.id}", (new_value,))
-# 			await interaction.edit(core.Warning.success(f'El color ha sido cambiado a **{value}**'))
+		core.conn.commit()
 
-# 		core.conn.commit()
 
 
 # 	# botinfo

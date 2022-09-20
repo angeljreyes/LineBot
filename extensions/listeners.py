@@ -16,6 +16,7 @@ class Listeners(commands.Cog):
 		self.bot = bot
 		@self.bot.tree.error
 		async def error_handler(interaction, error):
+			ic(repr(error))
 			error_msg = None
 			# An exception object and its error message
 			error_messages = {
@@ -85,12 +86,20 @@ class Listeners(commands.Cog):
 
 			# If the error remains unidentified, send a generic error message
 			if error_msg == None:
-				await interaction.send(embed=discord.Embed(
+				embed = discord.Embed(
 					title=f'Ha ocurrido un error',
 					description=f'```py\n{repr(error)}\n```',
 					colour=core.default_color(interaction)
-				).set_author(name=interaction.author.name, icon_url=interaction.author.avatar.url).set_footer(text='Este error ha sido notificado y será investigado para su posterior correción.'))
-				raise error
+				).set_author(
+					name=interaction.user.name,
+					icon_url=interaction.user.display_avatar.url
+				).set_footer(text='Este error ha sido notificado y será investigado para su posterior correción.')
+				if not interaction.response.is_done():
+					await interaction.response.send_message(embed=embed, ephemeral=True)
+				else:
+					await interaction.edit_original_response(content=None, embed=embed, attachments=[], view=None)
+				core.logger.error('An error has ocurred', exc_info=error)
+				return
 
 			# If the error message is an empty string, don't do anything
 			if error_msg == '':
@@ -110,9 +119,6 @@ class Listeners(commands.Cog):
 	@commands.Cog.listener('on_resumed')
 	async def resume(self):
 		core.logger.info('Sesión resumida')
-
-
-	
 
 
 	@commands.Cog.listener('on_app_command_completion')

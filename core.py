@@ -138,11 +138,37 @@ colors = {
 	'red':discord.Colour.red(),
 	'dark red':discord.Colour.dark_red(),
 	'lighter grey':discord.Colour.lighter_grey(),
-	'dark grey':discord.Colour.dark_grey(),
 	'light grey':discord.Colour.light_grey(),
+	'dark grey':discord.Colour.dark_grey(),
 	'darker grey':discord.Colour.darker_grey(),
 	'blurple':discord.Colour.blurple(),
 	'greyple':discord.Colour.greyple()
+}
+
+colors_display = {
+	'random': 'Aleatorio',
+	'teal': 'Verde azulado',
+	'dark teal': 'Verde azulado oscuro',
+	'green': 'Verde',
+	'dark green': 'Verde oscuro',
+	'blue': 'Azul',
+	'dark blue': 'Azul oscuro',
+	'purple': 'Morado',
+	'dark purple': 'Morado oscuro',
+	'magenta': 'Magenta',
+	'dark magenta': 'Magenta oscuro',
+	'gold': 'Dorado',
+	'dark gold': 'Dorado oscuro',
+	'orange': 'Naranja',
+	'dark orange': 'Naranja oscuro',
+	'red': 'Rojo',
+	'dark red': 'Rojo oscuro',
+	'lighter grey': 'Gris más claro',
+	'light grey': 'Gris claro',
+	'dark grey': 'Gris oscuro',
+	'darker grey': 'Gris más oscuro',
+	'blurple': 'Blurple',
+	'greyple': 'Greyple'
 }
 
 bucket_types = {
@@ -164,21 +190,29 @@ links = {
 }
 
 
+
+
+
 async def changelog_autocomplete(interaction: discord.Interaction, current: str):
 	sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[bot_mode]
 	cursor.execute(sql)
 	db_version_data = cursor.fetchall()
 	conn.commit()
 	db_version_data.reverse()
-	if len(db_version_data) > 25:
-		db_version_data = db_version_data[0: 24]
-	versions = [app_commands.Choice(name=version[0], value=version[0]) for version in db_version_data]
+	versions = [version[0] for version in db_version_data]
+	versions = list(filter(lambda x: x.startswith(current), versions))
+	if len(versions) > 25:
+		versions = db_version_data[0: 24]
+	versions = [app_commands.Choice(name=version, value=version) for version in versions]
 	versions.append(app_commands.Choice(name='Ver todo', value='list'))
 	return versions
 
 
-def command_mention(interaction):
-	return f'</{interaction.command.name}:{interaction.command.id}>'
+async def color_autocomplete(interaction: discord.Interaction, current: str):
+	color_options = list(filter(lambda x: x.startswith(current), list(colors_display)))
+	color_options = [app_commands.Choice(name=colors_display[color], value=color) for color in colors]
+	color_options.append(app_commands.Choice(name='Color por defecto', value='default'))
+	return color_options
 
 
 def default_color(interaction):
