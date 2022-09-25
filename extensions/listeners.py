@@ -16,7 +16,6 @@ class Listeners(commands.Cog):
 		self.bot = bot
 		@self.bot.tree.error
 		async def error_handler(interaction, error):
-			ic(repr(error))
 			error_msg = None
 			# An exception object and its error message
 			error_messages = {

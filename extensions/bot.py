@@ -1,6 +1,8 @@
 import asyncio
 from datetime import datetime
 from time import perf_counter
+from platform import platform, python_version
+from cpuinfo import get_cpu_info
 
 import discord
 from discord import app_commands
@@ -117,51 +119,63 @@ class About(commands.Cog):
 
 
 
-# 	# botinfo
-# 	@commands.cooldown(1, 3.0, commands.BucketType.user)
-# 	@app_commands.command(aliases=['stats'])
-# 	async def botinfo(self, ctx):
-# 		embed = discord.Embed(title='Información del bot', colour=core.default_color(ctx))
-# 		data_dict = {
-# 			'Librería': f'Discord.py {discord.__version__}',
-# 			'Uso de RAM y CPU': f'RAM: {Process().memory_info().vms//1000000} MB \
-# / {virtual_memory().used//1000000/1000} GB / {virtual_memory().total//1000000000} GB\n\
-# CPU: {Process().cpu_percent()}% / {cpu_percent()}%',
-# 			'Uptime': core.fix_delta(datetime.utcnow() - core.bot_ready_at),
-# 			'Cantidad de servidores': len(ctx.bot.guilds),
-# 			'Cantidad de usuarios': len(ctx.bot.users),
-# 			'Dueño del bot': ctx.bot.get_user(ctx.bot.owner_id).mention,
-# 			'Links': ' | '.join((f'[{link}]({core.links[link]})' for link in core.links))
-# 		}
-# 		embed = core.add_fields(embed, data_dict, inline_char=None)
-# 		await self.send(ctx, embed=embed)
+	# stats
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5.0)
+	async def stats(self, interaction):
+		embed = discord.Embed(title='Información de Line Bot', colour=core.default_color(interaction))
+		embed.add_field(name='Sistema operativo', value=platform(aliased=True, terse=True))
+		embed.add_field(name='\u200b', value='\u200b')
+		embed.add_field(name='CPU', value=get_cpu_info()['brand_raw'])
+		embed.add_field(name='Uso de CPU', value=f'{Process().cpu_percent()}% / {cpu_percent()}%')
+		embed.add_field(name='\u200b', value='\u200b')
+		embed.add_field(name='Uso de RAM', value=f'{Process().memory_info().vms//1000000} MB / {virtual_memory().used//1000000} MB / {virtual_memory().total//1000000} MB')
+		embed.add_field(name='Librería', value=f'Discord.py {discord.__version__}')
+		embed.add_field(name='\u200b', value='\u200b')
+		embed.add_field(name='Versión de Python', value='Python ' + python_version())
+		embed.add_field(name='Cantidad de servidores', value=len(self.bot.guilds))
+		embed.add_field(name='\u200b', value='\u200b')
+		embed.add_field(name='Cantidad de usuarios', value=len(self.bot.users))
+		embed.add_field(name='Uptime', value=core.fix_delta(datetime.utcnow() - core.bot_ready_at))
+		embed.add_field(name='\u200b', value='\u200b')
+		embed.add_field(name='Dueño del bot', value=str(self.bot.get_user(self.bot.owner_id)))
+		view = discord.ui.View()
+		for link in core.links:
+			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
+		await interaction.response.send_message(embed=embed, view=view)
 
 
-# 	# commandstats
-# 	@commands.cooldown(1, 15.0, commands.BucketType.guild)
-# 	@app_commands.command(aliases=['commanduses', 'cmdstats', 'cmduses'])
-# 	async def commandstats(self, ctx, command=None):
-# 		if command == None:
-# 			core.cursor.execute("SELECT * FROM COMMANDSTATS")
-# 			stats = core.cursor.fetchall()
-# 			stats.sort(key=lambda x: x[1], reverse=True)
-# 			fstats = list(map(lambda x: f'`{x[0]}` - {x[1]}', stats))
-# 			pages = core.Page.from_list(ctx, 'Comandos más usados (Desde 27/06/2020)', fstats)
-# 			await core.NavBar(ctx, pages=pages, entries=len(fstats)).start()
+	# commandstats
+	@app_commands.command()
+	@app_commands.autocomplete(command=core.commandstats_command_autocomplete)
+	@app_commands.checks.cooldown(1, 10.0)
+	@app_commands.rename(command='comando')
+	async def commandstats(self, interaction, command: str = None):
+		"""
+		command: str
+			Un comando del bot
+		"""
+		if command == None:
+			# Send all the commands and their uses
+			core.cursor.execute("SELECT * FROM COMMANDSTATS")
+			stats = core.cursor.fetchall()
+			stats.sort(key=lambda x: x[1], reverse=True)
+			fstats = list(map(lambda x: f'`{x[0]}` - {x[1]}', stats))
+			pages = core.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', fstats)
+			paginator = core.Paginator(interaction, pages=pages, entries=len(fstats))
+			await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
-# 		else:
-# 			core.cursor.execute("SELECT * FROM COMMANDSTATS WHERE COMMAND=?", (command,))
-# 			stats = core.cursor.fetchall()
-# 			if stats == []:
-# 				await self.send(ctx, core.Warning.error('El comando que escribiste no existe o no se ha usado'))
+		else:
+			# Checks if the command exists
+			core.cursor.execute("SELECT * FROM COMMANDSTATS WHERE COMMAND=?", (command,))
+			stats = core.cursor.fetchall()
+			if stats == []:
+				await interaction.response.send_message(core.Warning.error('El comando que escribiste no existe o no se ha usado'), ephemeral=True)
 
-# 			else:
-# 				stats = stats[0]
-# 				await self.send(ctx, core.Warning.info(f'`{stats[0]}` se ha usado {stats[1]} {"veces" if stats[1] != 1 else "vez"}'))
-			
-# 			ctx.command.reset_cooldown(ctx)
-		
-# 		core.conn.commit()
+			else:
+				stats = stats[0]
+				await interaction.response.send_message(core.Warning.info(f'`{stats[0]}` se ha usado {stats[1]} {"veces" if stats[1] != 1 else "vez"}'))		
+		core.conn.commit()
 
 
 async def setup(bot):

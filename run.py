@@ -1,5 +1,7 @@
 import asyncio
 from icecream import install
+# Set up icecream
+install()
 from traceback import format_exc
 
 import discord
@@ -8,8 +10,6 @@ from discord.ext import commands
 
 import core
 
-# Set up icecream
-install()
 
 # Create the bot client
 class LineBot(commands.Bot):

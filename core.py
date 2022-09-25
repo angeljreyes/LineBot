@@ -38,10 +38,20 @@ cross_emoji = '<:x_:873229915170947132>'
 circle_emoji = '<:o_:873229913518383126>'
 empty_emoji = '<:empty:873754002427359252>'
 
+first_emoji = '<:first_button:1023679433019764857>'
+back_emoji = '<:back_button:1023673076023578766>'
+next_emoji = '<:next_button:1023675221489750036>'
+last_emoji = '<:last_button:1023677003733422130>'
+search_emoji = '<:search_button:1023680974879465503>'
+
 conn = connect(f'{Path().resolve().parent}\\data.sqlite3')
 cursor = conn.cursor()
 
 returned_value = None
+
+cursor.execute("SELECT COMMAND FROM COMMANDSTATS")
+commandstats_commands = [command[0] for command in cursor.fetchall()]
+conn.commit
 
 descs = {
 	'ping': 'Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando',
@@ -94,7 +104,7 @@ descs = {
 	'swapcase': 'Intercambia las minúsculas y las mayúsculas de un texto',
 	'capitalize': 'Convierte la primera letra de cada palabra a mayúsculas',
 	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto. Recuerda que puedes usar comillas para usar espacios en el primer texto. Puedes pasar comillas vacías ("") para contar caracteres y palabras en general en un texto',
-	'botinfo': 'Obtiene información sobre el bot',
+	'stats': 'Muestra información sobre el bot',
 	'tictactoe': 'Juega una partida de Tic Tac Toe contra la maquina o contra un amigo',
 	'reverse': 'Revierte un texto',
 	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
@@ -113,7 +123,7 @@ descs = {
 	'captcha': 'Cursed captcha',
 	'facts': 'facts',
 	'supreme': 'Texto con fuente de Supreme',
-	'commandstats': 'Muestra cuales son los comandos más usados o cuantos veces se ha usado un comando',
+	'commandstats': 'Muestra cuáles son los comandos más usados y cuántas veces se han',
 	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias',
 	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases',
 	'percentencoding': 'Codifica o decodifica código porcentaje o código URL'
@@ -213,6 +223,12 @@ async def color_autocomplete(interaction: discord.Interaction, current: str):
 	color_options = [app_commands.Choice(name=colors_display[color], value=color) for color in colors]
 	color_options.append(app_commands.Choice(name='Color por defecto', value='default'))
 	return color_options
+
+
+async def commandstats_command_autocomplete(interaction:discord.Interaction, current:str):
+	commands = sorted(list(filter(lambda x: x.startswith(current), commandstats_commands)))[:7]
+	commands = [app_commands.Choice(name=command, value=command) for command in commands]
+	return commands
 
 
 def default_color(interaction):
@@ -383,11 +399,13 @@ def fix_date(date:datetime, elapsed=False, newline=False):
 	return result
 
 
-def add_fields(embed:discord.Embed, data_dict:dict, *, inline_char='~'):
+def add_fields(embed:discord.Embed, data_dict:dict, *, inline=None, inline_char='~'):
 	inline_char = '' if inline_char == None else inline_char
 	for data in data_dict:
 		if data_dict[data] not in (None, ''):
-			if inline_char != '':
+			if inline != None:
+				embed.add_field(name=data, value=str(data_dict[data]), inline=inline)
+			elif inline_char != '':
 				embed.add_field(name=data.replace(inline_char, ''), value=str(data_dict[data]), inline=not data.endswith(inline_char))
 			else:
 				embed.add_field(name=data, value=str(data_dict[data]), inline=False)
@@ -424,9 +442,11 @@ class Page:
 		self.embed = embed
 
 	@staticmethod
-	def from_list(ctx, title:str, iterable: list, *, colour=None):
+	def from_list(interaction, title:str, iterable: list, *, colour=None):
 		formated = []
 		count = 0
+		if colour == None:
+			colour = default_color(interaction)
 		for i in iterable:
 			count += 1
 			formated.append(f'{count}. {i}')
@@ -436,32 +456,21 @@ class Page:
 			pages.append(Page(embed=discord.Embed(
 				title=title,
 				description='\n'.join(formated[i*20:i*20+20]),
-				colour=default_color(ctx)
+				colour=colour
 			)))
 		return pages
 
 
 
-class NavBar:
-	__slots__ = ('ctx', 'page_num', 'page', 'pages', 'entries', 'timeout', 'edited_at', 'nav_data', 'message', 'view', 'interaction', 'button')
-
-	def __init__(self, ctx:commands.Context, *, pages: list=[], entries: int=None, timeout=180.0):
-		self.ctx = ctx
+class Paginator(discord.ui.View):
+	def __init__(self, interaction:discord.Interaction, *, pages:list=[], entries:int=None, timeout:float=180.0):
+		super().__init__(timeout=timeout)
+		self.interaction = interaction
 		self.page_num = 1
 		self.page = None
 		self.pages = []
 		self.entries = entries
-		self.timeout = timeout
 		self.add_pages(pages)
-		self.edited_at = ctx.message.edited_at
-		self.nav_data = {
-			'first': (u'\U000023ee', 3, 1),
-			'back': (u'\U00002b05', 2, 1),
-			'next': (u'\U000027a1', 2, len(self.pages)),
-			'last': (u'\U000023ed', 3, len(self.pages)),
-			'search': (u'\U0001f522', 4, 0),
-			# 'stop': (u'\U000023f9', 2, 0)
-		}
 
 
 	def add_pages(self, pages:list):
@@ -469,84 +478,78 @@ class NavBar:
 		for page in pages:
 			count += 1
 			if page.embed != None:
-				page.embed.set_footer(text=(f'Página {len(self.pages)+count} de {len(pages) + len(self.pages)}' if len(self.pages)+len(pages) > 1 else '') + f'{(str(" ("+str(self.entries)+" resultados)")) if self.entries != None else ""}' + (f' | {page.embed.footer.text}' if page.embed.footer.text != discord.Embed.Empty else ""))
+				page.embed.set_footer(text=(f'Página {len(self.pages)+count} de {len(pages) + len(self.pages)}' if len(self.pages)+len(pages) > 1 else '') + f'{(str(" ("+str(self.entries)+" resultados)")) if self.entries != None else ""}' + (f' | {page.embed.footer.text}' if page.embed.footer.text != None else ""))
 		self.pages += pages
 
 
-	async def start(self):
-		self.view = None
-		if len(self.pages) > 1:
-			self.view = [[]]
-			self.page = self.pages[0]
-			for custom_id in self.nav_data:
-				data = self.nav_data[custom_id]
-				if len(self.pages) >= data[1]:
-					self.view[0].append(discord.ui.Button(custom_id=custom_id, emoji=data[0], style=discord.ButtonStyle.blurple, disabled=(custom_id in list(self.nav_data.keys())[:2])))
-		self.message = await self.ctx.bot.get_cog('GlobalCog').send(self.ctx, self.pages[0].content, embed=self.pages[0].embed, view=self.view)
-		if self.view != None:
-			await self.wait()
+	async def interaction_check(self, interaction: discord.Interaction):
+		return self.interaction.user.id == interaction.user.id
 
 
-	def check(self, interaction, button):
-		if self.edited_at != self.ctx.message.edited_at:
-			raise ValueError
-		elif interaction.message.id == self.message.id and interaction.author == self.ctx.author:
-			return True
-		else:
-			return False
+	@discord.ui.button(emoji=first_emoji, style=discord.ButtonStyle.blurple, disabled=True)
+	async def first(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await self.set_page(interaction, button, 1)
 
-	async def wait(self):
-		try:
-			self.interaction, self.button = await self.ctx.bot.wait_for('button_click', timeout=self.timeout, check=self.check)
-		except asyncio.TimeoutError:
-			await self.message.edit(view=[])
-		except ValueError:
-			pass
+	@discord.ui.button(emoji=back_emoji, style=discord.ButtonStyle.blurple, disabled=True)
+	async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await self.set_page(interaction, button, self.page_num - 1)
 
-		else:
-			await self.interaction.defer()
-			nav_id = str(self.button.custom_id)
-			if nav_id == 'first' and self.page_num != 1:
-				await self.set_page(1)
+	@discord.ui.button(emoji=next_emoji, style=discord.ButtonStyle.blurple)
+	async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await self.set_page(interaction, button, self.page_num + 1)
 
-			elif nav_id == 'back' and self.page_num != 1:
-				await self.set_page(self.page_num-1)
+	@discord.ui.button(emoji=last_emoji, style=discord.ButtonStyle.blurple)
+	async def last(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await self.set_page(interaction, button, len(self.pages))
 
-			elif nav_id == 'next' and self.page_num != len(self.pages):
-				await self.set_page(self.page_num+1)
+	@discord.ui.button(emoji=search_emoji, style=discord.ButtonStyle.blurple)
+	async def search(self, interaction: discord.Interaction, button: discord.ui.Button):
+		total_pages = len(self.pages)
 
-			elif nav_id == 'last' and self.page_num != len(self.pages):
-				await self.set_page(len(self.pages))
+		class SearchModal(discord.ui.Modal, title='Escribe un número de página'):
+			answer = discord.ui.TextInput(
+				label=f'Escribe un número de página (1-{total_pages})',
+				required=True,
+				min_length=1,
+				max_length=len(str(total_pages))
+			)
 
-			elif nav_id == 'search':
-				for i in range(5):
-					self.view[0][i].disabled = True
-				await self.interaction.edit(view=self.view)
+		async def on_submit(modal):
+			async def func(interaction: discord.Interaction):
 				try:
-					search = int(await ask(self.ctx, 'Escribe la pagina a la que quieres ir', regex=r'[0-9]+', timeout=20, raises=True))
-				except asyncio.TimeoutError:
-					for i in range(5):
-						self.view[0][i].disabled = False
-					await self.message.edit(view=self.view)
-				else:
-					if search != self.page_num and (0 < search < len(self.pages)+1):
-						await self.set_page(search, interact=False)
+					value = int(modal.answer.value)
+					if 0 < value <= total_pages:
+						await self.set_page(interaction, button, value)
+					else:
+						await interaction.response.send_message(Warning.error(f'Escribe un número entre el 1 y el {total_pages}'), ephemeral=True)
+				except ValueError:
+					await interaction.response.send_message(Warning.error('Valor incorrecto. Escribe un número'), ephemeral=True)
+			return func
 
-			# elif self.nav_emojis[reaction][0] == 'stop':
-			# 	await self.message.delete()
-			# 	return
+		modal = SearchModal()
+		modal.timeout = self.timeout
+		modal.on_submit = await on_submit(modal)
+		await interaction.response.send_modal(modal)
 
-			await self.wait()
+	
+	async def on_timeout(self):
+		self.children[0].disabled = True
+		self.children[1].disabled = True
+		self.children[2].disabled = True
+		self.children[3].disabled = True
+		self.children[4].disabled = True
+		await self.interaction.edit_original_response(view=self)
 
 
-	async def set_page(self, page:int, interact=True):
+	async def set_page(self, interaction:discord.Interaction, button:discord.ui.Button, page:int, interact=True):
 		self.page = self.pages[page-1]
 		self.page_num = page
-		for i in range(len(self.view[0])):
-			component = self.view[0][i]
-			disabled = self.nav_data[component.custom_id][2] == self.page_num
-			self.view[0][i].disabled = disabled
-		await (self.interaction.edit if interact else self.message.edit)(content=self.page.content, embed=self.page.embed, view=self.view)
+		self.children[0].disabled = self.page_num == 1
+		self.children[1].disabled = self.page_num == 1
+		self.children[2].disabled = self.page_num == len(self.pages)
+		self.children[3].disabled = self.page_num == len(self.pages)
+		await interaction.response.defer()
+		await self.interaction.edit_original_response(content=self.page.content, embed=self.page.embed, view=self)
 
 
 
