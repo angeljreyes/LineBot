@@ -58,7 +58,6 @@ conn.commit
 
 descs = {
 	'ping': 'Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando',
-	'help': 'Muestra una página de ayuda general o de un comando específico',
 	'soy': 'Descubre quién eres',
 	'say': 'Haz que el bot diga algo',
 	'emojitext': 'Devuelve el texto transformado en emojis',
@@ -68,11 +67,7 @@ descs = {
 	'choose': 'Devuelve una de las opciones dadas, o "Si" o "No" si no le das opciones. Las opciones se separan por comas',
 	'poll': 'Crea encuestas de manera sencilla. Los emojis se separan por espacios poniendo `-e` delante, si no se epecifican emojis e usaran :+1: y :-1:',
 	'kao': 'Devuelve una lista de kaomojis o un kaomoji específico',
-	'purge': 'Elimina la cantidad de mensajes indicada',
 	'avatar': 'Obtiene tú foto de perfil o la de otro usuario',
-	'kick': 'Kickea o expulsa a un miembro del servidor',
-	'ban': 'Banea a un miembro del servidor',
-	'unban': 'Revoca el baneo a un usuario',
 	'defemoji': 'Envia emojis en el estado por defecto de tu dispositivo: \\😂. Si el emoji es personalizado de un server, se enviará su ID',
 	'sarcastic': 'ConVIeRtE el TEXtO a SarcAStiCO',
 	'iq': 'Calcula tu IQ o el de otra persona',
@@ -83,7 +78,6 @@ descs = {
 	'joke': 'Envia un chiste que da menos risa que los de Siri',
 	'nothing': 'Literalmente no hace nada',
 	'gay': 'Detecta como de homosexual eres',
-	'prefix': 'Cambia el prefijo del bot a nivel de server. Para crear un prefijo con espacios, escribelo entre comillas: `"prefijo"`',
 	'changelog': 'Revisa el registro de cambios de la última versión del bot o de una especificada',
 	'color': 'Cambia el color de los embeds del bot',
 	'wiktionary': 'Busca una palabra en inglés en el diccionario de Wiktionary',
