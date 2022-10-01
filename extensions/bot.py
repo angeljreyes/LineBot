@@ -179,4 +179,4 @@ class About(commands.Cog):
 
 
 async def setup(bot):
-	await bot.add_cog(About(bot), guild=core.bot_guild)
+	await bot.add_cog(About(bot), guilds=core.bot_guilds)

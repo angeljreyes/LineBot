@@ -147,4 +147,4 @@ class Listeners(commands.Cog):
 
 
 async def setup(bot):
-	await bot.add_cog(Listeners(bot), guild=core.bot_guild)
+	await bot.add_cog(Listeners(bot), guilds=core.bot_guilds)

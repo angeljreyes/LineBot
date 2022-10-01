@@ -18,7 +18,10 @@ import logging
 bot_mode = 'dev'
 bot_version = '2.0'
 bot_ready_at = datetime.utcnow()
-bot_guild = discord.Object(id=724380436775567440)
+bot_guilds = [
+	discord.Object(id=724380436775567440),
+	discord.Object(id=716165191238287361)
+]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
@@ -361,7 +364,7 @@ def check_blacklist(ctx, user=None, raises=True):
 
 
 def config_commands(bot):
-	for command in bot.tree.get_commands(guild=bot_guild):
+	for command in bot.tree.get_commands(guild=bot_guilds[0]):
 		if command.name in descs:
 			command.description = descs[command.name]
 

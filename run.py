@@ -29,7 +29,8 @@ class LineBot(commands.Bot):
 
         # Add descriptions to the commands from the core.descs dict and syncs the commands
         core.config_commands(self)
-        await self.tree.sync(guild=core.bot_guild)
+        for guild in core.bot_guilds:
+            await self.tree.sync(guild=guild)
 
 # Set the intents
 intents = discord.Intents.all()
