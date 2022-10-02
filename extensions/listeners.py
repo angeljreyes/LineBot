@@ -29,12 +29,12 @@ class Listeners(commands.Cog):
 					'Role': 'No se encontró ese rol',
 					'Channel': 'No se encontró ese canal'
 				},
-				commands.NotOwner: 'Comando exclusivo del dueño del bot',
 				commands.ArgumentParsingError: 'Hiciste un mal uso de las comillas',
 				commands.NoPrivateMessage: 'Este comando solo se puede usar en servidores',
 				commands.MaxConcurrencyReached: lambda: f'Se alcanzó el límite de usuarios para este comando: `{error.number}{"" if error.per == commands.BucketType.default else f" por {core.bucket_types[error.per]}"}`',
 				commands.MissingPermissions: lambda: f'No tienes los permisos requeridos para ejecutar este comando: ' + ', '.join((f'`{perm.replace("_", " ")}`' for perm in error.missing_perms)),
 				commands.NSFWChannelRequired: 'Este comando solo se puede usar en canales NSFW',
+				app_commands.CommandOnCooldown: lambda: f'Tienes que esperar **{core.fix_delta(timedelta(seconds=error.retry_after), ms=True)}** para ejecutar este comando de nuevo',
 				# Sometimes CommandInvokeError is raised, so the error is
 				# identified by the first characters of the error string
 				commands.CommandInvokeError: {
@@ -50,19 +50,14 @@ class Listeners(commands.Cog):
 				exceptions.DisabledTagsError: '',
 				exceptions.ExistentTagError: 'Este tag ya existe---',
 				exceptions.ImageNotFound: 'No se encontró ninguna imagen en los últimos 30 mensajes',
+				exceptions.NotOwner: 'Comando exclusivo del dueño del bot',
+				exceptions.BlacklistUserError: 'Estás en la lista negra. No tienes permitido usar el bot',
 				exceptions.NonExistentTagError: {
 					'This tag': 'Este tag no existe---',
 					'This user': 'Este usuario no tiene tags---',
 					'This server': 'Este servidor no tiene tags---'
 				}
 			}
-			
-			# If the error is a blacklist or cooldown exception...
-			if isinstance(error, exceptions.BlacklistUserError):
-				await interaction.author.send(core.Warning.error('Estás en la lista negra. No tienes permitido usar el bot'), delete_after=60)
-				return
-			elif isinstance(error, app_commands.CommandOnCooldown):
-				error_msg = f'Tienes que esperar **{core.fix_delta(timedelta(seconds=error.retry_after), ms=True)}** para ejecutar este comando de nuevo'
 
 			# If the error message hasn't been determined yet
 			if error_msg == None:

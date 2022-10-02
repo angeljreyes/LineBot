@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 
-from exceptions import BlacklistUserError, ImageNotFound
+import exceptions
 from random import choice
 from re import fullmatch
 from sqlite3 import connect
@@ -22,6 +22,7 @@ bot_guilds = [
 	discord.Object(id=724380436775567440),
 	discord.Object(id=716165191238287361)
 ]
+owner_id = 337029735144226825
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
@@ -50,7 +51,7 @@ search_emoji = '<:search_button:1023680974879465503>'
 conn = connect(f'{Path().resolve().parent}\\data.sqlite3')
 cursor = conn.cursor()
 
-returned_value = None
+eval_returned_value = None
 
 cursor.execute("SELECT COMMAND FROM COMMANDSTATS")
 commandstats_commands = [command[0] for command in cursor.fetchall()]
@@ -197,7 +198,11 @@ links = {
 }
 
 
-
+async def sync_tree(bot):
+	logger.info('Syncing command tree...')
+	for guild in bot_guilds:
+		await bot.tree.sync(guild=guild)
+	logger.info('Command tree synced')
 
 
 async def changelog_autocomplete(interaction: discord.Interaction, current: str):
@@ -310,7 +315,7 @@ async def get_channel_image(ctx):
 			for check in [embed.image.url, embed.thumbnail.url]:
 				if check != discord.Embed.Empty:
 					return check
-	raise ImageNotFound('Image not detected in the channel')
+	raise exceptions.ImageNotFound('Image not detected in the channel')
 
 
 def is_url_image(image_url):
@@ -331,28 +336,24 @@ async def get_user(ctx, arg:str):
 			return await commands.UserConverter().convert(ctx, '0')
 
 
-def owner(ctx):
-	if ctx.author.id == ctx.bot.owner_id:
-		return True
-	else:
-		raise commands.NotOwner()
+def owner_only():
+	def predicate(interaction):
+		if interaction.user.id == owner_id:
+			return True
+		else:
+			raise exceptions.NotOwner()
+	return app_commands.check(predicate)
 
 
-def is_owner():
-	def predicate(ctx):
-		return owner(ctx)
-	return commands.check(predicate)
-
-
-def check_blacklist(ctx, user=None, raises=True):
-	user = ctx.author if user == None else user
+def check_blacklist(interaction, user=None, raises=True):
+	user = interaction.user if user == None else user
 	cursor.execute(f"SELECT USER FROM BLACKLIST WHERE USER={user.id}")
 	check = cursor.fetchall()
 	conn.commit()
 	if check == []:
 		return True
 	if raises:
-		raise BlacklistUserError('This user is in the blacklist')
+		raise exceptions.BlacklistUserError('This user is in the blacklist')
 	else:
 		return False
 
@@ -361,10 +362,7 @@ def config_commands(bot):
 	for command in bot.tree.get_commands(guild=bot_guilds[0]):
 		if command.name in descs:
 			command.description = descs[command.name]
-
-		# if command.cog.qualified_name == 'Owner':
-		# 	command.add_check(owner)
-		# 	bot.add_check(check_blacklist)
+			command.add_check(check_blacklist)
 
 
 def fix_delta(delta:timedelta, *, ms=False, limit=3):

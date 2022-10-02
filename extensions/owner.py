@@ -1,4 +1,5 @@
 import asyncio
+from cProfile import label
 from math import floor
 from re import DOTALL, findall, fullmatch
 from timeit import default_timer as timer
@@ -13,135 +14,145 @@ import core
 class Owner(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.send = bot.get_cog('GlobalCog').send
 
 
 	# die
 	@app_commands.command()
-	async def die(self, ctx):
-		await ctx.message.add_reaction(u'\U0001f480')
+	@core.owner_only()
+	async def die(self, interaction):
+		await interaction.response.send_message(u'\U0001f480', ephemeral=True)
 		print('\nBot apagado')
-		await self.bot.logout()
+		try:
+			await self.bot.close()
+		except RuntimeError:
+			pass
 
 
 	# getmsg
 	@app_commands.command()
-	async def getmsg(self, ctx, id):
-		print(await ctx.fetch_message(id))
-		await ctx.message.add_reaction(u'\U00002705')
+	@core.owner_only()
+	async def getmsg(self, interaction, id:str):
+		msg = await interaction.channel.fetch_message(id)
+		await interaction.response.send_message(f'```py\n{msg}\n```', ephemeral=True)
 
 
 	# eval
 	@app_commands.command()
-	async def eval(self, ctx, *, code):
-		use_embed = True
-		if code.endswith(' -s'):
-			code = code[:-3]
-			use_embed = False
+	@core.owner_only()
+	async def eval(self, interaction, ephemeral:bool=False, silent:bool=False):
+		class CodeModal(discord.ui.Modal, title='Eval'):
+			answer = discord.ui.TextInput(label='Código', style=discord.TextStyle.paragraph)
 
-		if fullmatch(r'```.+```', code, flags=DOTALL):
-			code = code[len(code.splitlines()[0]):-4]
-		
-		if use_embed:
-			return_line = findall(r'[^ ].+$', code.splitlines()[-1])[0]
-			code = code[:-(len(return_line))] + f'botdata.returned_value = {return_line}'
+			def __init__(self, bot):
+				super().__init__()
+				self.bot = bot
 
-		code = '''@self.bot.command()\nasync def evalcmd(ctx):\n    '''+code.replace('\n','\n    ')
-		try:
-			exec(code)
-			start = timer()
-			await self.bot.get_command('evalcmd').__call__(ctx)
-			end = timer()
-			if use_embed:
-				types = ''
-				returned_value = core.returned_value
-				while True:
+			async def on_submit(self, interaction:discord.Interaction):
+				await interaction.response.defer(ephemeral=ephemeral or silent, thinking=True)
+				code = self.answer.value
+				if not silent:
+					return_line = findall(r'[^ ].+$', code.splitlines()[-1])[0]
+					code = code[:-(len(return_line))] + f'core.eval_returned_value = {return_line}'
+
+				code = '''@self.bot.tree.command()\n@core.owner_only()\nasync def evalcmd(interaction):\n    '''+code.replace('\n','\n    ')
+				try:
+					exec(code)
+					start = timer()
 					try:
-						types += str(type(returned_value))
-						if not isinstance(returned_value, str):
-							iter(returned_value)
-						else:
-							raise TypeError
-					except TypeError:
-						break
-					else:
-						try:
-							if len(returned_value) == 0:
+						await self.bot.tree.get_command('evalcmd').callback(interaction)
+					except Exception as e:
+						core.eval_returned_value = e
+					end = timer()
+					if not silent:
+						types = ''
+						returned_value = core.eval_returned_value
+						while True:
+							try:
+								types += str(type(returned_value))
+								if not isinstance(returned_value, str):
+									iter(returned_value)
+								else:
+									raise TypeError
+							except TypeError:
 								break
-							returned_value = returned_value[0]
-						except (TypeError, KeyError):
-							returned_value = tuple(returned_value)[0]
+							else:
+								try:
+									if len(returned_value) == 0:
+										break
+									returned_value = returned_value[0]
+								except (TypeError, KeyError):
+									returned_value = tuple(returned_value)[0]
 
-				await self.send(ctx, embed=discord.Embed(
-					title='Resultados del eval',
-					description=f'Tipo de dato y resultado:\n```py\n{types}\n```\n```py\n{core.returned_value}\n```',
-					colour=core.default_color(ctx)
-				).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms'))
-				core.returned_value = None
-		finally:
-			try:
-				await self.bot.remove_command('evalcmd')
-			except TypeError:
-				pass
+						await interaction.followup.send(embed=discord.Embed(
+							title='Resultados del eval',
+							description=f'Tipo de dato y resultado:\n```py\n{types}\n```\n```py\n{returned_value}\n```',
+							colour=core.default_color(interaction)
+						).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms'))
+						core.returned_value = None
+					else:
+						await interaction.followup.send(u'\U00002705')
+				finally:
+					try:
+						self.bot.tree.remove_command('evalcmd')
+					except TypeError:
+						pass
+
+		await interaction.response.send_modal(CodeModal(self.bot))
 
 
 	# reload
 	@app_commands.command()
-	async def reload(self, ctx, extension=''):
-		self.bot.reload_extension(extension)
+	@core.owner_only()
+	async def reload(self, interaction, extension:str, sync:bool=False):
+		await interaction.response.defer(ephemeral=True, thinking=True)
+		await self.bot.reload_extension('extensions.' + extension)
 		core.config_commands(self.bot)
-		await ctx.message.add_reaction(u'\U00002705')
+		core.logger.info(f'"{extension}" extension reloaded')
+		if sync:
+			await core.sync_tree(self.bot)
+		await interaction.followup.send(u'\U00002705')
 
 
 	# unload
 	@app_commands.command()
-	async def unload(self, ctx, extension=''):
-		self.bot.unload_extension(extension)
-		await ctx.message.add_reaction(u'\U00002705')
+	@core.owner_only()
+	async def unload(self, interaction, extension:str, sync:bool=False):
+		await interaction.response.defer(ephemeral=True, thinking=True)
+		await self.bot.unload_extension('extensions.' + extension)
+		core.config_commands(self.bot)
+		core.logger.info(f'"{extension}" extension unloaded')
+		if sync:
+			await core.sync_tree(self.bot)
+		await interaction.followup.send(u'\U00002705')
 
 
 	# load
 	@app_commands.command()
-	async def load(self, ctx, extension=''):
-		self.bot.load_extension(extension)
+	@core.owner_only()
+	async def load(self, interaction, extension:str, sync:bool=False):
+		await interaction.response.defer(ephemeral=True, thinking=True)
+		await self.bot.load_extension('extensions.' + extension)
 		core.config_commands(self.bot)
-		await ctx.message.add_reaction(u'\U00002705')
+		core.logger.info(f'"{extension}" extension unloaded')
+		if sync:
+			await core.sync_tree(self.bot)
+		await interaction.followup.send(u'\U00002705')
 
 
 	# blacklist
 	@app_commands.command()
-	async def blacklist(self, ctx, *, user):
-		user = await core.get_user(ctx, user)
-		if core.check_blacklist(ctx, user, False):
+	@core.owner_only()
+	async def blacklist(self, interaction, user:discord.User):
+		if core.check_blacklist(interaction, user, False):
 			core.cursor.execute(f"INSERT INTO BLACKLIST VALUES({user.id})")
-			await ctx.message.add_reaction(u'\U00002935')
+			await interaction.response.send_message(u'\U00002935', ephemeral=True)
 		
 		else:
 			core.cursor.execute(f"DELETE FROM BLACKLIST WHERE USER={user.id}")
-			await ctx.message.add_reaction(u'\U00002934')
+			await interaction.response.send_message(u'\U00002934', ephemeral=True)
 
 		core.conn.commit()
 
 
-	#button_test
-	@app_commands.command()
-	async def test(self, ctx):
-		components = [
-			discord.ActionRow(
-				discord.ui.Button(label='Botón 1', custom_id='1', style=discord.ButtonStyle.green),
-				discord.ui.Button(label='Botón 2', custom_id='2', style=discord.ButtonStyle.blurple, emoji='👁')
-			),
-			discord.ActionRow(
-				discord.ui.Button(label='Botón 3', custom_id='3', style=discord.ButtonStyle.blurple, emoji=(await commands.PartialEmojiConverter().convert(ctx, '<:yerkoturbio:840259087496118352>'))),
-				discord.ui.Button(label='Botón 4', custom_id='4', style=discord.ButtonStyle.red, emoji='4️⃣'),
-				discord.ui.Button(label='Botón 5', url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-			)
-		]
-		msg = await ctx.send(embed=discord.Embed(title='Qqqq', description='loo'), components=components)
-		interaction: discord.RawInteractionCreateEvent = await self.bot.wait_for('interaction_create', check=lambda i: ctx.author == i.member and msg == i.message)
-		interaction.defer()
-		await interaction.edit(embed=discord.Embed(title='ok', description=interaction.button.emoji), components=[components[0].disable_all_buttons(), components[1].disable_all_buttons()])
-
-
-def setup(bot):
-	bot.add_cog(Owner(bot))
+async def setup(bot):
+	await bot.add_cog(Owner(bot), guilds=core.bot_guilds)

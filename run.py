@@ -21,7 +21,7 @@ class LineBot(commands.Bot):
             # 'modtxt',
             # 'util',
             # 'fun',
-            # 'owner',
+            'owner',
             # 'image'
         ):
             await bot.load_extension('extensions.' + extension)
@@ -40,7 +40,7 @@ intents.invites = False
 intents.voice_states = False
 intents.message_content = False
 
-bot = LineBot(command_prefix='l!', help_command=None, owner_id=337029735144226825, case_insensitive=True, intents=intents)
+bot = LineBot(command_prefix='l!', help_command=None, owner_id=core.owner_id, case_insensitive=True, intents=intents)
 
 async def main():
     # Create the event that catches any unknown errors and logs them

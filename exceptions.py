@@ -1,17 +1,20 @@
-from discord.ext.commands import CommandError
+from discord.app_commands import AppCommandError
 
 
-class ExistentTagError(CommandError):
+class ExistentTagError(AppCommandError):
 	pass
 
-class NonExistentTagError(CommandError):
+class NonExistentTagError(AppCommandError):
 	pass
 
-class DisabledTagsError(CommandError):
+class DisabledTagsError(AppCommandError):
 	pass
 
-class BlacklistUserError(CommandError):
+class BlacklistUserError(AppCommandError):
 	pass
 
-class ImageNotFound(CommandError):
+class ImageNotFound(AppCommandError):
+	pass
+
+class NotOwner(AppCommandError):
 	pass

@@ -394,7 +394,7 @@ class Util(commands.Cog):
 
 	# tag forcedelete
 	@tag.command(name='forcedelete', aliases=['forcedel', 'forceremove'])
-	@core.is_owner()
+	@core.owner_only()
 	async def forcedelete(self, ctx, tag_name=None, guild=None):
 		if tag_name == None:
 			await self.send(ctx, core.Warning.error('Escribe el nombre del tag a eliminar'))
