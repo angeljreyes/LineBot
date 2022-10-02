@@ -62,7 +62,7 @@ descs = {
 	'soy': 'Descubre quién eres',
 	'say': 'Haz que el bot diga algo',
 	'emojitext': 'Devuelve el texto transformado en emojis',
-	'replace': 'Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro. Usa comillas para para los 2 primeros parámetros para usar espacios: `"text 1" "texto 2" texto 3`',
+	'replace': 'Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro',
 	'spacedtext': 'Devuelve el texto enviado con cada letra espaciada el número de veces indicado',
 	'vaporwave': 'Devuelve el texto en vaporwave',
 	'choose': 'Devuelve una de las opciones dadas, o "Si" o "No" si no le das opciones. Las opciones se separan por comas',

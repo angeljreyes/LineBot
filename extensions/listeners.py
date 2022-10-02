@@ -37,11 +37,12 @@ class Listeners(commands.Cog):
 				app_commands.CommandOnCooldown: lambda: f'Tienes que esperar **{core.fix_delta(timedelta(seconds=error.retry_after), ms=True)}** para ejecutar este comando de nuevo',
 				# Sometimes CommandInvokeError is raised, so the error is
 				# identified by the first characters of the error string
-				commands.CommandInvokeError: {
+				app_commands.CommandInvokeError: {
 					'403 Forbidden (error code: 50013): Missing Permissions': 'No tengo los permisos requeridos para ejecutar este comando. Intenta añadirlos editando los permisos o la posición mi rol',
 					'Unknown Message': 'El mensaje que se trató de editar/eliminar/reaccionar fue eliminado',
-					'Invalid Form Body\nIn content: Must be 2000 or fewer in length': 'El mensaje supera los 2000 caracteres',
-					'Invalid Form Body\nIn content: Must be 4000 or fewer in length': 'El mensaje supera los 4000 caracteres',
+					'.value: Must be 1024 or fewer in length.': 'El valor de una sección de un embed no debe ser mayor a 1024 caracteres',
+					'Invalid Form Body\nIn data.content: Must be 2000 or fewer in length': 'El mensaje no debe superar los 2000 caracteres',
+					'Invalid Form Body\nIn data.content: Must be 4000 or fewer in length': 'El mensaje no debe superar los 4000 caracteres',
 					'ValueError: Tag name limit reached': 'El límite de caracteres para el nombre un tag es de 32',
 					'ValueError: Invalid characters detected': 'El nombre de un tag no puede contener espacios ni caracteres markdown',
 					'ValueError: Invalid URL': 'URL inválida'
@@ -103,7 +104,10 @@ class Listeners(commands.Cog):
 				if error_msg.endswith('---'):
 					error_msg = error_msg[:-3]
 					interaction.command.reset_cooldown(interaction)
-				await interaction.response.send_message(core.Warning.error(error_msg), ephemeral=True)
+				try:
+					await interaction.response.send_message(core.Warning.error(error_msg), ephemeral=True)
+				except discord.InteractionResponded:
+					await interaction.followup.send(core.Warning.error(error_msg))
 
 	@commands.Cog.listener('on_ready')
 	async def ready(self):

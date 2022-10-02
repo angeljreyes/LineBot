@@ -18,7 +18,7 @@ class LineBot(commands.Bot):
         for extension in (
             'listeners',
             'bot',
-            # 'modtxt',
+            'modtxt',
             # 'util',
             # 'fun',
             'owner',
