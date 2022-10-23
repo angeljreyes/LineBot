@@ -7,6 +7,7 @@ from re import fullmatch
 from sqlite3 import connect
 from requests import head
 from pathlib import Path
+from typing import List
 
 import discord
 from discord import app_commands
@@ -76,7 +77,7 @@ descs = {
 	'links': 'Obtén los links oficiales del bot',
 	'someone': 'Menciona a alguien aleatorio del server',
 	'ocr': 'Transcribe el texto de la última imagen enviada en el chat]',
-	'joke': 'Envia un chiste que da menos risa que los de Siri',
+	'dadjoke': 'Envia chistes que dan menos risa que los de Siri',
 	'nothing': 'Literalmente no hace nada',
 	'gay': 'Detecta como de homosexual eres',
 	'changelog': 'Revisa el registro de cambios de la última versión del bot o de una especificada',
@@ -103,7 +104,9 @@ descs = {
 	'capitalize': 'Convierte la primera letra de cada palabra a mayúsculas',
 	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto. Recuerda que puedes usar comillas para usar espacios en el primer texto. Puedes pasar comillas vacías ("") para contar caracteres y palabras en general en un texto',
 	'stats': 'Muestra información sobre el bot',
-	'tictactoe': 'Juega una partida de Tic Tac Toe contra la maquina o contra un amigo',
+	'tictactoe': 'Juega una partida de Tic Tac Toe contra la máquina o contra otra persona',
+	'tictactoe against-machine': 'Juega una partida de Tic Tac Toe contra la máquina',
+	'tictactoe against-player': 'Juega una partida de Tic tac Toe contra otra persona',
 	'reverse': 'Revierte un texto',
 	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
 	'8ball': 'Preguntale algo el bot para que te responda',
@@ -251,43 +254,6 @@ def default_color(interaction):
 		return int(color[0][0])
 
 
-# async def askyn(ctx, message:str, timeout=12.0, user=None):
-# 	class View(discord.ui.View):
-# 		result = None
-# 		def check(self, button, interaction):
-# 			if interaction.user == ctx.author:
-# 				result = button.custom_id == 'yes'
-
-# 		@discord.ui.button(custom_id='yes', style=discord.ButtonStyle.green, emoji=check_emoji)
-# 		async def yes_callback(self, button, interaction):
-# 			return self.check(button, interaction)
-
-# 		@discord.ui.button(custom_id='no', style=discord.ButtonStyle.red, emoji=cross_emoji)
-# 		async def no_callback(self, button, interaction):
-# 			return self.check(button, interaction)
-
-# 		async def on_timeout(self):
-# 			for child in self.children:
-# 				child.disabled = True
-# 			await question.edit(view=view)
-# 			return None
-
-# 	user = ctx.author if user == None else user
-# 	await ctx.bot.get_cog('GlobalCog').send(ctx, Warning.question(message), view=View())
-	# //////////
-	# def check(interaction, button):
-	# 	return interaction.message.id == question.id and interaction.author.id == user.id
-	# try:
-	# 	interaction, button = await ctx.bot.wait_for('button_click', timeout=timeout, check=check)
-	# except asyncio.TimeoutError:
-		# for i in range(len(view[0])):
-		# 	view[0][i].disabled = True
-		# await question.edit(view=view)
-		# return None
-	# await interaction.defer()
-	# return button.custom_id == 'yes'
-
-
 # async def ask(ctx, message:str, *, timeout=12.0, user=None, regex=None, raises=False):
 # 	user = ctx.author if user == None else user
 # 	question = await ctx.send(Warning.question(message))
@@ -360,9 +326,14 @@ def check_blacklist(interaction, user=None, raises=True):
 
 def config_commands(bot):
 	for command in bot.tree.get_commands(guild=bot_guilds[0]):
-		if command.name in descs:
-			command.description = descs[command.name]
-			command.add_check(check_blacklist)
+		if command.qualified_name in descs:
+			command.description = descs[command.qualified_name]
+			if isinstance(command, app_commands.Group):
+				for subcommand in command.commands:
+					subcommand.description = descs[subcommand.qualified_name]
+					subcommand.add_check(check_blacklist)
+			else:
+				command.add_check(check_blacklist)
 
 
 def fix_delta(delta:timedelta, *, ms=False, limit=3):
@@ -426,6 +397,217 @@ class ChannelConverter(commands.Converter):
 					raise commands.BadArgument(f'Channel "{argument}" not found')
 
 		return argument
+
+
+class Confirm(discord.ui.View):
+	def __init__(self, interaction:discord.Interaction, user: discord.User, *, timeout=180):
+		super().__init__()
+		self._interaction = interaction
+		self.user = user
+		self.timeout = timeout
+		self.value = None
+		self.last_interaction = None
+
+	async def interaction_check(self, interaction: discord.Interaction):
+		return interaction.user.id == self.user.id
+
+	async def on_timeout(self):
+		for child in self.children:
+			child.disabled = True
+		await self._interaction.edit_original_response(view=self)
+		
+	@discord.ui.button(label='Sí', emoji=check_emoji, style=discord.ButtonStyle.green)
+	async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+		self.respond(interaction, True)
+
+	@discord.ui.button(label='No', emoji=cross_emoji, style=discord.ButtonStyle.red)
+	async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+		self.respond(interaction, False)
+
+	def respond(self, interaction: discord.Interaction, value: bool):
+		self.value = value
+		self.last_interaction = interaction
+		for child in self.children:
+			child.disabled = True
+		self.stop()
+
+
+class JoinView(discord.ui.View):
+	def __init__(self, interaction: discord.Interaction):
+		super().__init__()
+		self.timeout = 180
+		self.user = None
+		self.interaction = None
+		self._interaction = interaction
+
+	async def on_timeout(self):
+		self.children[0].disabled = True
+		await self._interaction.edit_original_response(view=self)
+
+	@discord.ui.button(label='Unirse', emoji=u'\U0001f4e5', style=discord.ButtonStyle.blurple)
+	async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
+		self.user = interaction.user
+		self.interaction = interaction
+		button.disabled = True
+		self.stop()
+
+
+class TicTacToeButton(discord.ui.Button['TicTacToe']):
+	def __init__(self, x: int, y: int):
+		# A label is required, but we don't need one so a zero-width space is used
+		# The row parameter tells the View which row to place the button under.
+		# A View can only contain up to 5 rows -- each row can only have 5 buttons.
+		# Since a Tic Tac Toe grid is 3x3 that means we have 3 rows and 3 columns.
+		super().__init__(style=discord.ButtonStyle.grey, emoji=empty_emoji, row=y)
+		self.x = x
+		self.y = y
+
+	async def interaction_check(self, interaction: discord.Interaction):
+		if interaction.user.id == self.view.players[self.view.current_player].id:
+			return True
+		else:
+			await interaction.response.defer()
+
+
+	# This function is called whenever this particular button is pressed
+	# This is part of the "meat" of the game logic
+	async def callback(self, interaction: discord.Interaction):
+		assert self.view is not None
+		view: TicTacToe = self.view
+		state = view.board[self.y][self.x]
+		if state in (view.X, view.O):
+			return
+
+		await view.play(interaction, self.x, self.y)
+
+
+# This is our actual board View
+class TicTacToe(discord.ui.View):
+	# This tells the IDE or linter that all our children will be TicTacToeButtons
+	# This is not required
+	children: List[TicTacToeButton]
+	X = -1
+	O = 1
+	Tie = 2
+
+	def __init__(self, interaction: discord.Interaction, playerX: discord.User, playerO: discord.User):
+		super().__init__()
+		self.interaction = interaction
+		self.timeout = 90
+		self.current_player = self.X
+		self.playerX = playerX
+		self.playerO = playerO
+		self.players = {
+			self.X: self.playerX,
+			self.O: self.playerO
+		}
+		self.board = [
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+		]
+		# Our board is made up of 3 by 3 TicTacToeButtons
+		# The TicTacToeButton maintains the callbacks and helps steer
+		# the actual game.
+		for x in range(3):
+			for y in range(3):
+				self.add_item(TicTacToeButton(x, y))
+
+	def get_content(self, status=None):
+		if status == None:
+			status = f':timer: Turno de {self.players[self.current_player].mention}'
+		return f'__**Tic Tac Toe**__\n:crossed_swords: **{self.playerX.name}** vs **{self.playerO.name}**\n{status}'
+
+	def get_other_player(self, key=None):
+		if key == None:
+			key = self.current_player
+		return {self.X: self.O, self.O: self.X}[self.current_player]
+
+	async def on_timeout(self):
+		for child in self.children:
+			child.disabled = True
+		self.stop()
+		await self.interaction.edit_original_response(content=self.get_content(f':tada: **{self.players[self.current_player].name}** no realizo su jugada a tiempo. ¡**{self.players[self.get_other_player()].name}** ha ganado la partida!'), view=self)
+	
+	async def play(self, interaction, x, y):
+		button = self.children[x*3 + y]
+		button.style = {self.X: discord.ButtonStyle.blurple, self.O: discord.ButtonStyle.green}[self.current_player]
+		button.emoji = {self.X: cross_emoji, self.O: circle_emoji}[self.current_player]
+		button.disabled = True
+		self.board[y][x] = self.current_player
+		self.current_player = self.get_other_player()
+
+		if self.players[self.current_player].bot:
+			for child in self.children:
+				child.disabled = True
+		
+		winner = self.check_board_winner()
+		if winner is not None:
+			if winner in (self.X, self.O):
+				status = f':tada: ¡**{self.players[winner].name}** ha ganado la partida!'
+			else:
+				status = ':flag_white: La partida terminó en un empate'
+
+			for child in self.children:
+				child.disabled = True
+
+			self.stop()
+			if interaction.response.is_done():
+				await interaction.edit_original_response(content=self.get_content(status), view=self)
+			else:
+				await interaction.response.edit_message(content=self.get_content(status), view=self)
+			return
+
+		if interaction.response.is_done():
+			await interaction.edit_original_response(content=self.get_content(), view=self)
+		else:
+			await interaction.response.edit_message(content=self.get_content(), view=self)
+
+		if self.current_player == self.O and self.players[self.O].bot:
+			await asyncio.sleep(1.5)
+			available_moves = [[x, y] if self.board[y][x] == 0 else None for x in range(3) for y in range(3)]
+			available_moves = list(filter(lambda x: x != None, available_moves))
+			button_x, button_y = choice(available_moves)
+			for child in self.children:
+				if self.board[child.y][child.x] not in (self.X, self.O):
+					child.disabled = False
+			await self.play(interaction, button_x, button_y)
+
+	# This method checks for the board winner -- it is used by the TicTacToeButton
+	def check_board_winner(self):
+		for across in self.board:
+			value = sum(across)
+			if value == 3:
+				return self.O
+			elif value == -3:
+				return self.X
+
+		# Check vertical
+		for line in range(3):
+			value = self.board[0][line] + self.board[1][line] + self.board[2][line]
+			if value == 3:
+				return self.O
+			elif value == -3:
+				return self.X
+
+		# Check diagonals
+		diag = self.board[0][2] + self.board[1][1] + self.board[2][0]
+		if diag == 3:
+			return self.O
+		elif diag == -3:
+			return self.X
+
+		diag = self.board[0][0] + self.board[1][1] + self.board[2][2]
+		if diag == 3:
+			return self.O
+		elif diag == -3:
+			return self.X
+
+		# If we're here, we need to check if a tie was made
+		if all(i != 0 for row in self.board for i in row):
+			return self.Tie
+
+		return None
 
 
 
@@ -572,6 +754,10 @@ class Warning:
 	@staticmethod
 	def loading(text:str, unicode=False):
 		return Warning.emoji_warning((':arrows_counterclockwise:', u'\U0001f504'), text, unicode)
+
+	@staticmethod
+	def searching(text:str, unicode=False):
+		return Warning.emoji_warning((':mag:', u'\U0001f50d'), text, unicode)
 
 	@staticmethod
 	def emoji_warning(emoji, text, unicode):
