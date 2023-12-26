@@ -9,6 +9,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import core
+import tictactoe as ttt
 
 
 # Create the bot client
@@ -62,7 +63,7 @@ async def tictactoe_context(interaction: discord.Interaction, user: discord.Memb
 		else:
 			await ask_view.last_interaction.response.defer()
 
-	game = core.TicTacToe(interaction, interaction.user, user)
+	game = ttt.TicTacToe(interaction, interaction.user, user)
 	if interaction.response.is_done():
 		await interaction.edit_original_response(content=game.get_content(), view=game)
 	else:
