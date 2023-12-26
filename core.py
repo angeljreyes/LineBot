@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import exceptions
 from random import choice
@@ -7,7 +7,7 @@ from re import fullmatch
 from sqlite3 import connect
 from requests import head
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import discord
 from discord import app_commands
@@ -66,24 +66,33 @@ descs = {
 	'replace': 'Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro',
 	'spacedtext': 'Devuelve el texto enviado con cada letra espaciada el número de veces indicado',
 	'vaporwave': 'Devuelve el texto en vaporwave',
-	'choose': 'Devuelve una de las opciones dadas, o "Si" o "No" si no le das opciones. Las opciones se separan por comas',
-	'poll': 'Crea encuestas de manera sencilla. Los emojis se separan por espacios poniendo `-e` delante, si no se epecifican emojis e usaran :+1: y :-1:',
-	'kao': 'Devuelve una lista de kaomojis o un kaomoji específico',
+	'choose': 'Devuelve una de las opciones dadas',
+	'poll': 'Crea encuestas de manera sencilla',
 	'avatar': 'Obtiene tú foto de perfil o la de otro usuario',
-	'defemoji': 'Envia emojis en el estado por defecto de tu dispositivo: \\😂. Si el emoji es personalizado de un server, se enviará su ID',
 	'sarcastic': 'ConVIeRtE el TEXtO a SarcAStiCO',
 	'iq': 'Calcula tu IQ o el de otra persona',
-	'tag': 'Añade o usa tags tuyos o de otras personas',
+	'tag': 'Añade o usa tags tuyos o de otros usuarios',
+	'tag show': 'Muestra el contenido de un tag',
+	'tag toggle': 'Activa los tags en el servidor',
+	'tag add': 'Crea un tag',
+	'tag gift': 'Regala un tag a otro usuario',
+	'tag rename': 'Cambia el nombre de uno de tus tags',
+	'tag edit': 'Edita el contenido de uno de tus tags',
+	'tag delete': 'Elimina uno de tus tags',
+	'tag forcedelete': 'Reservado',
+	'tag owner': 'Muestra el propietario de un tag',
+	'tag list': 'Muestra una lista de tus tags o de los tags de otro usuario',
+	'tag serverlist': 'Muestra los tags de todo el servidor',
 	'links': 'Obtén los links oficiales del bot',
-	'someone': 'Menciona a alguien aleatorio del server',
-	'ocr': 'Transcribe el texto de la última imagen enviada en el chat]',
+	'someone': 'Menciona a alguien aleatorio del servidor',
 	'dadjoke': 'Envia chistes que dan menos risa que los de Siri',
 	'nothing': 'Literalmente no hace nada',
 	'gay': 'Detecta como de homosexual eres',
 	'changelog': 'Revisa el registro de cambios de la última versión del bot o de una especificada',
 	'color': 'Cambia el color de los embeds del bot',
-	'wiktionary': 'Busca una palabra en inglés en el diccionario de Wiktionary',
-	'dle': 'Busca una palabra en español en el Diccionario de la lengua española',
+	'define': 'Busca el significado de una palabra',
+	'define spanish': 'Busca el significado de una palabra en español en el Diccionario de la Lengua Española',
+	'define english': 'Busca el significado de una palabra en inglés en Wiktionary',
 	'die': 'Apaga el bot',
 	'getmsg': 'Obtiene los datos de un mensaje',
 	'eval': 'Ejecuta código',
@@ -91,9 +100,16 @@ descs = {
 	'unload': 'Descarga un módulo',
 	'load': 'Carga un módulo',
 	'binary': 'Codifica o decodifica código binario',
+	'binary encode': 'Convierte texto a código binario',
+	'binary decode': 'Convierte código binario a texto',
 	'morse': 'Codifica o decodifica código morse',
+	'morse encode': 'Convierte texto a código morse',
+	'morse decode': 'Convierte código morse a texto',
+	'percent-encoding': 'Codifica o decodifica código porcentaje o código URL',
+	'percent-encoding encode': 'Convierte texto a código porcentaje o código URL',
+	'percent-encoding decode': 'Convierte código porcentaje o código URL a texto',
 	'hackban': 'Banea a un usuario sin necesidad de que esté en el server',
-	'userinfo': 'Obtiene información de un usuario. Habrá más información si este usuario se encuentra en este servidor',
+	'userinfo': 'Obtiene información de un usuario. Habrá más información si el usuario se encuentra en el servidor',
 	'roleinfo': 'Obtiene información de un rol',
 	'channelinfo': 'Obtiene la información de un canal de cualquier tipo o una categoría',
 	'serverinfo': 'Obtiene la información de este servidor',
@@ -102,7 +118,7 @@ descs = {
 	'lowercase': 'Convierte un texto a minúsculas',
 	'swapcase': 'Intercambia las minúsculas y las mayúsculas de un texto',
 	'capitalize': 'Convierte la primera letra de cada palabra a mayúsculas',
-	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto. Recuerda que puedes usar comillas para usar espacios en el primer texto. Puedes pasar comillas vacías ("") para contar caracteres y palabras en general en un texto',
+	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto',
 	'stats': 'Muestra información sobre el bot',
 	'tictactoe': 'Juega una partida de Tic Tac Toe contra la máquina o contra otra persona',
 	'tictactoe against-machine': 'Juega una partida de Tic Tac Toe contra la máquina',
@@ -126,8 +142,7 @@ descs = {
 	'supreme': 'Texto con fuente de Supreme',
 	'commandstats': 'Muestra cuáles son los comandos más usados y cuántas veces se han',
 	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias',
-	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases',
-	'percentencoding': 'Codifica o decodifica código porcentaje o código URL'
+	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases'
 }
 
 colors = {
@@ -311,6 +326,15 @@ def owner_only():
 	return app_commands.check(predicate)
 
 
+async def tag_check(interaction: discord.Interaction):
+	cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild.id}")
+	check = cursor.fetchall()
+	if check == []:
+		await interaction.response.send_message(Warning.info(
+			f'Los tags están desactivados en este servidor. {"Actívalos" if interaction.channel.permissions_for(interaction.user).manage_guild else "Pídele a un administrador que los active"} con el comando {list(filter(lambda x: x.name == "toggle", list(filter(lambda x: x.name == "tag", await interaction.client.tree.fetch_commands(guild=interaction.guild)))[0].options))[0].mention}'))
+		raise exceptions.DisabledTagsError('Tags are not enabled on this guild')
+
+
 def check_blacklist(interaction, user=None, raises=True):
 	user = interaction.user if user == None else user
 	cursor.execute(f"SELECT USER FROM BLACKLIST WHERE USER={user.id}")
@@ -336,7 +360,7 @@ def config_commands(bot):
 				command.add_check(check_blacklist)
 
 
-def fix_delta(delta:timedelta, *, ms=False, limit=3):
+def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True):
 	years = delta.days // 365
 	days = delta.days - years * 365
 	hours = delta.seconds // 3600
@@ -344,28 +368,32 @@ def fix_delta(delta:timedelta, *, ms=False, limit=3):
 	seconds = (delta.seconds - minutes * 60 - hours * 3600)
 	seconds += float(str(delta.microseconds / 1000000)[:3]) if ms and seconds < 10 else 0
 	measures = {
-		'y': years,
-		'd': days,
-		'h': hours,
-		'm': minutes,
-		's': seconds
+		'años': years,
+		'días': days,
+		'horas': hours,
+		'minutos': minutes,
+		'segundos': seconds
 	}
 	for key in tuple(filter(lambda x: measures[x] == 0, measures)):
 		measures.pop(key)
 	for key in tuple(filter(lambda x: tuple(measures).index(x)+1 > limit, measures)):
 		measures.pop(key)
-	return ' '.join((f'{measures[measure]}{measure}' for measure in measures))
+
+	if compact:
+		return ' '.join((f'{measures[measure]}{measure[0]}' for measure in measures))
+	else:
+		return ' '.join((f'{measures[measure]} {measure if measures[measure] != 1 else measure[:-1]}' for measure in measures))
 
 
-def fix_date(date:datetime, elapsed=False, newline=False):
+def fix_date(date: datetime, *, elapsed=False, newline=False):
 	result = f'{date.day}/{date.month}/{date.year} {date.hour}:{date.minute}:{date.second} UTC'
 	if elapsed:
-		delta = fix_delta(datetime.utcnow() - date)
+		delta = fix_delta(datetime.now(timezone.utc) - date)
 		result += ('\n' if newline else ' ') + f'(Hace {delta})'
 	return result
 
 
-def add_fields(embed:discord.Embed, data_dict:dict, *, inline=None, inline_char='~'):
+def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_char='~'):
 	inline_char = '' if inline_char == None else inline_char
 	for data in data_dict:
 		if data_dict[data] not in (None, ''):
@@ -400,7 +428,7 @@ class ChannelConverter(commands.Converter):
 
 
 class Confirm(discord.ui.View):
-	def __init__(self, interaction:discord.Interaction, user: discord.User, *, timeout=180):
+	def __init__(self, interaction:discord.Interaction, user: discord.User, *, timeout:Union[int, float]=180):
 		super().__init__()
 		self._interaction = interaction
 		self.user = user
@@ -761,21 +789,21 @@ class Warning:
 
 	@staticmethod
 	def emoji_warning(emoji, text, unicode):
-		return f'{emoji[int(unicode)]} {text}.'
+		return f'{emoji[int(unicode)]} {text}'
 
 
 
 class Tag:
-	__slots__ = ('ctx', 'guild', 'user', 'name', 'content', 'img', 'nsfw')
+	__slots__ = ('interaction', 'guild', 'user', 'name', 'content', 'img', 'nsfw')
 
-	def __init__(self, ctx, guild_id:int, user_id:int, name:str, content:str, img:bool, nsfw:bool):
-		self.ctx = ctx
-		self.guild = ctx.bot.get_guild(guild_id)
-		self.user = ctx.bot.get_user(user_id)
+	def __init__(self, interaction, guild_id:int, user_id:int, name:str, content:str, img:bool, nsfw:bool):
+		self.interaction = interaction
+		self.guild = interaction.client.get_guild(guild_id)
+		self.user = interaction.client.get_user(user_id)
 		self.name = name
 		self.content = content
-		self.img = img
-		self.nsfw = nsfw
+		self.img = bool(img)
+		self.nsfw = bool(nsfw)
 
 	def __str__(self):
 		return self.name

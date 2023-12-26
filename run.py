@@ -19,7 +19,7 @@ class LineBot(commands.Bot):
 			'listeners',
 			'bot',
 			'modtxt',
-			# 'util',
+			'util',
 			'fun',
 			'owner',
 			# 'image'
