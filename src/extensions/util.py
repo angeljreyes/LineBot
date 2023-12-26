@@ -18,6 +18,7 @@ from modded_libraries.signi import get_defs
 from wiktionaryparser import WiktionaryParser as WikPar
 
 import core
+import pagination
 
 
 class Util(commands.Cog):
@@ -423,11 +424,11 @@ class Util(commands.Cog):
 		if user == None:
 			user = interaction.user
 		tags = list(map(lambda tag: f'"{tag}"', self.get_member_tags(interaction, user)))
-		pages = core.Page.from_list(interaction, f'Tags de {user.name}', tags)
+		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tags)
 		if len(pages) == 1:
 			paginator = None
 		else:
-			paginator = core.Paginator(interaction, pages=pages, entries=len(tags))
+			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tags))
 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 
@@ -437,11 +438,11 @@ class Util(commands.Cog):
 	async def tag_serverlist(self, interaction: discord.Interaction):
 		await core.tag_check(interaction)
 		tags = list(map(lambda tag: f'{tag.user.name}: "{tag}"', self.get_guild_tags(interaction)))
-		pages = core.Page.from_list(interaction, f'Tags de {interaction.guild}', tags)
+		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tags)
 		if len(pages) == 1:
 			paginator = None
 		else:
-			paginator = core.Paginator(interaction, pages=pages, entries=len(tags))
+			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tags))
 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 
@@ -479,7 +480,7 @@ class Util(commands.Cog):
 	# 		for _def in defs:
 	# 			if len(desc + f'{_def}\n') > 2048:
 	# 				embed.description = desc
-	# 				pages.append(core.Page(embed=embed))
+	# 				pages.append(pagination.Page(embed=embed))
 	# 				desc = ''
 	# 				embed = discord.Embed(title=query.capitalize(), colour=core.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
 
@@ -491,12 +492,12 @@ class Util(commands.Cog):
 	# 			desc += f'{_def}\n'
 			
 	# 		embed.description = desc
-	# 		pages.append(core.Page(embed=embed))
+	# 		pages.append(pagination.Page(embed=embed))
 			
 	# 		if len(pages) == 1:
 	# 			paginator = None
 	# 		else:
-	# 			paginator = core.Paginator(interaction, pages=pages, entries=len(defs))
+	# 			paginator = pagination.Paginator(interaction, pages=pages, entries=len(defs))
 	# 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 		
 	# 	else:
@@ -522,7 +523,7 @@ class Util(commands.Cog):
 # 				await self.send(ctx, core.Warning.error('Palabra no encontrada'))
 # 				ctx.command.reset_cooldown(ctx)
 # 			else:
-# 				pages = [core.Page(embed=discord.Embed(title=query, colour=core.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url))]
+# 				pages = [pagination.Page(embed=discord.Embed(title=query, colour=core.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url))]
 # 				entries = 0
 # 				for definition in word['definitions']:
 # 					value = ['']
@@ -534,7 +535,7 @@ class Util(commands.Cog):
 # 						if len(value[page_count] + f'{count}. {entry}\n' if count > 0 else f'{entry}\n') > 1022:
 # 							value.append('')
 # 							page_count += 1
-# 							pages.append(core.Page(embed=discord.Embed(title=query, colour=core.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url)))
+# 							pages.append(pagination.Page(embed=discord.Embed(title=query, colour=core.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url)))
 # 						value[page_count] += f'{count}. {entry}\n' if count > 0 else f'{entry}\n'
 # 						count += 1
 					

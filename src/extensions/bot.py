@@ -10,6 +10,7 @@ from discord.ext import commands
 from psutil import Process, virtual_memory, cpu_percent
 
 import core
+import pagination
 
 
 class About(commands.Cog):
@@ -161,8 +162,8 @@ class About(commands.Cog):
 			stats = core.cursor.fetchall()
 			stats.sort(key=lambda x: x[1], reverse=True)
 			fstats = list(map(lambda x: f'`{x[0]}` - {x[1]}', stats))
-			pages = core.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', fstats)
-			paginator = core.Paginator(interaction, pages=pages, entries=len(fstats))
+			pages = pagination.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', fstats)
+			paginator = pagination.Paginator(interaction, pages=pages, entries=len(fstats))
 			await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 		else:
