@@ -784,7 +784,7 @@ class Util(commands.Cog):
 				'Es NSFW': core.bools[channel.nsfw],
 				'Bitrate': f'{channel.bitrate//1000}kbps',
 				'Límite de usuarios': channel.user_limit if channel.user_limit != 0 else 'Sin límite',
-				'Cantidad de usuarios en el canal': f'{len(channel.members)} usuarios\n{len(channel.speakers)} oradores\n{len(channel.listeners)} oyentes\n{len(channel.moderators)} moderadores\n{len(channel.requesting_to_speak)} solicitudes para hablar' if ic(channel.members) != [] else None,
+				'Cantidad de usuarios en el canal': f'{len(channel.members)} usuarios\n{len(channel.speakers)} oradores\n{len(channel.listeners)} oyentes\n{len(channel.moderators)} moderadores\n{len(channel.requesting_to_speak)} solicitudes para hablar' if channel.members != [] else None,
 			})
 
 		elif channel.type == discord.ChannelType.forum:
