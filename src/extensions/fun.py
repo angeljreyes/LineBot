@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 from numpy import empty
 
-import modded_libraries.tictactoe as ttt
+import tictactoe as ttt
 from requests import get
 
 import core
@@ -167,7 +167,7 @@ class Fun(commands.Cog):
 	@tictactoe_group.command(name='against-machine')
 	@app_commands.checks.cooldown(1, 15)
 	async def against_machine(self, interaction: discord.Interaction):
-		game = core.TicTacToe(interaction, interaction.user, interaction.guild.me)
+		game = ttt.TicTacToe(interaction, interaction.user, interaction.guild.me)
 		await interaction.response.send_message(game.get_content(), view=game)
 
 
@@ -181,7 +181,7 @@ class Fun(commands.Cog):
 			Usuario contra el que quieres jugar
 		"""
 		if opponent == None:
-			join_view = core.JoinView(interaction)
+			join_view = ttt.JoinView(interaction)
 			await interaction.response.send_message(core.Warning.searching(f'**{interaction.user.name}** está buscando un oponente para jugar Tic Tac Toe'), view=join_view)
 			await join_view.wait()
 
@@ -211,7 +211,7 @@ class Fun(commands.Cog):
 			else:
 				await ask_view.last_interaction.response.defer()
 
-		game = core.TicTacToe(interaction, interaction.user, opponent)
+		game = ttt.TicTacToe(interaction, interaction.user, opponent)
 		await interaction.edit_original_response(content=game.get_content(), view=game)
 
 
