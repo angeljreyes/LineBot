@@ -163,6 +163,7 @@ class Fun(commands.Cog):
 	tictactoe_group = app_commands.Group(name='tictactoe', description='...')
 
 
+	#tictactoe against-machine
 	@tictactoe_group.command(name='against-machine')
 	@app_commands.checks.cooldown(1, 15)
 	async def against_machine(self, interaction: discord.Interaction):
@@ -170,6 +171,7 @@ class Fun(commands.Cog):
 		await interaction.response.send_message(game.get_content(), view=game)
 
 
+	#tictactoe against-player
 	@tictactoe_group.command(name='against-player')
 	@app_commands.checks.cooldown(1, 15)
 	@app_commands.rename(opponent='oponente')

@@ -15,7 +15,7 @@ class Listeners(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		@self.bot.tree.error
-		async def error_handler(interaction, error):
+		async def error_handler(interaction: discord.Interaction, error: Exception):
 			error_msg = None
 			# An exception object and its error message
 			error_messages = {
@@ -49,14 +49,14 @@ class Listeners(commands.Cog):
 				},
 				# Custom exceptions
 				exceptions.DisabledTagsError: '',
-				exceptions.ExistentTagError: 'Este tag ya existe---',
+				exceptions.ExistentTagError: 'Este tag ya existe', #---
 				exceptions.ImageNotFound: 'No se encontró ninguna imagen en los últimos 30 mensajes',
 				exceptions.NotOwner: 'Comando exclusivo del dueño del bot',
 				exceptions.BlacklistUserError: 'Estás en la lista negra. No tienes permitido usar el bot',
 				exceptions.NonExistentTagError: {
-					'This tag': 'Este tag no existe---',
-					'This user': 'Este usuario no tiene tags---',
-					'This server': 'Este servidor no tiene tags---'
+					'This tag': 'Este tag no existe', #---
+					'This user': 'Este usuario no tiene tags', #---
+					'This server': 'Este servidor no tiene tags' #---
 				}
 			}
 
@@ -93,6 +93,7 @@ class Listeners(commands.Cog):
 					await interaction.response.send_message(embed=embed, ephemeral=True)
 				else:
 					await interaction.edit_original_response(content=None, embed=embed, attachments=[], view=None)
+					await (await interaction.original_response()).clear_reactions()
 				core.logger.error('An error has ocurred', exc_info=error)
 				return
 
@@ -101,9 +102,6 @@ class Listeners(commands.Cog):
 				return
 			else:
 				# If the error message ends with '---', don't set a cooldown
-				if error_msg.endswith('---'):
-					error_msg = error_msg[:-3]
-					interaction.command.reset_cooldown(interaction)
 				try:
 					await interaction.response.send_message(core.Warning.error(error_msg), ephemeral=True)
 				except discord.InteractionResponded:

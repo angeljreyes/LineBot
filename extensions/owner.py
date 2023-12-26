@@ -85,10 +85,10 @@ class Owner(commands.Cog):
 
 						await interaction.followup.send(embed=discord.Embed(
 							title='Resultados del eval',
-							description=f'Tipo de dato y resultado:\n```py\n{types}\n```\n```py\n{returned_value}\n```',
+							description=f'Tipo de dato y resultado:\n```py\n{types}\n```\n```py\n{core.eval_returned_value}\n```',
 							colour=core.default_color(interaction)
 						).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms'))
-						core.returned_value = None
+						core.eval_returned_value = None
 					else:
 						await interaction.followup.send(u'\U00002705')
 				finally:
