@@ -1,24 +1,21 @@
 import asyncio
-from datetime import timedelta
-from operator import xor
-import exceptions
 import json
+from datetime import timedelta
 from random import choice, randrange
-from re import findall, fullmatch, search
+from re import findall, search
 from urllib.parse import quote, unquote
 from typing import Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-
-from aiohttp import ClientOSError
-from requests import get
-from modded_libraries.signi import get_defs
-from wiktionaryparser import WiktionaryParser as WikPar
+# from wiktionaryparser import WiktionaryParser as WikPar
 
 import core
 import pagination
+import db
+import tags
+# from modded_libraries.signi import get_defs
 
 
 class Util(commands.Cog):
@@ -32,50 +29,6 @@ class Util(commands.Cog):
 		',':'--..--', '.':'.-.-.-', '?':'..--..', '!':'--..--', '/':'-..-.', '-':'-....-', '(':'-.--.',
 		')':'-.--.-', '"':'.-..-.', ':':'---...', ';':'-.-.-.', '\'':'.----.', '=':'-...-',
 		'&':'.-...', '+':'.-.-.', '_':'..--.-', '$':'...-..-', '@':'.--.-.', ' ':'/'}
-
-
-	def add_tag(self, interaction: discord.Interaction, name:str, content:str, nsfw:bool):
-		core.cursor.execute("INSERT INTO TAGS2 VALUES(?,?,?,?,?,?)", (interaction.guild.id, interaction.user.id, name, content, int(nsfw), 0))
-		core.conn.commit()
-
-
-	def check_tag_name(self, interaction: discord.Interaction, tag_name: str):
-		for char in tag_name:
-			if char in (' ', '_', '~', '*', '`', '|', ''):
-				raise ValueError('Invalid characters detected')
-		if tag_name in [tag.name for tag in self.get_guild_tags(interaction)]:
-			raise exceptions.ExistentTagError(f'Tag "{tag_name}" already exists')
-
-
-	def get_tag(self, interaction, name:str, guild=None):
-		core.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild_id if guild == None else guild.id} AND NAME=?", (name,))
-		tag = core.cursor.fetchall()
-		core.conn.commit()
-		if tag != []:
-			tag = tag[0]
-			return core.Tag(interaction, tag[0], tag[1], tag[2], tag[3], bool(tag[4]), bool(tag[5]))
-		else:
-			raise exceptions.NonExistentTagError('This tag does not exist')
-
-
-	def get_member_tags(self, interaction, user:discord.Member):
-		core.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild.id} AND USER={user.id}")
-		tags = core.cursor.fetchall()
-		core.conn.commit()
-		if tags != []:
-			return [core.Tag(interaction, tag[0], tag[1], tag[2], tag[3], bool(tag[4]), bool(tag[5])) for tag in tags]
-		else:
-			raise exceptions.NonExistentTagError('This user doesn\'t have tags')
-
-
-	def get_guild_tags(self, interaction):
-		core.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild.id}")
-		tags = core.cursor.fetchall()
-		core.conn.commit()
-		if tags != []:
-			return [core.Tag(interaction, tag[0], tag[1], tag[2], tag[3], bool(tag[4]), bool(tag[5])) for tag in tags]
-		else:
-			raise exceptions.NonExistentTagError('This server doesn\'t have tags')
 
 
 	# choose
@@ -110,7 +63,7 @@ class Util(commands.Cog):
 		embed = discord.Embed(
 			title='Mi elección es...',
 			description=choice(list(filter(lambda x: x != None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))),
-			colour=core.default_color(interaction)
+			colour=db.default_color(interaction)
 		)
 		await interaction.response.send_message(embed=embed)
 
@@ -155,7 +108,7 @@ class Util(commands.Cog):
 		embed = discord.Embed(
 			title=description,
 			description='\n'.join([f'{emojis[option]} {options[option]}' for option in range(len(options))]),
-			colour=core.default_color(interaction)
+			colour=db.default_color(interaction)
 		)
 		embed.set_author(name=f'Encuesta hecha por {str(interaction.user.name)}', icon_url=interaction.user.avatar.url)
 		await interaction.response.send_message(embed=embed)
@@ -171,7 +124,7 @@ class Util(commands.Cog):
 			user = interaction.user
 		await interaction.response.send_message(embed=discord.Embed(
 			title=f'Avatar de {str(user)}',
-			colour=core.default_color(interaction)
+			colour=db.default_color(interaction)
 		).set_image(url=user.display_avatar.url))
 
 
@@ -190,8 +143,8 @@ class Util(commands.Cog):
 		tag_name: discord.Range[str, 1, 32]
 			Nombre de un tag
 		"""
-		await core.tag_check(interaction)
-		tag = self.get_tag(interaction, tag_name)
+		await tags.tag_check(interaction)
+		tag = tags.get_tag(interaction, tag_name)
 		if not (not interaction.channel.is_nsfw() and bool(tag.nsfw)):
 			await interaction.response.send_message(await commands.clean_content().convert(interaction, tag.content))
 		else:
@@ -203,8 +156,8 @@ class Util(commands.Cog):
 	@tag_group.command(name='toggle')
 	async def tag_toggle(self, interaction: discord.Interaction):
 		if interaction.channel.permissions_for(interaction.user).manage_guild:
-			core.cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
-			check = core.cursor.fetchall()
+			db.cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
+			check = db.cursor.fetchall()
 			if check == []:
 				confirmation = core.Confirm(interaction, interaction.user)
 				await interaction.response.send_message(core.Warning.question('Los tags en este servidor están desactivados. ¿Quieres activarlos?'), view=confirmation, ephemeral=True)
@@ -216,7 +169,7 @@ class Util(commands.Cog):
 				confirmation.clear_items()
 
 				if confirmation.value:
-					core.cursor.execute(f"INSERT INTO TAGSENABLED VALUES({interaction.guild_id})")
+					db.cursor.execute(f"INSERT INTO TAGSENABLED VALUES({interaction.guild_id})")
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se activaron los tags en este servidor'), view=confirmation)
 
 				else:
@@ -233,13 +186,13 @@ class Util(commands.Cog):
 				confirmation.clear_items()
 
 				if confirmation.value:
-					core.cursor.execute(f"DELETE FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
+					db.cursor.execute(f"DELETE FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se desactivaron los tags en este servidor'), view=confirmation)
 
 				else:
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.cancel('No se desactivarán los tags en este servidor'), view=confirmation)
 			
-			core.conn.commit()
+			db.conn.commit()
 
 		else:
 			await interaction.response.send_message(core.Warning.error('Necesitas permiso de gestionar servidor para activar o desactivar los tags'), ephemeral=True)
@@ -264,11 +217,11 @@ class Util(commands.Cog):
 		nsfw: bool = False
 			Determina si el tag puede mostrarse únicamente en canales NSFW
 		"""
-		await core.tag_check(interaction)
-		self.check_tag_name(interaction, tag_name)
+		await tags.tag_check(interaction)
+		tags.check_tag_name(interaction, tag_name)
 		if interaction.channel.nsfw:
 			nsfw = True
-		self.add_tag(interaction, tag_name, tag_content, nsfw)
+		tags.add_tag(interaction, tag_name, tag_content, nsfw)
 		await interaction.response.send_message(core.Warning.success(f'Se agregó el tag **{await commands.clean_content().convert(interaction, tag_name)}**'))
 
 
@@ -280,13 +233,13 @@ class Util(commands.Cog):
 		tag_name: app_commands.Range[str, 1, 32],
 		user: discord.Member
 	):
-		await core.tag_check(interaction)
+		await tags.tag_check(interaction)
 		if user == interaction.user:
 			await interaction.response.send_message(core.Warning.error('No puedes regalarte un tag a ti mismo'), ephemeral=True)
 		elif user.bot:
 			await interaction.response.send_message(core.Warning.error('No puedes regalarle un tag a un bot'), ephemeral=True)
 		else:
-			tag: core.Tag = self.get_tag(interaction, tag_name)
+			tag: tags.Tag = tags.get_tag(interaction, tag_name)
 			if tag.user.id != interaction.user.id:
 				await interaction.response.send_message(core.Warning.error('No puedes regalar el tag de otra persona'), ephemeral=True)
 				return
@@ -315,9 +268,9 @@ class Util(commands.Cog):
 		old_name: app_commands.Range[str, 1, 32],
 		new_name: app_commands.Range[str, 1, 32]
 	):
-		await core.tag_check(interaction)
-		self.check_tag_name(interaction, new_name)
-		tag = self.get_tag(interaction, old_name)
+		await tags.tag_check(interaction)
+		tags.check_tag_name(interaction, new_name)
+		tag = tags.get_tag(interaction, old_name)
 		if tag.user.id == interaction.user.id:
 			if tag.name == new_name:
 				await interaction.response.send_message(core.Warning.error('No puedes ponerle el mismo nombre a un tag'), ephemeral=True)
@@ -349,8 +302,8 @@ class Util(commands.Cog):
 		nsfw: bool = False
 			Determina si el tag puede mostrarse únicamente en canales NSFW
 		"""
-		await core.tag_check(interaction)
-		tag = self.get_tag(interaction, tag_name)
+		await tags.tag_check(interaction)
+		tag = tags.get_tag(interaction, tag_name)
 		if interaction.user.id == tag.user.id:
 			if interaction.channel.nsfw:
 				nsfw = True
@@ -366,8 +319,8 @@ class Util(commands.Cog):
 	@tag_group.command(name='delete')
 	@app_commands.rename(tag_name='tag')
 	async def tag_delete(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
-		await core.tag_check(interaction)
-		tag = self.get_tag(interaction, tag_name)
+		await tags.tag_check(interaction)
+		tag = tags.get_tag(interaction, tag_name)
 		if interaction.user.id == tag.user.id:
 			confirmation = core.Confirm(interaction, interaction.user)
 			await interaction.response.send_message(core.Warning.question(f'¿Quieres eliminar el tag **{await commands.clean_content().convert(interaction, tag_name)}**?'), view=confirmation)
@@ -400,7 +353,7 @@ class Util(commands.Cog):
 		silent: bool = False
 	):
 		guild = interaction.guild if guild == None else self.bot.get_guild(guild)
-		tag = self.get_tag(interaction, tag_name, guild)
+		tag = tags.get_tag(interaction, tag_name, guild)
 		tag.delete()
 		await interaction.response.send_message(core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag_name)}** ha sido eliminado'), ephemeral=silent)
 
@@ -410,8 +363,8 @@ class Util(commands.Cog):
 	@tag_group.command(name='owner')
 	@app_commands.rename(tag_name='tag')
 	async def tag_owner(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
-		await core.tag_check(interaction)
-		tag = self.get_tag(interaction, tag_name)
+		await tags.tag_check(interaction)
+		tag = tags.get_tag(interaction, tag_name)
 		await interaction.response.send_message(core.Warning.info(f'El dueño del tag **{await commands.clean_content().convert(interaction, tag.name)}** es `{await commands.clean_content().convert(interaction, str(tag.user))}`'))
 
 
@@ -420,15 +373,15 @@ class Util(commands.Cog):
 	@tag_group.command(name='list')
 	@app_commands.rename(user='usuario')
 	async def tag_list(self, interaction: discord.Interaction, user: discord.Member = None):
-		await core.tag_check(interaction)
+		await tags.tag_check(interaction)
 		if user == None:
 			user = interaction.user
-		tags = list(map(lambda tag: f'"{tag}"', self.get_member_tags(interaction, user)))
-		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tags)
+		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user)))
+		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tag_list)
 		if len(pages) == 1:
 			paginator = None
 		else:
-			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tags))
+			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tag_list))
 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 
@@ -436,13 +389,13 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 20)
 	@tag_group.command(name='serverlist')
 	async def tag_serverlist(self, interaction: discord.Interaction):
-		await core.tag_check(interaction)
-		tags = list(map(lambda tag: f'{tag.user.name}: "{tag}"', self.get_guild_tags(interaction)))
-		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tags)
+		await tags.tag_check(interaction)
+		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction)))
+		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
 		if len(pages) == 1:
 			paginator = None
 		else:
-			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tags))
+			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tag_list))
 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 
@@ -473,7 +426,7 @@ class Util(commands.Cog):
 	# 	query = query.lower()
 	# 	defs = ic(get_defs(query))
 	# 	if defs != ['']:
-	# 		embed = discord.Embed(title=query.capitalize(), colour=core.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
+	# 		embed = discord.Embed(title=query.capitalize(), colour=db.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
 	# 		count = 0
 	# 		desc = ''
 	# 		pages = []
@@ -482,7 +435,7 @@ class Util(commands.Cog):
 	# 				embed.description = desc
 	# 				pages.append(pagination.Page(embed=embed))
 	# 				desc = ''
-	# 				embed = discord.Embed(title=query.capitalize(), colour=core.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
+	# 				embed = discord.Embed(title=query.capitalize(), colour=db.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
 
 	# 			count += 1
 	# 			number = int(findall(r'^[0-9]+', _def)[0])
@@ -523,7 +476,7 @@ class Util(commands.Cog):
 # 				await self.send(ctx, core.Warning.error('Palabra no encontrada'))
 # 				ctx.command.reset_cooldown(ctx)
 # 			else:
-# 				pages = [pagination.Page(embed=discord.Embed(title=query, colour=core.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url))]
+# 				pages = [pagination.Page(embed=discord.Embed(title=query, colour=db.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url))]
 # 				entries = 0
 # 				for definition in word['definitions']:
 # 					value = ['']
@@ -535,7 +488,7 @@ class Util(commands.Cog):
 # 						if len(value[page_count] + f'{count}. {entry}\n' if count > 0 else f'{entry}\n') > 1022:
 # 							value.append('')
 # 							page_count += 1
-# 							pages.append(pagination.Page(embed=discord.Embed(title=query, colour=core.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url)))
+# 							pages.append(pagination.Page(embed=discord.Embed(title=query, colour=db.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url)))
 # 						value[page_count] += f'{count}. {entry}\n' if count > 0 else f'{entry}\n'
 # 						count += 1
 					
@@ -695,7 +648,7 @@ class Util(commands.Cog):
 						'dnd': 'No molestar'
 					}[str(client[1])] for client in ((':desktop: ', user.desktop_status), (':iphone: ', user.mobile_status), (':globe_with_meridians: ', user.web_status)))),
 				})
-		embed = discord.Embed(title='Información del usuario', colour=core.default_color(interaction)).set_thumbnail(url=user.avatar.url)
+		embed = discord.Embed(title='Información del usuario', colour=db.default_color(interaction)).set_thumbnail(url=user.avatar.url)
 		for data in data_dict:
 			if data_dict[data] != None:
 				if data == 'Apodo':
@@ -724,7 +677,7 @@ class Util(commands.Cog):
 			'Cantidad de usuarios': f'{len(role.members)} de {len(interaction.guild.members)}',
 			'Permisos~': f'Integer: `{role.permissions.value}`\n' + ', '.join((f'{("`"+perm[0].replace("_"," ").capitalize()+"`") if perm[1] else ""}' for perm in tuple(filter(lambda x: x[1], tuple(role.permissions)))))
 		}
-		embed = discord.Embed(title='Información del rol', colour=core.default_color(interaction))
+		embed = discord.Embed(title='Información del rol', colour=db.default_color(interaction))
 		embed = core.add_fields(embed, data_dict)
 		await interaction.response.send_message(embed=embed)
 
@@ -820,7 +773,7 @@ class Util(commands.Cog):
 				'Cantidad de canales': f'De texto: {len(channel.text_channels)}\nDe voz: {len(channel.voice_channels)}\nTotal: {len(channel.channels)}'
 			})
 
-		embed = discord.Embed(title='Información del canal', colour=core.default_color(interaction))
+		embed = discord.Embed(title='Información del canal', colour=db.default_color(interaction))
 		embed = core.add_fields(embed, data_dict)
 		await interaction.response.send_message(embed=embed)
 
@@ -866,7 +819,7 @@ class Util(commands.Cog):
 			'Cantidad de roles': len(guild.roles)
 		}
 
-		embed = discord.Embed(title='Información del servidor', colour=core.default_color(interaction))
+		embed = discord.Embed(title='Información del servidor', colour=db.default_color(interaction))
 		if str(guild.icon.url) != '':
 			embed.set_thumbnail(url=guild.icon.url)
 		embed = core.add_fields(embed, data_dict)
@@ -885,7 +838,7 @@ class Util(commands.Cog):
 			Palabra que contar en el texto. Dejar vacío para contar cualquier palabra o carácter
 		"""
 		count = text.count(to_count)
-		embed = discord.Embed(title='Contador de palabras', colour=core.default_color(interaction))
+		embed = discord.Embed(title='Contador de palabras', colour=db.default_color(interaction))
 		if to_count == None:
 			data_dict = {
 				'Cantidad de caracteres': len(text),
@@ -927,7 +880,7 @@ class Util(commands.Cog):
 		await interaction.response.send_message(embed=discord.Embed(
 			title = f'Número aleatorio entre {start} y {stop}',
 			description = str(randrange(start, stop, step)),
-			colour = core.default_color(interaction)
+			colour = db.default_color(interaction)
 		))
 
 

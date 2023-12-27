@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import core
+import db
 
 
 class Modtxt(commands.Cog):
@@ -77,7 +78,7 @@ class Modtxt(commands.Cog):
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.defer(ephemeral=ephemeral, thinking=True)
-		embed = discord.Embed(title='Replace', colour=core.default_color(interaction))
+		embed = discord.Embed(title='Replace', colour=db.default_color(interaction))
 		embed.add_field(name='Valor reemplazado:', value=replacing)
 		embed.add_field(name='Reemplazado por:', value=replacement)
 		if count > -1:

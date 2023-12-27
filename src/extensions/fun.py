@@ -4,12 +4,12 @@ from random import choice, randint
 import discord
 from discord import app_commands
 from discord.ext import commands
-from numpy import empty
-
-import tictactoe as ttt
-from requests import get
 
 import core
+import tictactoe as ttt
+import db
+from requests import get
+
 
 
 class Fun(commands.Cog):
@@ -112,9 +112,9 @@ class Fun(commands.Cog):
 			request_id = request['id']
 			if image:
 				url = f'https://icanhazdadjoke.com/j/{request_id}.png'
-				embed = discord.Embed(title='Dad joke', colour=core.default_color(interaction)).set_image(url=url).set_footer(text='Joke ID: '+request_id)
+				embed = discord.Embed(title='Dad joke', colour=db.default_color(interaction)).set_image(url=url).set_footer(text='Joke ID: '+request_id)
 			else:
-				embed = discord.Embed(title='Dad joke', description=request['joke'], colour=core.default_color(interaction)).set_footer(text='Joke ID: '+request_id)
+				embed = discord.Embed(title='Dad joke', description=request['joke'], colour=db.default_color(interaction)).set_footer(text='Joke ID: '+request_id)
 		except KeyError:
 			await interaction.response.send_message(core.Warning.error('ID inválida'), ephemeral=True)
 		else: 
@@ -154,7 +154,7 @@ class Fun(commands.Cog):
 		embed = discord.Embed(
 			title='Medidor gamer de homosexualidad',
 			description=f'{username} es un {percent}% gay, {extra}.',
-			colour=core.default_color(interaction)
+			colour=db.default_color(interaction)
 		)
 		await interaction.response.send_message(embed=embed)
 
@@ -229,7 +229,7 @@ class Fun(commands.Cog):
 			embed=discord.Embed(
 				title='8ball',
 				description=question,
-				colour=core.default_color(interaction)
+				colour=db.default_color(interaction)
 			).add_field(
 				name='Respuesta',
 				value=choice((

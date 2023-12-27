@@ -1,14 +1,13 @@
 import asyncio
 import exceptions
-import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 import core
-import logging
+import db
 
 
 class Listeners(commands.Cog):
@@ -84,7 +83,7 @@ class Listeners(commands.Cog):
 				embed = discord.Embed(
 					title=f'Ha ocurrido un error',
 					description=f'```py\n{repr(error)}\n```',
-					colour=core.default_color(interaction)
+					colour=db.default_color(interaction)
 				).set_author(
 					name=interaction.user.name,
 					icon_url=interaction.user.display_avatar.url
@@ -123,14 +122,14 @@ class Listeners(commands.Cog):
 
 		if core.bot_mode == 'stable':
 			# Update the command stats
-			core.cursor.execute(f"SELECT * FROM COMMANDSTATS WHERE COMMAND='{command.name}'")
-			db_command_data = core.cursor.fetchall()
+			db.cursor.execute(f"SELECT * FROM COMMANDSTATS WHERE COMMAND='{command.name}'")
+			db_command_data = db.cursor.fetchall()
 			if db_command_data == []:
-				core.cursor.execute(f"INSERT INTO COMMANDSTATS VALUES('{command.name}', 1)")
+				db.cursor.execute(f"INSERT INTO COMMANDSTATS VALUES('{command.name}', 1)")
 			else:
-				core.cursor.execute(f"UPDATE COMMANDSTATS SET USES={db_command_data[0][1] + 1} WHERE COMMAND='{db_command_data[0][0]}'")
+				db.cursor.execute(f"UPDATE COMMANDSTATS SET USES={db_command_data[0][1] + 1} WHERE COMMAND='{db_command_data[0][0]}'")
 
-			core.conn.commit()
+			db.conn.commit()
 
 
 	@commands.Cog.listener('on_guild_join')

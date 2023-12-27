@@ -7,6 +7,7 @@ from discord.ext import commands
 from requests import get
 
 import core
+import db
 from alexflipnote import Client
 
 
@@ -14,9 +15,9 @@ class Image(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.send = bot.get_cog('GlobalCog').send
-		core.cursor.execute("SELECT VALUE FROM RESOURCES WHERE KEY='alexflipnote_token'")
-		token = core.cursor.fetchall()[0][0]
-		core.conn.commit()
+		db.cursor.execute("SELECT VALUE FROM RESOURCES WHERE KEY='alexflipnote_token'")
+		token = db.cursor.fetchall()[0][0]
+		db.conn.commit()
 		self.api = Client(token)
 
 
@@ -225,7 +226,7 @@ class Image(commands.Cog):
 			raw = f'https://minotar.net/skin/{quote(user)}.png'
 			await self.send(ctx, embed=discord.Embed(
 				title=f'Skin de {user}',
-				colour=core.default_color(ctx),
+				colour=db.default_color(ctx),
 				url=raw
 			).set_image(url=f'https://minotar.net/armor/body/{quote(user)}/400.png').set_thumbnail(url=raw)\
 .set_footer(text='La skin de Steve podría ser que el jugador no existe o ha la API está caída'))

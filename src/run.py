@@ -1,15 +1,15 @@
 import asyncio
-from icecream import install
-# Set up icecream
-install()
 from traceback import format_exc
 
+from icecream import install
+install() # Set up icecream
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 import core
 import tictactoe as ttt
+import db
 
 
 # Create the bot client
@@ -86,9 +86,9 @@ async def main():
 
 	# Start the bot
 	async with bot:
-		core.cursor.execute(f"SELECT VALUE FROM RESOURCES WHERE KEY='{core.bot_mode}_token'")
-		token = core.cursor.fetchall()[0][0]
-		core.conn.commit()
+		db.cursor.execute(f"SELECT VALUE FROM RESOURCES WHERE KEY='{core.bot_mode}_token'")
+		token = db.cursor.fetchall()[0][0]
+		db.conn.commit()
 		await bot.start(token)
 		del token
 

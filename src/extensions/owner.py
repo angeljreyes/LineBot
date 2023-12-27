@@ -1,7 +1,6 @@
 import asyncio
-from cProfile import label
 from math import floor
-from re import DOTALL, findall, fullmatch
+from re import findall
 from timeit import default_timer as timer
 
 import discord
@@ -9,6 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import core
+import db
 
 
 class Owner(commands.Cog):
@@ -86,7 +86,7 @@ class Owner(commands.Cog):
 						await interaction.followup.send(embed=discord.Embed(
 							title='Resultados del eval',
 							description=f'Tipo de dato y resultado:\n```py\n{types}\n```\n```py\n{core.eval_returned_value}\n```',
-							colour=core.default_color(interaction)
+							colour=db.default_color(interaction)
 						).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms'))
 						core.eval_returned_value = None
 					else:
@@ -144,14 +144,14 @@ class Owner(commands.Cog):
 	@core.owner_only()
 	async def blacklist(self, interaction, user:discord.User):
 		if core.check_blacklist(interaction, user, False):
-			core.cursor.execute(f"INSERT INTO BLACKLIST VALUES({user.id})")
+			db.cursor.execute(f"INSERT INTO BLACKLIST VALUES({user.id})")
 			await interaction.response.send_message(u'\U00002935', ephemeral=True)
 		
 		else:
-			core.cursor.execute(f"DELETE FROM BLACKLIST WHERE USER={user.id}")
+			db.cursor.execute(f"DELETE FROM BLACKLIST WHERE USER={user.id}")
 			await interaction.response.send_message(u'\U00002934', ephemeral=True)
 
-		core.conn.commit()
+		db.conn.commit()
 
 
 async def setup(bot):
