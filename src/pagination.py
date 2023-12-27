@@ -1,5 +1,6 @@
 import discord
 import core
+import db
 
 class Page:
 	__slots__ = ('content', 'embed')
@@ -13,7 +14,7 @@ class Page:
 		formated = []
 		count = 0
 		if colour == None:
-			colour = core.default_color(interaction)
+			colour = db.default_color(interaction)
 		for i in iterable:
 			count += 1
 			formated.append(f'{count}. {i}')

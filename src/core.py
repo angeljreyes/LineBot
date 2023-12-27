@@ -1,19 +1,18 @@
 import asyncio
+import logging
 from datetime import datetime, timedelta, timezone
-
-import exceptions
 from random import choice
-from re import fullmatch
-from sqlite3 import connect
-from requests import head
-from pathlib import Path
-from typing import List, Union
+from typing import Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
+from requests import head
+from pathlib import Path
 
-import logging
+import exceptions
+from db import check_blacklist
+
 
 # stable / dev
 bot_mode = 'dev'
@@ -49,14 +48,9 @@ next_emoji = '<:next_button:1023675221489750036>'
 last_emoji = '<:last_button:1023677003733422130>'
 search_emoji = '<:search_button:1023680974879465503>'
 
-conn = connect(f'{Path().resolve().parent}\\data.sqlite3')
-cursor = conn.cursor()
 
 eval_returned_value = None
 
-cursor.execute("SELECT COMMAND FROM COMMANDSTATS")
-commandstats_commands = [command[0] for command in cursor.fetchall()]
-conn.commit
 
 descs = {
 	'ping': 'Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando',
@@ -223,50 +217,6 @@ async def sync_tree(bot):
 	logger.info('Command tree synced')
 
 
-async def changelog_autocomplete(interaction: discord.Interaction, current: str):
-	sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[bot_mode]
-	cursor.execute(sql)
-	db_version_data = cursor.fetchall()
-	conn.commit()
-	db_version_data.reverse()
-	versions = [version[0] for version in db_version_data]
-	versions = list(filter(lambda x: x.startswith(current), versions))
-	if len(versions) > 25:
-		versions = db_version_data[0: 24]
-	versions = [app_commands.Choice(name=version, value=version) for version in versions]
-	versions.append(app_commands.Choice(name='Ver todo', value='list'))
-	return versions
-
-
-async def color_autocomplete(interaction: discord.Interaction, current: str):
-	color_options = list(filter(lambda x: x.startswith(current), list(colors_display)))
-	color_options = [app_commands.Choice(name=colors_display[color], value=color) for color in colors]
-	color_options.append(app_commands.Choice(name='Color por defecto', value='default'))
-	return color_options
-
-
-async def commandstats_command_autocomplete(interaction:discord.Interaction, current:str):
-	commands = sorted(list(filter(lambda x: x.startswith(current), commandstats_commands)))[:7]
-	commands = [app_commands.Choice(name=command, value=command) for command in commands]
-	return commands
-
-
-def default_color(interaction):
-	# Check the color of the user in the database
-	cursor.execute(f"SELECT VALUE FROM COLORS WHERE ID={interaction.user.id}")
-	color = cursor.fetchall()
-	if interaction.guild == None and color == []:
-		return discord.Colour.blue()
-	elif color == []:
-		try:
-			return interaction.guild.me.color
-		except AttributeError:
-			return discord.Color.blue()
-	else:
-		# If the color value is 0, return a random color
-		if color[0][0] == 0:
-			return colors[choice(tuple(colors)[1:])].value
-		return int(color[0][0])
 
 
 # async def ask(ctx, message:str, *, timeout=12.0, user=None, regex=None, raises=False):
@@ -324,28 +274,6 @@ def owner_only():
 		else:
 			raise exceptions.NotOwner()
 	return app_commands.check(predicate)
-
-
-async def tag_check(interaction: discord.Interaction):
-	cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild.id}")
-	check = cursor.fetchall()
-	if check == []:
-		await interaction.response.send_message(Warning.info(
-			f'Los tags están desactivados en este servidor. {"Actívalos" if interaction.channel.permissions_for(interaction.user).manage_guild else "Pídele a un administrador que los active"} con el comando {list(filter(lambda x: x.name == "toggle", list(filter(lambda x: x.name == "tag", await interaction.client.tree.fetch_commands(guild=interaction.guild)))[0].options))[0].mention}'))
-		raise exceptions.DisabledTagsError('Tags are not enabled on this guild')
-
-
-def check_blacklist(interaction, user=None, raises=True):
-	user = interaction.user if user == None else user
-	cursor.execute(f"SELECT USER FROM BLACKLIST WHERE USER={user.id}")
-	check = cursor.fetchall()
-	conn.commit()
-	if check == []:
-		return True
-	if raises:
-		raise exceptions.BlacklistUserError('This user is in the blacklist')
-	else:
-		return False
 
 
 def config_commands(bot):
@@ -494,39 +422,3 @@ class Warning:
 		return f'{emoji[int(unicode)]} {text}'
 
 
-
-class Tag:
-	__slots__ = ('interaction', 'guild', 'user', 'name', 'content', 'img', 'nsfw')
-
-	def __init__(self, interaction, guild_id:int, user_id:int, name:str, content:str, img:bool, nsfw:bool):
-		self.interaction = interaction
-		self.guild = interaction.client.get_guild(guild_id)
-		self.user = interaction.client.get_user(user_id)
-		self.name = name
-		self.content = content
-		self.img = bool(img)
-		self.nsfw = bool(nsfw)
-
-	def __str__(self):
-		return self.name
-
-	def gift(self, user:discord.Member):
-		cursor.execute(f"UPDATE TAGS2 SET USER={user.id} WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
-		conn.commit()
-		self.user = user
-
-	def rename(self, name:str):
-		cursor.execute(f"UPDATE TAGS2 SET NAME=? WHERE GUILD={self.guild.id} AND NAME=?", (name, self.name))
-		conn.commit()
-		self.name = name
-
-	def edit(self, content:str, img:bool, nsfw:bool):
-		self.content = content
-		self.img = img
-		self.nsfw = nsfw
-		cursor.execute(f"UPDATE TAGS2 SET CONTENT=?, IMG={int(self.img)}, NSFW={int(self.nsfw)} WHERE GUILD={self.guild.id} AND NAME=?", (self.content, self.name))
-		conn.commit()
-
-	def delete(self):
-		cursor.execute(f"DELETE FROM TAGS2 WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
-		conn.commit()
