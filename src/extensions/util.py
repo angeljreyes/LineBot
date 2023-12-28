@@ -462,10 +462,10 @@ class Util(commands.Cog):
 	@define_group.command(name='english')
 	@app_commands.rename(query='búsqueda')
 	async def define_english(self, interaction: discord.Interaction, query: str):
-		'''
+		"""
 		query: str
 			Palabra en inglés
-		'''
+		"""
 		await interaction.response.defer()
 		query = query.capitalize()
 		parser = WiktionaryParser()
