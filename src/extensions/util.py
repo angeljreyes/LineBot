@@ -9,7 +9,7 @@ from typing import Union
 import discord
 from discord import app_commands
 from discord.ext import commands
-# from wiktionaryparser import WiktionaryParser as WikPar
+from wiktionaryparser import WiktionaryParser
 
 import core
 import pagination
@@ -457,45 +457,82 @@ class Util(commands.Cog):
 	# 		await interaction.response.send_message(core.Warning.error('Palabra no encontrada'))
 
 
-# 	# wiktionary
-# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-# 	@app_commands.command(aliases=['wikt', 'wt'])
-# 	async def wiktionary(self, ctx, *, query=None):
-# 		if query == None:
-# 			await self.send(ctx, core.Warning.error(f'Escribe una palabra en inglés para buscar su significado. Para buscar palabras en español, usa `{ctx.prefix}dle`'))
-# 			ctx.command.reset_cooldown(ctx)
+	# wiktionary
+	@app_commands.checks.cooldown(1, 10)
+	@define_group.command(name='english')
+	@app_commands.rename(query='búsqueda')
+	async def define_english(self, interaction: discord.Interaction, query: str):
+		'''
+		query: str
+			Palabra en inglés
+		'''
+		await interaction.response.defer()
+		query = query.capitalize()
+		parser = WiktionaryParser()
+		word = parser.fetch(query.lower())[0]
 
-# 		else:
-# 			query = query.capitalize()
-# 			parser = WikPar()
-# 			try:
-# 				word = parser.fetch(query.lower())[0]
-# 			except IndexError:
-# 				word = {'etymology': '', 'definitions': [], 'pronunciations': {'text': [], 'audio': []}}
-# 			if word == {'etymology': '', 'definitions': [], 'pronunciations': {'text': [], 'audio': []}}:
-# 				await self.send(ctx, core.Warning.error('Palabra no encontrada'))
-# 				ctx.command.reset_cooldown(ctx)
-# 			else:
-# 				pages = [pagination.Page(embed=discord.Embed(title=query, colour=db.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url))]
-# 				entries = 0
-# 				for definition in word['definitions']:
-# 					value = ['']
-# 					count = 0
-# 					page_count = 0
-					
-# 					for entry in definition['text']:
-# 						entries += 1 if count != 0 else 0
-# 						if len(value[page_count] + f'{count}. {entry}\n' if count > 0 else f'{entry}\n') > 1022:
-# 							value.append('')
-# 							page_count += 1
-# 							pages.append(pagination.Page(embed=discord.Embed(title=query, colour=db.default_color(ctx)).set_author(name='Wiktionary', icon_url=ctx.message.author.avatar.url)))
-# 						value[page_count] += f'{count}. {entry}\n' if count > 0 else f'{entry}\n'
-# 						count += 1
-					
-# 					for i in range(len(value)):
-# 						pages[i].embed.add_field(name=definition['partOfSpeech'].capitalize(), value=value[i], inline=False)
-				
-# 				await core.NavBar(ctx, pages=pages, entries=entries).start()
+		if not word['definitions']:
+			await interaction.followup.send(core.Warning.error('Palabra no encontrada'))
+			return
+
+		base_page = lambda: pagination.Page(
+			embed=discord.Embed(
+				title=query,
+				colour=db.default_color(interaction)
+			).set_author(
+				name='Wiktionary',
+				icon_url=interaction.user.avatar.url
+			)
+		)
+		pages: list[pagination.Page] = [] 
+		included_parts_of_speech: set[str] = set()
+		curr_page = base_page()
+		entry_count = 0
+
+		# Slightly lower max lengths just to be safe
+		MAX_EMBED_LENGTH = 5800
+		MAX_FIELD_LENGTH = 1000
+
+		def add_field(embed: discord.Embed):
+			name = definition['partOfSpeech'].capitalize()
+			embed.add_field(
+				name=name if name not in included_parts_of_speech else ' ',
+				value=field_value,
+				inline=False
+			)
+			included_parts_of_speech.add(name)
+
+		for definition in word['definitions']:
+			field_value = ''
+			
+			for i, entry in enumerate(definition['text']):
+				list_num = f'{i}. '
+				if len(curr_page.embed) + len(entry) + len(list_num) > MAX_EMBED_LENGTH:
+					add_field(curr_page.embed)
+					pages.append(curr_page)
+					curr_page = base_page()
+					field_value = ''
+
+				if len(field_value) + len(entry) + len(list_num) > MAX_FIELD_LENGTH:
+					add_field(curr_page.embed)
+					field_value = ''
+
+				if i != 0:
+					field_value += list_num
+					entry_count += 1
+
+				field_value += f'{entry}\n'
+		
+			add_field(curr_page.embed)
+
+		pages.append(curr_page)
+
+		if len(pages) > 1:
+			paginator = pagination.Paginator(interaction, pages=pages, entries=entry_count)
+			await interaction.followup.send(embed=pages[0].embed, view=paginator)
+		else:
+			pages[0].embed.set_footer(text=f'{entry_count} resultados')
+			await interaction.followup.send(embed=pages[0].embed)
 
 
 	# binary
