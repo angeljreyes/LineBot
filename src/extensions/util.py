@@ -421,11 +421,17 @@ class Util(commands.Cog):
 
 	async def handle_define(self, interaction: discord.Interaction, query: str, lang: str):
 		await interaction.response.defer()
-		query = query.capitalize()
-		word = scrape(lang, lang, query.lower())
 
-		if not word['meanings']:
-			await interaction.followup.send(core.Warning.error('Palabra no encontrada'))
+		try:
+			word = scrape(lang, lang, query)
+		except FileNotFoundError:
+			try:
+				word = scrape(lang, lang, query.lower())
+			except FileNotFoundError:
+				word = None
+
+		if word is None or not word['meanings']:
+			await interaction.followup.send(core.Warning.error(f'Palabra no encontrada: `{query}`'))
 			return
 
 		base_page = lambda: pagination.Page(
@@ -447,7 +453,7 @@ class Util(commands.Cog):
 		MAX_FIELD_LENGTH = 1000
 
 		def add_field(embed: discord.Embed):
-			name = meaning['part_of_speech'].capitalize()
+			name = meaning.get('part_of_speech', 'Unknown part of speech').capitalize()
 			embed.add_field(
 				name=name if name not in included_parts_of_speech else ' ',
 				value=field_value,
@@ -456,6 +462,9 @@ class Util(commands.Cog):
 			included_parts_of_speech.add(name)
 
 		for meaning in word['meanings']:
+			if not meaning['definitions']:
+				continue
+
 			if meaning['etymology']:
 				field_value = meaning['etymology'] + '\n'
 			else:
