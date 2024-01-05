@@ -9,13 +9,12 @@ from typing import Union
 import discord
 from discord import app_commands
 from discord.ext import commands
-from wiktionaryparser import WiktionaryParser
+from scraper import scrape
 
 import core
 import pagination
 import db
 import tags
-# from modded_libraries.signi import get_defs
 
 
 class Util(commands.Cog):
@@ -419,60 +418,19 @@ class Util(commands.Cog):
 	define_group = DefineGroup(name='define', description='...')
 
 
-	# # define spanish
-	# @app_commands.checks.cooldown(1, 5)
-	# @define_group.command()
-	# async def spanish(self, interaction: discord.Interaction, query: str):
-	# 	query = query.lower()
-	# 	defs = ic(get_defs(query))
-	# 	if defs != ['']:
-	# 		embed = discord.Embed(title=query.capitalize(), colour=db.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
-	# 		count = 0
-	# 		desc = ''
-	# 		pages = []
-	# 		for _def in defs:
-	# 			if len(desc + f'{_def}\n') > 2048:
-	# 				embed.description = desc
-	# 				pages.append(pagination.Page(embed=embed))
-	# 				desc = ''
-	# 				embed = discord.Embed(title=query.capitalize(), colour=db.default_color(interaction)).set_author(name='DLE', icon_url=interaction.user.avatar.url)
-
-	# 			count += 1
-	# 			number = int(findall(r'^[0-9]+', _def)[0])
-	# 			if count != number:
-	# 				desc += '\n'
-	# 				count = number
-	# 			desc += f'{_def}\n'
-			
-	# 		embed.description = desc
-	# 		pages.append(pagination.Page(embed=embed))
-			
-	# 		if len(pages) == 1:
-	# 			paginator = None
-	# 		else:
-	# 			paginator = pagination.Paginator(interaction, pages=pages, entries=len(defs))
-	# 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
-		
-	# 	else:
-	# 		await interaction.response.send_message(core.Warning.error('Palabra no encontrada'))
-
-
-	# wiktionary
-	@app_commands.checks.cooldown(1, 10)
-	@define_group.command(name='english')
-	@app_commands.rename(query='búsqueda')
-	async def define_english(self, interaction: discord.Interaction, query: str):
-		"""
-		query: str
-			Palabra en inglés
-		"""
+	async def handle_define(self, interaction: discord.Interaction, query: str, lang: str):
 		await interaction.response.defer()
-		query = query.capitalize()
-		parser = WiktionaryParser()
-		word = parser.fetch(query.lower())[0]
 
-		if not word['definitions']:
-			await interaction.followup.send(core.Warning.error('Palabra no encontrada'))
+		try:
+			word = scrape(lang, lang, query)
+		except FileNotFoundError:
+			try:
+				word = scrape(lang, lang, query.lower())
+			except FileNotFoundError:
+				word = None
+
+		if word is None or not word['meanings']:
+			await interaction.followup.send(core.Warning.error(f'Palabra no encontrada: `{query}`'))
 			return
 
 		base_page = lambda: pagination.Page(
@@ -494,7 +452,7 @@ class Util(commands.Cog):
 		MAX_FIELD_LENGTH = 1000
 
 		def add_field(embed: discord.Embed):
-			name = definition['partOfSpeech'].capitalize()
+			name = meaning.get('part_of_speech', 'Unknown part of speech').capitalize()
 			embed.add_field(
 				name=name if name not in included_parts_of_speech else ' ',
 				value=field_value,
@@ -502,26 +460,34 @@ class Util(commands.Cog):
 			)
 			included_parts_of_speech.add(name)
 
-		for definition in word['definitions']:
-			field_value = ''
+		for meaning in word['meanings']:
+			if not meaning['definitions']:
+				continue
+
+			if meaning['etymology']:
+				field_value = meaning['etymology'] + '\n'
+			else:
+				field_value = ''
 			
-			for i, entry in enumerate(definition['text']):
-				list_num = f'{i}. '
-				if len(curr_page.embed) + len(entry) + len(list_num) > MAX_EMBED_LENGTH:
+			for i, definition in enumerate(meaning['definitions'], start=1):
+				entry = f'{i}. ' + definition['text']
+				first_eol = entry.find('\n')
+				if first_eol != -1:
+					entry = entry[:first_eol]
+				entry += '\n'
+
+				if len(curr_page.embed) + len(entry) + len(field_value) > MAX_EMBED_LENGTH:
 					add_field(curr_page.embed)
 					pages.append(curr_page)
 					curr_page = base_page()
 					field_value = ''
 
-				if len(field_value) + len(entry) + len(list_num) > MAX_FIELD_LENGTH:
+				if len(field_value) + len(entry) + len(field_value) > MAX_FIELD_LENGTH:
 					add_field(curr_page.embed)
 					field_value = ''
 
-				if i != 0:
-					field_value += list_num
-					entry_count += 1
-
-				field_value += f'{entry}\n'
+				entry_count += 1
+				field_value += entry
 		
 			add_field(curr_page.embed)
 
@@ -533,6 +499,30 @@ class Util(commands.Cog):
 		else:
 			pages[0].embed.set_footer(text=f'{entry_count} resultados')
 			await interaction.followup.send(embed=pages[0].embed)
+
+
+	# define spanish
+	@app_commands.checks.cooldown(1, 10)
+	@define_group.command(name='spanish')
+	@app_commands.rename(query='búsqueda')
+	async def define_spanish(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
+		"""
+		query: str
+			Palabra en español
+		"""
+		await self.handle_define(interaction, query, 'es')
+
+
+	# define english
+	@app_commands.checks.cooldown(1, 10)
+	@define_group.command(name='english')
+	@app_commands.rename(query='búsqueda')
+	async def define_english(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
+		"""
+		query: str
+			Palabra en inglés
+		"""
+		await self.handle_define(interaction, query, 'en')
 
 
 	# binary
