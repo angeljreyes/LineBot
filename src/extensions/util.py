@@ -15,7 +15,6 @@ import core
 import pagination
 import db
 import tags
-# from modded_libraries.signi import get_defs
 
 
 class Util(commands.Cog):
