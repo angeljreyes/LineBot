@@ -505,7 +505,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 10)
 	@define_group.command(name='spanish')
 	@app_commands.rename(query='búsqueda')
-	async def define_english(self, interaction: discord.Interaction, query: str):
+	async def define_english(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
 		"""
 		query: str
 			Palabra en español
@@ -517,7 +517,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 10)
 	@define_group.command(name='english')
 	@app_commands.rename(query='búsqueda')
-	async def define_english(self, interaction: discord.Interaction, query: str):
+	async def define_english(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
 		"""
 		query: str
 			Palabra en inglés
