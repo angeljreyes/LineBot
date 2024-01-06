@@ -67,23 +67,16 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.calling(text))
 
 
-	# # supreme
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command()
-	# async def supreme(self, ctx, theme=None, *, text=None):
-	# 	if None in (theme, text):
-	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
-
-	# 	elif len(text) > 500:
-	# 		await self.send(ctx, botdata.Warning.error('El límite de caracteres es de 500'))
-
-	# 	else:
-	# 		theme = theme.lower()
-	# 		if theme not in ('dark', 'light'):
-	# 			await self.send(ctx, embed=helpsys.get_cmd(ctx))
-
-	# 		else:
-	# 			await self.send(ctx, await self.api.supreme(text, dark=theme == 'dark', light=theme == 'light'))
+	# supreme
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	@app_commands.rename(text='texto')
+	async def supreme(
+		self,
+		interaction: discord.Interaction,
+		text: app_commands.Range[str, 1, 500],
+	):
+		await interaction.response.send_message(await self.api.supreme(text))
 
 
 	# # captcha
