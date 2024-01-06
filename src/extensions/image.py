@@ -229,5 +229,5 @@ class Image(commands.Cog):
 
 
 
-def setup(bot):
-	bot.add_cog(Image(bot))
+async def setup(bot):
+	await bot.add_cog(Image(bot), guilds=core.bot_guilds)
