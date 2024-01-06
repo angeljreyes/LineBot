@@ -126,7 +126,7 @@ descs = {
 	'dog': 'Imagen random de un perro',
 	'cat': 'Imagen random de un gato',
 	'sadcat': 'Imagen random de un gato triste',
-	'calling': 'Tom llamando hm',
+	'calling': 'Tom llamando',
 	'captcha': 'Cursed captcha',
 	'facts': 'facts',
 	'supreme': 'Texto con fuente de Supreme',

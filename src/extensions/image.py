@@ -47,26 +47,24 @@ class Image(commands.Cog):
 		bottom: app_commands.Range[str, 1, 250]
 ):
 		"""
-		top: app_commands.Range[str, 0, 45]
+		top: app_commands.Range[str, 0, 250]
 			Texto superior
-		bottom: app_commands.Range[str, 0, 40]
+		bottom: app_commands.Range[str, 0, 250]
 			Texto inferior
 		"""
 		await interaction.response.send_message(await self.api.drake(top, bottom))
 
 
-	# # calling
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command()
-	# async def calling(self, ctx, *, text=None):
-	# 	if text == None:
-	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
-
-	# 	elif len(text) > 500:
-	# 		await self.send(ctx, botdata.Warning.error('El límite de caracteres es de 500'))
-
-	# 	else:
-	# 		await self.send(ctx, await self.api.calling(text))
+	# calling
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	@app_commands.rename(text='texto')
+	async def calling(
+		self,
+		interaction: discord.Interaction,
+		text: app_commands.Range[str, 1, 500],
+	):
+		await interaction.response.send_message(await self.api.calling(text))
 
 
 	# # supreme
