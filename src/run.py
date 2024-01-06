@@ -23,7 +23,7 @@ class LineBot(commands.Bot):
 			'util',
 			'fun',
 			'owner',
-			# 'image'
+			'image'
 		):
 			await bot.load_extension('extensions.' + extension)
 
