@@ -5,6 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from requests import get
+from urllib.parse import quote
 
 import core
 import db
@@ -79,18 +80,18 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.supreme(text))
 
 
-	# # captcha
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command()
-	# async def captcha(self, ctx, *, text=None):
-	# 	if text == None:
-	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
-
-	# 	elif len(text) > 500:
-	# 		await self.send(ctx, botdata.Warning.error('El límite de caracteres es de 500'))
-
-	# 	else:
-	# 		await self.send(ctx, await self.api.captcha(text))
+	# captcha
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	@app_commands.rename(text='texto')
+	async def captcha(
+		self,
+		interaction: discord.Interaction,
+		text: app_commands.Range[str, 1, 250],
+	):
+		# I had to do it this way because Client.captcha() is broken
+		URL = 'https://api.alexflipnote.dev/captcha?text={}'
+		await interaction.response.send_message(URL.format(quote(text)))
 
 
 	# # facts
