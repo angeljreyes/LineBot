@@ -122,7 +122,6 @@ descs = {
 	'8ball': 'Preguntale algo el bot para que te responda',
 	'didyoumean': 'Google "quizás quisiste decir"',
 	'drake': 'Haz un meme con la plantilla de drake',
-	'salty': 'El ardido',
 	'birb': 'Random birb',
 	'dog': 'Imagen random de un perro',
 	'cat': 'Imagen random de un gato',
