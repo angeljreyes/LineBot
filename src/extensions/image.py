@@ -180,52 +180,52 @@ class Image(commands.Cog):
 		# 	await self.send(ctx, await self.api.facts(text))
 
 
-	# birb
-	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@app_commands.command()
-	async def birb(self, ctx):
-		await self.send(ctx, await self.api.birb())
+# 	# birb
+# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
+# 	@app_commands.command()
+# 	async def birb(self, ctx):
+# 		await self.send(ctx, await self.api.birb())
 
 
-	# dog
-	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@app_commands.command()
-	async def dog(self, ctx):
-		await self.send(ctx, await self.api.dogs())
+# 	# dog
+# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
+# 	@app_commands.command()
+# 	async def dog(self, ctx):
+# 		await self.send(ctx, await self.api.dogs())
 
 
-	# cat
-	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@app_commands.command()
-	async def cat(self, ctx):
-		await self.send(ctx, await self.api.cats())
+# 	# cat
+# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
+# 	@app_commands.command()
+# 	async def cat(self, ctx):
+# 		await self.send(ctx, await self.api.cats())
 
 
-	# sadcat
-	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@app_commands.command()
-	async def sadcat(self, ctx):
-		await self.send(ctx, await self.api.sadcat())
+# 	# sadcat
+# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
+# 	@app_commands.command()
+# 	async def sadcat(self, ctx):
+# 		await self.send(ctx, await self.api.sadcat())
 
 
-	# mcskin
-	@commands.cooldown(1, 5.0, commands.BucketType.user)
-	@app_commands.command(aliases=['skin'])
-	async def mcskin(self, ctx, *, user=None):
-		if user == None:
-			await self.send(ctx, embed=helpsys.get_cmd(ctx))
+# 	# mcskin
+# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
+# 	@app_commands.command(aliases=['skin'])
+# 	async def mcskin(self, ctx, *, user=None):
+# 		if user == None:
+# 			await self.send(ctx, embed=helpsys.get_cmd(ctx))
 
-		elif len(user) > 16:
-			await self.send(ctx, core.Warning.error('El límite de caracteres es de 16'))
+# 		elif len(user) > 16:
+# 			await self.send(ctx, core.Warning.error('El límite de caracteres es de 16'))
 
-		else:
-			raw = f'https://minotar.net/skin/{quote(user)}.png'
-			await self.send(ctx, embed=discord.Embed(
-				title=f'Skin de {user}',
-				colour=db.default_color(ctx),
-				url=raw
-			).set_image(url=f'https://minotar.net/armor/body/{quote(user)}/400.png').set_thumbnail(url=raw)\
-.set_footer(text='La skin de Steve podría ser que el jugador no existe o ha la API está caída'))
+# 		else:
+# 			raw = f'https://minotar.net/skin/{quote(user)}.png'
+# 			await self.send(ctx, embed=discord.Embed(
+# 				title=f'Skin de {user}',
+# 				colour=db.default_color(ctx),
+# 				url=raw
+# 			).set_image(url=f'https://minotar.net/armor/body/{quote(user)}/400.png').set_thumbnail(url=raw)\
+# .set_footer(text='La skin de Steve podría ser que el jugador no existe o ha la API está caída'))
 
 
 
