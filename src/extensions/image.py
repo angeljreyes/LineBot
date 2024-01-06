@@ -14,11 +14,7 @@ from alexflipnote import Client
 class Image(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.send = bot.get_cog('GlobalCog').send
-		db.cursor.execute("SELECT VALUE FROM RESOURCES WHERE KEY='alexflipnote_token'")
-		token = db.cursor.fetchall()[0][0]
-		db.conn.commit()
-		self.api = Client(token)
+		self.api = Client()
 
 
 	# # didyoumean
