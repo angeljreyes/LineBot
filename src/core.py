@@ -121,7 +121,7 @@ descs = {
 	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
 	'8ball': 'Preguntale algo el bot para que te responda',
 	'didyoumean': 'Google "quizás quisiste decir"',
-	'drake': 'Haz un meme con la plantilla de drake. Separa los 2 textos por punto y coma entre espacios: ` ; `',
+	'drake': 'Haz un meme con la plantilla de drake',
 	'bad': 'Ta mal',
 	'amiajoke': 'Am I a joke to you?',
 	'jokeoverhead': 'El que no entendía la broma',

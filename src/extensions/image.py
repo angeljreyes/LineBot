@@ -24,8 +24,8 @@ class Image(commands.Cog):
 	async def didyoumean(
 		self,
 		interaction: discord.Interaction,
-		top: app_commands.Range[str, 0, 45],
-		bottom: app_commands.Range[str, 0, 40]
+		top: app_commands.Range[str, 1, 45],
+		bottom: app_commands.Range[str, 1, 40]
 	):
 		"""
 		top: app_commands.Range[str, 0, 45]
@@ -36,21 +36,23 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.did_you_mean(top, bottom))
 
 
-	# # drake
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command()
-	# async def drake(self, ctx, *, text=None):
-	# 	if text != None:
-	# 		if ' ; ' in text:
-	# 			top, bottom = list(map(lambda x: quote(x), text.split(' ; ')))[:2]
-	# 			if len(top + bottom) > 500:
-	# 				await self.send(ctx, botdata.Warning.error('El límite de caracteres es de 500 entre los 2 textos'))
-
-	# 			else:
-	# 				await self.send(ctx, (await self.api.drake(top, bottom)).url)
-
-	# 	else:
-	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx))
+	# drake
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	@app_commands.rename(top="superior", bottom="inferior")
+	async def drake(
+		self,
+		interaction: discord.Interaction,
+		top: app_commands.Range[str, 1, 250],
+		bottom: app_commands.Range[str, 1, 250]
+):
+		"""
+		top: app_commands.Range[str, 0, 45]
+			Texto superior
+		bottom: app_commands.Range[str, 0, 40]
+			Texto inferior
+		"""
+		await interaction.response.send_message(await self.api.drake(top, bottom))
 
 
 	# # bad
