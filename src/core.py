@@ -132,7 +132,7 @@ descs = {
 	'supreme': 'Texto con fuente de Supreme',
 	'commandstats': 'Muestra cuáles son los comandos más usados y cuántas veces se han',
 	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias',
-	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases'
+	'mcskin': 'Busca una skin de Minecraft'
 }
 
 colors = {

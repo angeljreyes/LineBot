@@ -134,24 +134,30 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.sadcat())
 
 
-# 	# mcskin
-# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-# 	@app_commands.command(aliases=['skin'])
-# 	async def mcskin(self, ctx, *, user=None):
-# 		if user == None:
-# 			await self.send(ctx, embed=helpsys.get_cmd(ctx))
-
-# 		elif len(user) > 16:
-# 			await self.send(ctx, core.Warning.error('El límite de caracteres es de 16'))
-
-# 		else:
-# 			raw = f'https://minotar.net/skin/{quote(user)}.png'
-# 			await self.send(ctx, embed=discord.Embed(
-# 				title=f'Skin de {user}',
-# 				colour=db.default_color(ctx),
-# 				url=raw
-# 			).set_image(url=f'https://minotar.net/armor/body/{quote(user)}/400.png').set_thumbnail(url=raw)\
-# .set_footer(text='La skin de Steve podría ser que el jugador no existe o ha la API está caída'))
+	# mcskin
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	async def mcskin(
+		self,
+		interaction: discord.Interaction,
+		user: app_commands.Range[str, 1, 16]
+	):
+		"""
+		user: app_commands.Range[str, 1, 16]
+			Nombre de usuario de Minecraft
+		"""
+		username = quote(user)
+		URL = f'https://minotar.net/skin/{username}.png'
+		embed = discord.Embed(
+			title=f'Skin de {user}',
+			colour=db.default_color(interaction),
+			url=URL
+		).set_image(
+			url=f'https://minotar.net/armor/body/{username}/400.png'
+		).set_thumbnail(
+			url=URL
+		).set_footer(text='Steve podría significar que el jugador no existe o la API está caída')
+		await interaction.response.send_message(embed=embed)
 
 
 
