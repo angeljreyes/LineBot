@@ -120,11 +120,11 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.dog())
 
 
-# 	# cat
-# 	@commands.cooldown(1, 5.0, commands.BucketType.user)
-# 	@app_commands.command()
-# 	async def cat(self, ctx):
-# 		await self.send(ctx, await self.api.cats())
+	# cat
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	async def cat(self, interaction: discord.Interaction):
+		await interaction.response.send_message(await self.api.cat())
 
 
 # 	# sadcat
