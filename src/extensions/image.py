@@ -55,23 +55,6 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.drake(top, bottom))
 
 
-	# # jokeoverhead
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command(aliases=['joh', 'woosh'])
-	# async def jokeoverhead(self, ctx, url=None):
-	# 	if url == None:
-	# 		image = await botdata.get_channel_image(ctx)
-
-	# 	else:
-	# 		image = url
-
-	# 	if image.startswith('https://cdn.discordapp.com/'):
-	# 		await self.send(ctx, (await self.api.jokeoverhead(image)).url)
-
-	# 	else:
-	# 		await self.send(ctx, botdata.Warning.error('URL inválida. Solo se permiten URLs de imagenes de discord: `cdn.discordapp.com/`'))
-
-
 	# # salty
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
 	# @app_commands.command()
