@@ -55,23 +55,6 @@ class Image(commands.Cog):
 		await interaction.response.send_message(await self.api.drake(top, bottom))
 
 
-	# # amiajoke
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command(aliases=['amiajoketoyou', 'aiaj', 'aiajty'])
-	# async def amiajoke(self, ctx, url=None):
-	# 	if url == None:
-	# 		image = await botdata.get_channel_image(ctx)
-
-	# 	else:
-	# 		image = url
-
-	# 	if image.startswith('https://cdn.discordapp.com/'):
-	# 		await self.send(ctx, (await self.api.amiajoke(image)).url)
-
-	# 	else:
-	# 		await self.send(ctx, botdata.Warning.error('URL inválida. Solo se permiten URLs de imagenes de discord: `cdn.discordapp.com/`'))
-
-
 	# # jokeoverhead
 	# @commands.cooldown(1, 5.0, commands.BucketType.user)
 	# @app_commands.command(aliases=['joh', 'woosh'])
