@@ -17,21 +17,23 @@ class Image(commands.Cog):
 		self.api = Client()
 
 
-	# # didyoumean
-	# @commands.cooldown(1, 5.0, commands.BucketType.user)
-	# @app_commands.command(aliases=['didumean', 'dym', 'dum'])
-	# async def didyoumean(self, ctx, *, text=None):
-	# 	if text != None:
-	# 		if ' ; ' in text:
-	# 			top, bottom = list(map(lambda x: quote(x), text.split(' ; ')))[:2]
-	# 			if len(top) > 45 or len(bottom) > 40:
-	# 				await self.send(ctx, botdata.Warning.error('El límite del texto superior es de 45 caracteres, el del texto inferior es de 40'))
-				
-	# 			else:
-	# 				await self.send(ctx, (await self.api.didyoumean(top, bottom)).url)
-
-	# 	else:
-	# 		await self.send(ctx, embed=helpsys.get_cmd(ctx), )
+	# didyoumean
+	@app_commands.command()
+	@app_commands.checks.cooldown(1, 5)
+	@app_commands.rename(top="superior", bottom="inferior")
+	async def didyoumean(
+		self,
+		interaction: discord.Interaction,
+		top: app_commands.Range[str, 0, 45],
+		bottom: app_commands.Range[str, 0, 40]
+	):
+		"""
+		top: app_commands.Range[str, 0, 45]
+			Texto superior
+		bottom: app_commands.Range[str, 0, 40]
+			Texto inferior
+		"""
+		await interaction.response.send_message(await self.api.did_you_mean(top, bottom))
 
 
 	# # drake

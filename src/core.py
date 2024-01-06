@@ -120,7 +120,7 @@ descs = {
 	'reverse': 'Revierte un texto',
 	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
 	'8ball': 'Preguntale algo el bot para que te responda',
-	'didyoumean': 'Escribe un texto que te corrija Google a otro. Separa los 2 textos por punto y coma entre espacios: ` ; `',
+	'didyoumean': 'Google "quizás quisiste decir"',
 	'drake': 'Haz un meme con la plantilla de drake. Separa los 2 textos por punto y coma entre espacios: ` ; `',
 	'bad': 'Ta mal',
 	'amiajoke': 'Am I a joke to you?',
