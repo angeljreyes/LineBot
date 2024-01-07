@@ -120,23 +120,19 @@ descs = {
 	'reverse': 'Revierte un texto',
 	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
 	'8ball': 'Preguntale algo el bot para que te responda',
-	'didyoumean': 'Escribe un texto que te corrija Google a otro. Separa los 2 textos por punto y coma entre espacios: ` ; `',
-	'drake': 'Haz un meme con la plantilla de drake. Separa los 2 textos por punto y coma entre espacios: ` ; `',
-	'bad': 'Ta mal',
-	'amiajoke': 'Am I a joke to you?',
-	'jokeoverhead': 'El que no entendía la broma',
-	'salty': 'El ardido',
+	'didyoumean': 'Google "quizás quisiste decir"',
+	'drake': 'Haz un meme con la plantilla de drake',
 	'birb': 'Random birb',
 	'dog': 'Imagen random de un perro',
 	'cat': 'Imagen random de un gato',
 	'sadcat': 'Imagen random de un gato triste',
-	'calling': 'Tom llamando hm',
+	'calling': 'Tom llamando',
 	'captcha': 'Cursed captcha',
 	'facts': 'facts',
 	'supreme': 'Texto con fuente de Supreme',
 	'commandstats': 'Muestra cuáles son los comandos más usados y cuántas veces se han',
 	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias',
-	'mcskin': 'Busca una skin de Minecraft según el nombre del usuario que pases'
+	'mcskin': 'Busca una skin de Minecraft'
 }
 
 colors = {
