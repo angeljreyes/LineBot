@@ -5,14 +5,16 @@ import db
 import core
 
 
+hidden = 'WHERE HIDDEN=0 ' if core.bot_mode == 'stable' else ''
+sql = f"SELECT VERSION FROM CHANGELOG {hidden}ORDER BY VERSION DESC"
+db.cursor.execute(sql)
+db_version_data: list[tuple[str]] = db.cursor.fetchall()
+db.conn.commit()
+cached_versions = [version[0] for version in db_version_data]
+
+
 async def changelog(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
-	hidden = 'WHERE HIDDEN=0 ' if core.bot_mode == 'stable' else ''
-	sql = f"SELECT VERSION FROM CHANGELOG {hidden}ORDER BY VERSION DESC"
-	db.cursor.execute(sql)
-	db_version_data: list[tuple[str]] = db.cursor.fetchall()
-	db.conn.commit()
-	versions = [version[0] for version in db_version_data]
-	versions = list(filter(lambda x: x.startswith(current), versions))
+	versions = list(filter(lambda x: x.startswith(current), cached_versions))
 	if len(versions) > 25:
 		versions = db_version_data[:24]
 	versions = [app_commands.Choice(name=version, value=version) for version in versions]
