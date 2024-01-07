@@ -60,7 +60,7 @@ class Image(commands.Cog):
 	async def calling(
 		self,
 		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 500],
+		text: app_commands.Range[str, 1, 500]
 	):
 		await interaction.response.send_message(await self.api.calling(text))
 
@@ -72,7 +72,7 @@ class Image(commands.Cog):
 	async def supreme(
 		self,
 		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 500],
+		text: app_commands.Range[str, 1, 500]
 	):
 		await interaction.response.send_message(await self.api.supreme(text))
 
@@ -84,7 +84,7 @@ class Image(commands.Cog):
 	async def captcha(
 		self,
 		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 250],
+		text: app_commands.Range[str, 1, 250]
 	):
 		# I had to do it this way because Client.captcha() is broken
 		url = f'https://api.alexflipnote.dev/captcha?text={quote(text)}'
@@ -98,7 +98,7 @@ class Image(commands.Cog):
 	async def facts(
 		self,
 		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 500],
+		text: app_commands.Range[str, 1, 500]
 	):
 		await interaction.response.send_message(await self.api.facts(text))
 
