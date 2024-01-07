@@ -75,7 +75,7 @@ class Fun(commands.Cog):
 			'300, tu cerebro es una pc master race dou',
 			'infinito qqq'
 		)
-		msg = f'{"Tienes" if user == None else user.name + ", tienes"} un IQ de {choice(iqs)}'
+		msg = f'{"Tienes" if user is None else user.name + ", tienes"} un IQ de {choice(iqs)}'
 		await interaction.response.send_message(msg)
 
 
@@ -93,7 +93,7 @@ class Fun(commands.Cog):
 			Mostrar la broma como imagen
 		"""
 		#search
-		if search != None:
+		if search is not None:
 			request = get('https://icanhazdadjoke.com/search', params={'term':search}, headers={'Accept':'application/json'}).json()
 			try:
 				request = request['results'][0]
@@ -101,12 +101,12 @@ class Fun(commands.Cog):
 				await interaction.response.send_message(core.Warning.error('No se encontraron resultados'), ephemeral=True)
 				return
 		# id
-		elif joke_id != None:
+		elif joke_id is not None:
 			url = 'https://icanhazdadjoke.com/j/' + joke_id
 		# random
 		else:
 			url = 'https://icanhazdadjoke.com/'
-		if search == None:
+		if search is None:
 			request = get(url, headers={'Accept':'application/json'}).json()
 		try:
 			request_id = request['id']
@@ -136,7 +136,7 @@ class Fun(commands.Cog):
 		user: discord.Member
 			Usuario al que medirle la homosexualidad
 		"""
-		username = interaction.user.name if user == None else user.name
+		username = interaction.user.name if user is None else user.name
 		percent = randint(0, 100)
 		extra = {
 			10:'se le cayó el pene',
@@ -180,12 +180,12 @@ class Fun(commands.Cog):
 		opponent: discord.Member
 			Usuario contra el que quieres jugar
 		"""
-		if opponent == None:
+		if opponent is None:
 			join_view = ttt.JoinView(interaction)
 			await interaction.response.send_message(core.Warning.searching(f'**{interaction.user.name}** está buscando un oponente para jugar Tic Tac Toe'), view=join_view)
 			await join_view.wait()
 
-			if join_view.user == None:
+			if join_view.user is None:
 				return
 
 			else:
@@ -201,7 +201,7 @@ class Fun(commands.Cog):
 			await interaction.response.send_message(ask_string, view=ask_view)
 			await ask_view.wait()
 
-			if ask_view.value == None:
+			if ask_view.value is None:
 				return
 			
 			elif not ask_view.value:

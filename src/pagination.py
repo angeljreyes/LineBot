@@ -13,7 +13,7 @@ class Page:
 	def from_list(interaction, title:str, iterable: list, *, colour=None):
 		formated = []
 		count = 0
-		if colour == None:
+		if colour is None:
 			colour = db.default_color(interaction)
 		for i in iterable:
 			count += 1
@@ -45,8 +45,8 @@ class Paginator(discord.ui.View):
 		count = 0
 		for page in pages:
 			count += 1
-			if page.embed != None:
-				page.embed.set_footer(text=(f'Página {len(self.pages)+count} de {len(pages) + len(self.pages)}' if len(self.pages)+len(pages) > 1 else '') + f'{(str(" ("+str(self.entries)+" resultados)")) if self.entries != None else ""}' + (f' | {page.embed.footer.text}' if page.embed.footer.text != None else ""))
+			if page.embed is not None:
+				page.embed.set_footer(text=(f'Página {len(self.pages)+count} de {len(pages) + len(self.pages)}' if len(self.pages)+len(pages) > 1 else '') + f'{(str(" ("+str(self.entries)+" resultados)")) if self.entries is not None else ""}' + (f' | {page.embed.footer.text}' if page.embed.footer.text is not None else ""))
 		self.pages += pages
 
 

@@ -7,6 +7,7 @@ import discord
 import core
 import exceptions
 
+
 conn = connect(f'{Path().resolve().parent}\\data.sqlite3')
 cursor = conn.cursor()
 cursor.execute("SELECT COMMAND FROM COMMANDSTATS")
@@ -15,7 +16,7 @@ commandstats_commands = [command[0] for command in cursor.fetchall()]
 conn.commit
 
 
-def default_color(interaction: discord.Interaction):
+def default_color(interaction: discord.Interaction) -> int | discord.Color:
 	# Check the color of the user in the database
 	cursor.execute(f"SELECT VALUE FROM COLORS WHERE ID={interaction.user.id}")
 	color = cursor.fetchall()
@@ -33,7 +34,7 @@ def default_color(interaction: discord.Interaction):
 		return int(color[0][0])
 
 
-def check_blacklist(interaction: discord.Interaction, user=None, raises=True):
+def check_blacklist(interaction: discord.Interaction, user=None, raises=True) -> bool:
 	user = interaction.user if user is None else user
 	cursor.execute(f"SELECT USER FROM BLACKLIST WHERE USER={user.id}")
 	check = cursor.fetchall()
@@ -43,3 +44,4 @@ def check_blacklist(interaction: discord.Interaction, user=None, raises=True):
 	if raises:
 		raise exceptions.BlacklistUserError('This user is in the blacklist')
 	return False
+	

@@ -158,7 +158,7 @@ class About(commands.Cog):
 		command: str
 			Un comando del bot
 		"""
-		if command == None:
+		if command is None:
 			# Send all the commands and their uses
 			db.cursor.execute("SELECT * FROM COMMANDSTATS")
 			stats = db.cursor.fetchall()

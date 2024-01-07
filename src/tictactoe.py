@@ -87,12 +87,12 @@ class TicTacToe(discord.ui.View):
 				self.add_item(TicTacToeButton(x, y))
 
 	def get_content(self, status=None):
-		if status == None:
+		if status is None:
 			status = f':timer: Turno de {self.players[self.current_player].mention}'
 		return f'__**Tic Tac Toe**__\n:crossed_swords: **{self.playerX.name}** vs **{self.playerO.name}**\n{status}'
 
 	def get_other_player(self, key=None):
-		if key == None:
+		if key is None:
 			key = self.current_player
 		return {self.X: self.O, self.O: self.X}[self.current_player]
 
@@ -139,7 +139,7 @@ class TicTacToe(discord.ui.View):
 		if self.current_player == self.O and self.players[self.O].bot:
 			await asyncio.sleep(1.5)
 			available_moves = [[x, y] if self.board[y][x] == 0 else None for x in range(3) for y in range(3)]
-			available_moves = list(filter(lambda x: x != None, available_moves))
+			available_moves = list(filter(lambda x: x is not None, available_moves))
 			button_x, button_y = choice(available_moves)
 			for child in self.children:
 				if self.board[child.y][child.x] not in (self.X, self.O):

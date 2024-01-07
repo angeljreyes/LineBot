@@ -1,10 +1,7 @@
-import asyncio
-import json
 from datetime import timedelta
 from random import choice, randrange
 from re import findall, search
 from urllib.parse import quote, unquote
-from typing import Union
 
 import discord
 from discord import app_commands
@@ -47,21 +44,21 @@ class Util(commands.Cog):
 	)
 	async def choose(
 		self,
-		interaction:discord.Interaction,
-		option1:str,
-		option2:str,
-		option3:str=None,
-		option4:str=None,
-		option5:str=None,
-		option6:str=None,
-		option7:str=None,
-		option8:str=None,
-		option9:str=None,
-		option10:str=None,
+		interaction: discord.Interaction,
+		option1: str,
+		option2: str,
+		option3: str=None,
+		option4: str=None,
+		option5: str=None,
+		option6: str=None,
+		option7: str=None,
+		option8: str=None,
+		option9: str=None,
+		option10: str=None,
 	):
 		embed = discord.Embed(
 			title='Mi elección es...',
-			description=choice(list(filter(lambda x: x != None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))),
+			description=choice(list(filter(lambda x: x is not None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))),
 			colour=db.default_color(interaction)
 		)
 		await interaction.response.send_message(embed=embed)
@@ -85,25 +82,25 @@ class Util(commands.Cog):
 	)
 	async def poll(
 		self,
-		interaction:discord.Interaction,
+		interaction: discord.Interaction,
 		description: app_commands.Range[str, 1, 256],
-		option1:str,
-		option2:str,
-		option3:str=None,
-		option4:str=None,
-		option5:str=None,
-		option6:str=None,
-		option7:str=None,
-		option8:str=None,
-		option9:str=None,
-		option10:str=None,
+		option1: str,
+		option2: str,
+		option3: str=None,
+		option4: str=None,
+		option5: str=None,
+		option6: str=None,
+		option7: str=None,
+		option8: str=None,
+		option9: str=None,
+		option10: str=None,
 	):
 		"""
 		description: app_commands.Range[str, 1, 256]
 			Una pregunta, tema o afirmación que describa la encuesta
 		"""
 		emojis = [f'{number}\ufe0f\u20e3' for number in range(1, 10)] + [u'\U0001f51f',]
-		options = list(filter(lambda x: x != None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))
+		options = list(filter(lambda x: x is not None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))
 		embed = discord.Embed(
 			title=description,
 			description='\n'.join([f'{emojis[option]} {options[option]}' for option in range(len(options))]),
@@ -118,8 +115,8 @@ class Util(commands.Cog):
 	# avatar
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 3)
-	async def avatar(self, interaction: discord.Interaction, user: Union[discord.User, discord.Member]=None):
-		if user == None:
+	async def avatar(self, interaction: discord.Interaction, user: discord.User | discord.Member = None):
+		if user is None:
 			user = interaction.user
 		await interaction.response.send_message(embed=discord.Embed(
 			title=f'Avatar de {str(user)}',
@@ -162,7 +159,7 @@ class Util(commands.Cog):
 				await interaction.response.send_message(core.Warning.question('Los tags en este servidor están desactivados. ¿Quieres activarlos?'), view=confirmation, ephemeral=True)
 				await confirmation.wait()
 
-				if confirmation.value == None:
+				if confirmation.value is None:
 					return
 
 				confirmation.clear_items()
@@ -179,7 +176,7 @@ class Util(commands.Cog):
 				await interaction.response.send_message(core.Warning.question('Los tags en este servidor están activados. ¿Quieres desactivarlos?'), view=confirmation, ephemeral=True)
 				await confirmation.wait()
 
-				if confirmation.value == None:
+				if confirmation.value is None:
 					return
 
 				confirmation.clear_items()
@@ -246,7 +243,7 @@ class Util(commands.Cog):
 			await interaction.response.send_message(core.Warning.question(f'{user.mention} ¿Quieres aceptar el tag **{await commands.clean_content().convert(interaction, tag.name)}** por parte de {interaction.user.name}?'), view=gift_permission)
 			await gift_permission.wait()
 
-			if gift_permission.value == None:
+			if gift_permission.value is None:
 				return
 			
 			gift_permission = gift_permission.clear_items()
@@ -325,7 +322,7 @@ class Util(commands.Cog):
 			await interaction.response.send_message(core.Warning.question(f'¿Quieres eliminar el tag **{await commands.clean_content().convert(interaction, tag_name)}**?'), view=confirmation)
 			await confirmation.wait()
 			
-			if confirmation.value == None:
+			if confirmation.value is None:
 				return
 			
 			confirmation = confirmation.clear_items()
@@ -351,7 +348,7 @@ class Util(commands.Cog):
 		guild: int = None,
 		silent: bool = False
 	):
-		guild = interaction.guild if guild == None else self.bot.get_guild(guild)
+		guild = interaction.guild if guild is None else self.bot.get_guild(guild)
 		tag = tags.get_tag(interaction, tag_name, guild)
 		tag.delete()
 		await interaction.response.send_message(core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag_name)}** ha sido eliminado'), ephemeral=silent)
@@ -373,7 +370,7 @@ class Util(commands.Cog):
 	@app_commands.rename(user='usuario')
 	async def tag_list(self, interaction: discord.Interaction, user: discord.Member = None):
 		await tags.tag_check(interaction)
-		if user == None:
+		if user is None:
 			user = interaction.user
 		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tag_list)
@@ -644,7 +641,7 @@ class Util(commands.Cog):
 	@app_commands.rename(user='usuario')
 	@commands.guild_only()
 	async def userinfo(self, interaction: discord.Interaction, user: discord.User = None):
-		if user == None:
+		if user is None:
 			user = interaction.user
 		data_dict = {
 			'Usuario': str(user),
@@ -652,13 +649,13 @@ class Util(commands.Cog):
 			'Tipo de cuenta~': {True:'Bot', False:'Usuario'}[user.bot] + (' del sistema de discord' if user.system else ''),
 			'Fecha de creación de la cuenta': core.fix_date(user.created_at, elapsed=True, newline=True)
 		}
-		if interaction.guild.get_member(user.id) != None:
+		if interaction.guild.get_member(user.id) is not None:
 			user = interaction.guild.get_member(user.id)
 			data_dict.update({
 				'Apodo':user.nick,
 				'Fecha de entrada al servidor': core.fix_date(user.joined_at, elapsed=True, newline=True),
 				'Permisos en este canal~': f'Integer: `{interaction.channel.permissions_for(user).value}`\n' + ', '.join((f'{("`"+perm[0].replace("_"," ").capitalize()+"`") if perm[1] else ""}' for perm in tuple(filter(lambda x: x[1], tuple(interaction.channel.permissions_for(user)))))),
-				'Boosteando el servidor desde': core.fix_date(user.premium_since, elapsed=True, newline=True) if user.premium_since != None else None,
+				'Boosteando el servidor desde': core.fix_date(user.premium_since, elapsed=True, newline=True) if user.premium_since is not None else None,
 				'Actividades':'\n'.join(({
 					discord.ActivityType.unknown: 'Desconocido ',
 					discord.ActivityType.playing: 'Jugando a ',
@@ -677,7 +674,7 @@ class Util(commands.Cog):
 				})
 		embed = discord.Embed(title='Información del usuario', colour=db.default_color(interaction)).set_thumbnail(url=user.avatar.url)
 		for data in data_dict:
-			if data_dict[data] != None:
+			if data_dict[data] is not None:
 				if data == 'Apodo':
 					embed.insert_field_at(1, name=data, value=data_dict[data])
 				else:	
@@ -714,7 +711,7 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(channel='canal')
 	async def channelinfo(self, interaction: discord.Interaction, channel: app_commands.AppCommandChannel = None):
-		if channel == None:
+		if channel is None:
 			channel = interaction.channel
 		if isinstance(channel, app_commands.AppCommandChannel):
 			channel = await channel.fetch()
@@ -816,8 +813,8 @@ class Util(commands.Cog):
 			'ID': guild.id,
 			'Fecha de creación~': core.fix_date(guild.created_at, elapsed=True),
 			'Límite AFK': core.fix_delta(timedelta(seconds=guild.afk_timeout), compact=False),
-			'Canal AFK': guild.afk_channel.mention if guild.afk_channel != None else None,
-			'Canal de mensajes del sistema': guild.system_channel.mention if guild.system_channel != None else None,
+			'Canal AFK': guild.afk_channel.mention if guild.afk_channel is not None else None,
+			'Canal de mensajes del sistema': guild.system_channel.mention if guild.system_channel is not None else None,
 			'Dueño': guild.owner.mention,
 			'Máximo de miembros': guild.max_members,
 			'Descripción': guild.description,
@@ -866,7 +863,7 @@ class Util(commands.Cog):
 		"""
 		count = text.count(to_count)
 		embed = discord.Embed(title='Contador de palabras', colour=db.default_color(interaction))
-		if to_count == None:
+		if to_count is None:
 			data_dict = {
 				'Cantidad de caracteres': len(text),
 				'Cantidad de palabras': len(findall(r'[A-Za-z]+', text))

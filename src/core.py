@@ -1,13 +1,9 @@
-import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from random import choice
-from typing import Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from requests import head
 from pathlib import Path
 
 import exceptions
@@ -206,7 +202,7 @@ links = {
 }
 
 
-async def sync_tree(bot):
+async def sync_tree(bot: commands.Bot) -> None:
 	logger.info('Syncing command tree...')
 	for guild in bot_guilds:
 		await bot.tree.sync(guild=guild)
@@ -214,7 +210,7 @@ async def sync_tree(bot):
 
 
 def owner_only():
-	def predicate(interaction):
+	def predicate(interaction: discord.Interaction) -> bool:
 		if interaction.user.id == owner_id:
 			return True
 		else:
@@ -222,7 +218,7 @@ def owner_only():
 	return app_commands.check(predicate)
 
 
-def config_commands(bot):
+def config_commands(bot: commands.Bot) -> None:
 	for command in bot.tree.get_commands(guild=bot_guilds[0]):
 		if command.qualified_name in descs:
 			command.description = descs[command.qualified_name]
@@ -234,7 +230,7 @@ def config_commands(bot):
 				command.add_check(check_blacklist)
 
 
-def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True):
+def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True) -> str:
 	years = delta.days // 365
 	days = delta.days - years * 365
 	hours = delta.seconds // 3600
@@ -259,7 +255,7 @@ def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True):
 		return ' '.join((f'{measures[measure]} {measure if measures[measure] != 1 else measure[:-1]}' for measure in measures))
 
 
-def fix_date(date: datetime, *, elapsed=False, newline=False):
+def fix_date(date: datetime, *, elapsed=False, newline=False) -> str:
 	result = f'{date.day}/{date.month}/{date.year} {date.hour}:{date.minute}:{date.second} UTC'
 	if elapsed:
 		delta = fix_delta(datetime.now(timezone.utc) - date)
@@ -267,11 +263,11 @@ def fix_date(date: datetime, *, elapsed=False, newline=False):
 	return result
 
 
-def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_char='~'):
-	inline_char = '' if inline_char == None else inline_char
+def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_char='~') -> discord.Embed:
+	inline_char = '' if inline_char is None else inline_char
 	for data in data_dict:
 		if data_dict[data] not in (None, ''):
-			if inline != None:
+			if inline is not None:
 				embed.add_field(name=data, value=str(data_dict[data]), inline=inline)
 			elif inline_char != '':
 				embed.add_field(name=data.replace(inline_char, ''), value=str(data_dict[data]), inline=not data.endswith(inline_char))
@@ -280,37 +276,42 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
 	return embed
 
 
-def embed_author(embed:discord.Embed, user:discord.User):
+def embed_author(embed: discord.Embed, user: discord.User) -> discord.Embed:
 	return embed.set_author(name=user.name, icon_url=user.avatar.url)
 
 
 
 class Confirm(discord.ui.View):
-	def __init__(self, interaction:discord.Interaction, user: discord.User, *, timeout:Union[int, float]=180):
+	def __init__(
+		self, interaction: discord.Interaction,
+		user: discord.User,
+		*,
+		timeout: float = 180
+	):
 		super().__init__()
 		self._interaction = interaction
 		self.user = user
 		self.timeout = timeout
-		self.value = None
-		self.last_interaction = None
+		self.value: bool | None = None
+		self.last_interaction: discord.Interaction | None = None
 
-	async def interaction_check(self, interaction: discord.Interaction):
+	async def interaction_check(self, interaction: discord.Interaction) -> bool:
 		return interaction.user.id == self.user.id
 
-	async def on_timeout(self):
+	async def on_timeout(self) -> None:
 		for child in self.children:
 			child.disabled = True
 		await self._interaction.edit_original_response(view=self)
 		
 	@discord.ui.button(label='Sí', emoji=check_emoji, style=discord.ButtonStyle.green)
-	async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		self.respond(interaction, True)
 
 	@discord.ui.button(label='No', emoji=cross_emoji, style=discord.ButtonStyle.red)
-	async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		self.respond(interaction, False)
 
-	def respond(self, interaction: discord.Interaction, value: bool):
+	def respond(self, interaction: discord.Interaction, value: bool) -> None:
 		self.value = value
 		self.last_interaction = interaction
 		for child in self.children:
@@ -320,35 +321,33 @@ class Confirm(discord.ui.View):
 
 class Warning:
 	@staticmethod
-	def success(text:str, unicode=False):
+	def success(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':white_check_mark:', u'\U00002705'), text, unicode)
 
 	@staticmethod
-	def cancel(text:str, unicode=False):
+	def cancel(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':negative_squared_cross_mark:', u'\U0000274e'), text, unicode)
 
 	@staticmethod
-	def error(text:str, unicode=False):
+	def error(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':warning:', u'\U000026a0'), text, unicode)
 
 	@staticmethod
-	def question(text:str, unicode=False):
+	def question(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':grey_question:', u'\U00002754'), text, unicode)
 
 	@staticmethod
-	def info(text:str, unicode=False):
+	def info(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':information_source:', u'\U00002139'), text, unicode)
 
 	@staticmethod
-	def loading(text:str, unicode=False):
+	def loading(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':arrows_counterclockwise:', u'\U0001f504'), text, unicode)
 
 	@staticmethod
-	def searching(text:str, unicode=False):
+	def searching(text: str, unicode=False) -> str:
 		return Warning.emoji_warning((':mag:', u'\U0001f50d'), text, unicode)
 
 	@staticmethod
-	def emoji_warning(emoji, text, unicode):
+	def emoji_warning(emoji: tuple[str, str], text: str, unicode: bool) -> str:
 		return f'{emoji[int(unicode)]} {text}'
-
-

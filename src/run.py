@@ -52,7 +52,7 @@ async def tictactoe_context(interaction: discord.Interaction, user: discord.Memb
 		await interaction.response.send_message(ask_string, view=ask_view)
 		await ask_view.wait()
 		
-		if ask_view.value == None:
+		if ask_view.value is None:
 				await interaction.edit_original_response(view=ask_view)
 				return
 			

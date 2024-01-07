@@ -60,7 +60,7 @@ class Listeners(commands.Cog):
 			}
 
 			# If the error message hasn't been determined yet
-			if error_msg == None:
+			if error_msg is None:
 				# Check if the error type is in the error_messages list
 				for exception_type in error_messages:
 					if isinstance(error, exception_type):
@@ -75,11 +75,11 @@ class Listeners(commands.Cog):
 							break
 
 			# If error_msg is a lambda function, run it
-			if not isinstance(error_msg, str) and error_msg != None:
+			if not isinstance(error_msg, str) and error_msg is not None:
 				error_msg = error_msg()
 
 			# If the error remains unidentified, send a generic error message
-			if error_msg == None:
+			if error_msg is None:
 				embed = discord.Embed(
 					title=f'Ha ocurrido un error',
 					description=f'```py\n{repr(error)}\n```',

@@ -64,7 +64,7 @@ def check_tag_name(interaction: discord.Interaction, tag_name: str):
 
 
 def get_tag(interaction: discord.Interaction, name:str, guild=None):
-    db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild_id if guild == None else guild.id} AND NAME=?", (name,))
+    db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild_id if guild is None else guild.id} AND NAME=?", (name,))
     tag = db.cursor.fetchall()
     db.conn.commit()
     if tag != []:
