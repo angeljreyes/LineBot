@@ -26,9 +26,9 @@ class Image(commands.Cog):
 		bottom: app_commands.Range[str, 1, 40]
 	):
 		"""
-		top: app_commands.Range[str, 0, 45]
+		top: app_commands.Range[str, 1, 45]
 			Texto superior
-		bottom: app_commands.Range[str, 0, 40]
+		bottom: app_commands.Range[str, 1, 40]
 			Texto inferior
 		"""
 		await interaction.response.send_message(await self.api.did_you_mean(top, bottom))
@@ -45,9 +45,9 @@ class Image(commands.Cog):
 		bottom: app_commands.Range[str, 1, 250]
 	):
 		"""
-		top: app_commands.Range[str, 0, 250]
+		top: app_commands.Range[str, 1, 250]
 			Texto superior
-		bottom: app_commands.Range[str, 0, 250]
+		bottom: app_commands.Range[str, 1, 250]
 			Texto inferior
 		"""
 		await interaction.response.send_message(await self.api.drake(top, bottom))
