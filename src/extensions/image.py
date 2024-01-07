@@ -1,15 +1,12 @@
-import json
 from urllib.parse import quote
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from requests import get
-from urllib.parse import quote
+from alexflipnote import Client
 
 import core
 import db
-from alexflipnote import Client
 
 
 class Image(commands.Cog):
