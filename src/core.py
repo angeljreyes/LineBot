@@ -213,56 +213,6 @@ async def sync_tree(bot):
 	logger.info('Command tree synced')
 
 
-
-
-# async def ask(ctx, message:str, *, timeout=12.0, user=None, regex=None, raises=False):
-# 	user = ctx.author if user == None else user
-# 	question = await ctx.send(Warning.question(message))
-# 	def check(message):
-# 		return message.author.id == user.id and (fullmatch(regex, message.content) if regex != None else True) and message.channel.id == ctx.channel.id
-# 	try:
-# 		message = await ctx.bot.wait_for('message', timeout=timeout, check=check)
-# 	except asyncio.TimeoutError:
-# 		if raises:
-# 			await question.delete()
-# 			raise asyncio.TimeoutError
-# 		else:
-# 			await ctx.bot.get_cog('GlobalCog').send(ctx, Warning.error(f'{user.mention} No respondiste a tiempo'))
-# 			return None
-# 	await ctx.channel.delete_messages((question, message))
-# 	return message.content
-
-
-async def get_channel_image(ctx):
-	async for msg in ctx.history(limit=30):
-		if msg.attachments != []:
-			return msg.attachments[0].url
-		elif msg.embeds != []:
-			embed = msg.embeds[0]
-			for check in [embed.image.url, embed.thumbnail.url]:
-				if check != discord.Embed.Empty:
-					return check
-	raise exceptions.ImageNotFound('Image not detected in the channel')
-
-
-def is_url_image(image_url):
-	image_formats = ("image/png", "image/jpeg", "image/jpg")
-	r = head(image_url)
-	if r.headers["content-type"] in image_formats:
-		return True
-	return False
-
-
-async def get_user(ctx, arg:str):
-	try:
-		return await commands.UserConverter().convert(ctx, arg)
-	except:
-		try:
-			return await ctx.bot.fetch_user(int(arg))
-		except:
-			return await commands.UserConverter().convert(ctx, '0')
-
-
 def owner_only():
 	def predicate(interaction):
 		if interaction.user.id == owner_id:
@@ -333,22 +283,6 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
 def embed_author(embed:discord.Embed, user:discord.User):
 	return embed.set_author(name=user.name, icon_url=user.avatar.url)
 
-
-
-class ChannelConverter(commands.Converter):
-	async def convert(self, ctx, argument):
-		try:
-			argument = await commands.TextChannelConverter().convert(ctx, argument)
-		except:
-			try:
-				argument = await commands.VoiceChannelConverter().convert(ctx, argument)
-			except:
-				try:
-					argument = await commands.CategoryChannelConverter().convert(ctx, argument)
-				except:
-					raise commands.BadArgument(f'Channel "{argument}" not found')
-
-		return argument
 
 
 class Confirm(discord.ui.View):
