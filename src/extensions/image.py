@@ -43,7 +43,7 @@ class Image(commands.Cog):
 		interaction: discord.Interaction,
 		top: app_commands.Range[str, 1, 250],
 		bottom: app_commands.Range[str, 1, 250]
-):
+	):
 		"""
 		top: app_commands.Range[str, 0, 250]
 			Texto superior
@@ -87,8 +87,8 @@ class Image(commands.Cog):
 		text: app_commands.Range[str, 1, 250],
 	):
 		# I had to do it this way because Client.captcha() is broken
-		URL = 'https://api.alexflipnote.dev/captcha?text={}'
-		await interaction.response.send_message(URL.format(quote(text)))
+		url = f'https://api.alexflipnote.dev/captcha?text={quote(text)}'
+		await interaction.response.send_message(url)
 
 
 	# facts
@@ -144,16 +144,17 @@ class Image(commands.Cog):
 			Nombre de usuario de Minecraft
 		"""
 		username = quote(user)
-		URL = f'https://minotar.net/skin/{username}.png'
-		embed = discord.Embed(
-			title=f'Skin de {user}',
-			colour=db.default_color(interaction),
-			url=URL
-		).set_image(
-			url=f'https://minotar.net/armor/body/{username}/400.png'
-		).set_thumbnail(
-			url=URL
-		).set_footer(text='Steve podría significar que el jugador no existe o la API está caída')
+		url = f'https://minotar.net/skin/{username}.png'
+		embed = (
+			discord.Embed(
+				title=f'Skin de {user}',
+				colour=db.default_color(interaction),
+				url=url
+			)
+				.set_image(url=f'https://minotar.net/armor/body/{username}/400.png')
+				.set_thumbnail(url=url)
+				.set_footer(text='Steve podría significar que el jugador no existe o la API está caída')
+		)
 		await interaction.response.send_message(embed=embed)
 
 
