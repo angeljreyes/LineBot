@@ -1,4 +1,5 @@
 from random import choice, randint
+from requests import get
 
 import discord
 from discord import app_commands
@@ -7,8 +8,6 @@ from discord.ext import commands
 import core
 import tictactoe as ttt
 import db
-from requests import get
-
 
 
 class Fun(commands.Cog):
