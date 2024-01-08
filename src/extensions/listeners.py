@@ -10,11 +10,13 @@ import db
 
 
 class Listeners(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
+
 		@self.bot.tree.error
-		async def error_handler(interaction: discord.Interaction, error: Exception):
+		async def error_handler(interaction: discord.Interaction, error: Exception) -> None:
 			error_msg = None
+
 			# An exception object and its error message
 			error_messages = {
 				discord.HTTPException: {
@@ -106,18 +108,26 @@ class Listeners(commands.Cog):
 					await interaction.followup.send(core.Warning.error(error_msg))
 
 	@commands.Cog.listener('on_ready')
-	async def ready(self):
+	async def ready(self) -> None:
 		core.logger.info('Bot iniciado')
 
 
 	@commands.Cog.listener('on_resumed')
-	async def resume(self):
+	async def resume(self) -> None:
 		core.logger.info('Sesión resumida')
 
 
 	@commands.Cog.listener('on_app_command_completion')
-	async def command_logging(self, interaction, command):
-		core.logger.info(f'Se he usado un comando: "{command.name} {interaction.namespace}", servidor "{interaction.guild.name} <{interaction.guild.id}>", canal "{interaction.channel.name} <{interaction.channel.id}>" {interaction.data}')
+	async def command_logging(
+		self,
+		interaction: discord.Interaction,
+		command: app_commands.Command | app_commands.ContextMenu
+	) -> None:
+		core.logger.info(
+			f'Se he usado un comando: "{command.name} {interaction.namespace}", '
+			f'servidor "{interaction.guild.name} <{interaction.guild.id}>", '
+			f'canal "{interaction.channel.name} <{interaction.channel.id}>" {interaction.data}'
+		)
 
 		if core.bot_mode == 'stable':
 			# Update the command stats
@@ -132,14 +142,14 @@ class Listeners(commands.Cog):
 
 
 	@commands.Cog.listener('on_guild_join')
-	async def guild_join_logging(self, guild):
+	async def guild_join_logging(self, guild: discord.Guild) -> None:
 		core.logger.info(f'El bot ha entrado a un servidor: {repr(guild)}')
 
 
 	@commands.Cog.listener('on_guild_remove')
-	async def guild_join_logging(self, guild):
+	async def guild_join_logging(self, guild: discord.Guild) -> None:
 		core.logger.info(f'El bot ha salido de un servidor: {repr(guild)}')
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(Listeners(bot), guilds=core.bot_guilds)

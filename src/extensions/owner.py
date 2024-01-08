@@ -11,14 +11,14 @@ import db
 
 
 class Owner(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 
 
 	# die
 	@app_commands.command()
 	@core.owner_only()
-	async def die(self, interaction):
+	async def die(self, interaction: discord.Interaction):
 		"""Apaga el bot"""
 		await interaction.response.send_message(u'\U0001f480', ephemeral=True)
 		print('\nBot apagado')
@@ -31,7 +31,7 @@ class Owner(commands.Cog):
 	# getmsg
 	@app_commands.command()
 	@core.owner_only()
-	async def getmsg(self, interaction, id:str):
+	async def getmsg(self, interaction: discord.Interaction, id:str):
 		"""Obtiene los datos de un mensaje"""
 		msg = await interaction.channel.fetch_message(id)
 		await interaction.response.send_message(f'```py\n{msg}\n```', ephemeral=True)
@@ -40,12 +40,16 @@ class Owner(commands.Cog):
 	# eval
 	@app_commands.command()
 	@core.owner_only()
-	async def eval(self, interaction, ephemeral:bool=False, silent:bool=False):
+	async def eval(self,
+		interaction: discord.Interaction,
+		ephemeral: bool = False,
+		silent: bool = False
+	):
 		"""Ejecuta código"""
 		class CodeModal(discord.ui.Modal, title='Eval'):
 			answer = discord.ui.TextInput(label='Código', style=discord.TextStyle.paragraph)
 
-			def __init__(self, bot):
+			def __init__(self, bot: commands.Bot):
 				super().__init__()
 				self.bot = bot
 
@@ -105,7 +109,7 @@ class Owner(commands.Cog):
 	# reload
 	@app_commands.command()
 	@core.owner_only()
-	async def reload(self, interaction, extension:str, sync:bool=False):
+	async def reload(self, interaction: discord.Interaction, extension: str, sync: bool = False):
 		"""Recarga un módulo"""
 		await interaction.response.defer(ephemeral=True, thinking=True)
 		await self.bot.reload_extension('extensions.' + extension)
@@ -119,7 +123,7 @@ class Owner(commands.Cog):
 	# unload
 	@app_commands.command()
 	@core.owner_only()
-	async def unload(self, interaction, extension:str, sync:bool=False):
+	async def unload(self, interaction: discord.Interaction, extension: str, sync: bool = False):
 		"""Descarga un módulo"""
 		await interaction.response.defer(ephemeral=True, thinking=True)
 		await self.bot.unload_extension('extensions.' + extension)
@@ -133,7 +137,7 @@ class Owner(commands.Cog):
 	# load
 	@app_commands.command()
 	@core.owner_only()
-	async def load(self, interaction, extension:str, sync:bool=False):
+	async def load(self, interaction: discord.Interaction, extension: str, sync: bool = False):
 		"""Carga un módulo"""
 		await interaction.response.defer(ephemeral=True, thinking=True)
 		await self.bot.load_extension('extensions.' + extension)
@@ -147,7 +151,7 @@ class Owner(commands.Cog):
 	# blacklist
 	@app_commands.command()
 	@core.owner_only()
-	async def blacklist(self, interaction, user:discord.User):
+	async def blacklist(self, interaction: discord.Interaction, user: discord.User):
 		"""Mete o saca a un usuario de la blacklist"""
 		if core.check_blacklist(interaction, user, False):
 			db.cursor.execute(f"INSERT INTO BLACKLIST VALUES({user.id})")
@@ -160,5 +164,5 @@ class Owner(commands.Cog):
 		db.conn.commit()
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(Owner(bot), guilds=core.bot_guilds)

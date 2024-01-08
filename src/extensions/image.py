@@ -10,7 +10,7 @@ import db
 
 
 class Image(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 		self.api = Client()
 
@@ -170,5 +170,5 @@ class Image(commands.Cog):
 
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(Image(bot), guilds=core.bot_guilds)

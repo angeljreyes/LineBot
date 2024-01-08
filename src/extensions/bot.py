@@ -15,7 +15,7 @@ import autocomplete
 
 
 class About(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 		# self.send = bot.get_cog('GlobalCog').send
 
@@ -128,7 +128,7 @@ class About(commands.Cog):
 	# stats
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5.0)
-	async def stats(self, interaction):
+	async def stats(self, interaction: discord.Interaction):
 		"""Muestra información sobre el bot"""
 		embed = discord.Embed(title='Información de Line Bot', colour=db.default_color(interaction))
 		embed.add_field(name='Sistema operativo', value=platform(aliased=True, terse=True))
@@ -157,7 +157,7 @@ class About(commands.Cog):
 	@app_commands.autocomplete(command=autocomplete.commandstats)
 	@app_commands.checks.cooldown(1, 10.0)
 	@app_commands.rename(command='comando')
-	async def commandstats(self, interaction, command: str = None):
+	async def commandstats(self, interaction: discord.Interaction, command: str | None):
 		"""Muestra cuáles son los comandos más usados y cuántas veces se han
 
 		command: str
@@ -186,5 +186,5 @@ class About(commands.Cog):
 		db.conn.commit()
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(About(bot), guilds=core.bot_guilds)

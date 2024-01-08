@@ -10,7 +10,7 @@ import db
 
 
 class Modtxt(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 
 
@@ -18,7 +18,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(5, 5.0)
 	@app_commands.rename(text='texto', use_alts='usar-alts', ephemeral='privado')
-	async def emojitext(self, interaction, text:str, use_alts:bool=False, ephemeral:bool=False):
+	async def emojitext(self, interaction: discord.Interaction, text: str, use_alts: bool = False, ephemeral: bool = False):
 		"""Devuelve el texto transformado en emojis
 
 		text: str
@@ -64,7 +64,15 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(5, 5.0)
 	@app_commands.rename(replacing='reemplazar', replacement='por', text='en', count='límite', ephemeral='privado')
-	async def replace(self, interaction, replacing:str, replacement:str, text:str, count:int=-1, ephemeral:bool=False):
+	async def replace(
+		self,
+		interaction: discord.Interaction,
+		replacing: str,
+		replacement: str,
+		text: str,
+		count: int = -1,
+		ephemeral: bool = False
+	):
 		"""Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro
 
 		replacing: str
@@ -93,7 +101,13 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 5.0)
 	@app_commands.rename(text='text', spaces='espacios', ephemeral='privado')
-	async def spacedtext(self, interaction, text:str, spaces:int=1, ephemeral:bool=False):
+	async def spacedtext(
+		self,
+		interaction: discord.Interaction,
+		text: str,
+		spaces: int = 1,
+		ephemeral: bool = False
+	):
 		"""Devuelve el texto enviado con cada letra espaciada el número de veces indicado
 
 		text: str
@@ -117,7 +131,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(3, 5.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def vaporwave(self, interaction, text:str, ephemeral:bool=False):
+	async def vaporwave(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Devuelve el texto en vaporwave
 
 		text: str
@@ -126,7 +140,8 @@ class Modtxt(commands.Cog):
 			Mandar un mensaje efímero (privado) o no
 		"""
 		output = ""
-		other_chars = {32: 12288, 162: 65504, 163: 65505, 165: 65509, 166: 65508, 172: 65506, 175: 65507, 8361: 65510, 10629: 65375, 10630: 65376}
+		other_chars = {32: 12288, 162: 65504, 163: 65505, 165: 65509, 166: 65508, 172: 65506, 
+						175: 65507, 8361: 65510, 10629: 65375, 10630: 65376}
 		for character in text:
 			currentchar = ord(character)
 			if 33 <= currentchar <= 126:
@@ -142,7 +157,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def sarcastic(self, interaction, text:str, ephemeral:bool=False):
+	async def sarcastic(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""ConVIeRtE el TEXtO a SarcAStiCO
 
 		text: str
@@ -157,7 +172,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def uppercase(self, interaction, text:str, ephemeral:bool=False):
+	async def uppercase(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Convierte un texto a mayúsculas
 
 		text: str
@@ -172,7 +187,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def lowercase(self, interaction, text:str, ephemeral:bool=False):
+	async def lowercase(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Convierte un texto a minúsculas
 
 		text: str
@@ -187,7 +202,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def swapcase(self, interaction, text:str, ephemeral:bool=False):
+	async def swapcase(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Intercambia las minúsculas y las mayúsculas de un texto
 
 		text: str
@@ -202,7 +217,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def capitalize(self, interaction, text:str, ephemeral:bool=False):
+	async def capitalize(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Convierte la primera letra de cada palabra a mayúsculas
 
 		text: str
@@ -217,7 +232,7 @@ class Modtxt(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
-	async def reverse(self, interaction, text:str, ephemeral:bool=False):
+	async def reverse(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Revierte un texto
 
 		text: str
@@ -228,5 +243,5 @@ class Modtxt(commands.Cog):
 		await interaction.response.send_message(await commands.clean_content().convert(interaction, text[::-1]), ephemeral=ephemeral)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(Modtxt(bot), guilds=core.bot_guilds)

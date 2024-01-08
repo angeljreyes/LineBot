@@ -15,7 +15,7 @@ import tags
 
 
 class Util(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 		self.morse_dict = { 'A':'.-', 'B':'-...', 'C':'-.-.', 'D':'-..', 'E':'.', 'F':'..-.', 'G':'--.',
 		'H':'....', 'I':'..', 'J':'.---', 'K':'-.-', 'L':'.-..', 'M':'--', 'N':'-.', 'Ñ':'--.--',
@@ -40,21 +40,21 @@ class Util(commands.Cog):
 		option7='opción7',
 		option8='opción8',
 		option9='opción9',
-		option10='opción10',
+		option10='opción10'
 	)
 	async def choose(
 		self,
 		interaction: discord.Interaction,
 		option1: str,
 		option2: str,
-		option3: str=None,
-		option4: str=None,
-		option5: str=None,
-		option6: str=None,
-		option7: str=None,
-		option8: str=None,
-		option9: str=None,
-		option10: str=None,
+		option3: str | None,
+		option4: str | None,
+		option5: str | None,
+		option6: str | None,
+		option7: str | None,
+		option8: str | None,
+		option9: str | None,
+		option10: str | None
 	):
 		"""Devuelve una de las opciones dadas"""
 		embed = discord.Embed(
@@ -79,7 +79,7 @@ class Util(commands.Cog):
 		option7='opción7',
 		option8='opción8',
 		option9='opción9',
-		option10='opción10',
+		option10='opción10'
 	)
 	async def poll(
 		self,
@@ -87,14 +87,14 @@ class Util(commands.Cog):
 		description: app_commands.Range[str, 1, 256],
 		option1: str,
 		option2: str,
-		option3: str=None,
-		option4: str=None,
-		option5: str=None,
-		option6: str=None,
-		option7: str=None,
-		option8: str=None,
-		option9: str=None,
-		option10: str=None,
+		option3: str | None,
+		option4: str | None,
+		option5: str | None,
+		option6: str | None,
+		option7: str | None,
+		option8: str | None,
+		option9: str | None,
+		option10: str | None
 	):
 		"""Crea encuestas de manera sencilla
 
@@ -117,7 +117,7 @@ class Util(commands.Cog):
 	# avatar
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 3)
-	async def avatar(self, interaction: discord.Interaction, user: discord.User | discord.Member = None):
+	async def avatar(self, interaction: discord.Interaction, user: discord.User | discord.Member | None):
 		"""Obtiene tú foto de perfil o la de otro usuario"""
 		if user is None:
 			user = interaction.user
@@ -128,6 +128,8 @@ class Util(commands.Cog):
 
 
 	# tag
+	# The custom app_commands.Group class exists so I can 
+	# apply this decorator
 	@app_commands.guild_only()
 	class TagGroup(app_commands.Group):
 		pass
@@ -295,7 +297,6 @@ class Util(commands.Cog):
 		interaction: discord.Interaction,
 		tag_name: app_commands.Range[str, 1, 32],
 		tag_content: str,
-		*,
 		nsfw: bool = False
 	):
 		"""Edita el contenido de uno de tus tags
@@ -355,7 +356,7 @@ class Util(commands.Cog):
 		self,
 		interaction: discord.Interaction,
 		tag_name: app_commands.Range[str, 1, 32],
-		guild: int = None,
+		guild: int | None,
 		silent: bool = False
 	):
 		"""Reservado"""
@@ -380,7 +381,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 10)
 	@tag_group.command(name='list')
 	@app_commands.rename(user='usuario')
-	async def tag_list(self, interaction: discord.Interaction, user: discord.Member = None):
+	async def tag_list(self, interaction: discord.Interaction, user: discord.Member | None):
 		"""Muestra una lista de tus tags o de los tags de otro usuario"""
 		await tags.tag_check(interaction)
 		if user is None:
@@ -425,9 +426,7 @@ class Util(commands.Cog):
 			await interaction.response.send_message(str(choice(interaction.guild.members)))
 
 
-	class DefineGroup(app_commands.Group):
-		pass
-	define_group = DefineGroup(name='define', description='Busca el significado de una palabra en Wiktionary')
+	define_group = app_commands.Group(name='define', description='Busca el significado de una palabra en Wiktionary')
 
 
 	async def handle_define(self, interaction: discord.Interaction, query: str, lang: str):
@@ -519,6 +518,7 @@ class Util(commands.Cog):
 	@app_commands.rename(query='búsqueda')
 	async def define_spanish(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
 		"""Busca el significado de una palabra en español en Wiktionary
+
 		query: str
 			Palabra en español
 		"""
@@ -539,9 +539,7 @@ class Util(commands.Cog):
 
 
 	# binary
-	class BinaryGroup(app_commands.Group):
-		pass
-	binary_group = BinaryGroup(name='binary', description='Codifica o decodifica código binario')
+	binary_group = app_commands.Group(name='binary', description='Codifica o decodifica código binario')
 
 
 	# binary encode
@@ -579,9 +577,7 @@ class Util(commands.Cog):
 
 
 	# morse
-	class MorseGroup(app_commands.Group):
-		pass
-	morse_group = MorseGroup(name='morse', description='Codifica o decodifica código morse')
+	morse_group = app_commands.Group(name='morse', description='Codifica o decodifica código morse')
 
 
 	# morse encode
@@ -626,9 +622,7 @@ class Util(commands.Cog):
 
 	
 	# percentencoding
-	class PercentGroup(app_commands.Group):
-		pass
-	percent_group = PercentGroup(name='percent-encoding', description='Codifica o decodifica código porcentaje o código URL')
+	percent_group = app_commands.Group(name='percent-encoding', description='Codifica o decodifica código porcentaje o código URL')
 
 
 	# percentencoding encode
@@ -662,7 +656,7 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(user='usuario')
 	@commands.guild_only()
-	async def userinfo(self, interaction: discord.Interaction, user: discord.User = None):
+	async def userinfo(self, interaction: discord.Interaction, user: discord.User | None):
 		"""Obtiene información de un usuario. Habrá más información si el usuario se encuentra en el servidor"""
 		if user is None:
 			user = interaction.user
@@ -734,7 +728,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 3)
 	@app_commands.command()
 	@app_commands.rename(channel='canal')
-	async def channelinfo(self, interaction: discord.Interaction, channel: app_commands.AppCommandChannel = None):
+	async def channelinfo(self, interaction: discord.Interaction, channel: app_commands.AppCommandChannel | None):
 		"""Obtiene la información de un canal de cualquier tipo o una categoría"""
 		if channel is None:
 			channel = interaction.channel
@@ -880,7 +874,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 2)
 	@app_commands.command()
 	@app_commands.rename(to_count='contar', text='texto')
-	async def count(self, interaction: discord.Interaction, text: str, to_count: str = None):
+	async def count(self, interaction: discord.Interaction, text: str, to_count: str | None):
 		"""Cuenta cuantas veces hay una letra o palabra dentro de otro texto
 
 		text: str
@@ -916,7 +910,7 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(start='mínimo', stop='máximo', step='salto')
 	async def randomnumber(self, interaction: discord.Interaction, start: int, stop: int, step: app_commands.Range[int, 1, 1000000000000000] = 1):
-		"""Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos
+		"""Obtiene un número aleatorio entre el intervalo especificado. Puedes usar números negativos
 
 		start: int
 			Mínimo valor posible, se incluye en el rango
@@ -937,5 +931,5 @@ class Util(commands.Cog):
 
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(Util(bot), guilds=core.bot_guilds)

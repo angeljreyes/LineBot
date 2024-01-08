@@ -16,32 +16,32 @@ class Tag:
 		self.img = bool(img)
 		self.nsfw = bool(nsfw)
 
-	def __str__(self):
+	def __str__(self) -> str:
 		return self.name
 
-	def gift(self, user: discord.Member):
+	def gift(self, user: discord.Member) -> None:
 		db.cursor.execute(f"UPDATE TAGS2 SET USER={user.id} WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
 		db.conn.commit()
 		self.user = user
 
-	def rename(self, name: str):
+	def rename(self, name: str) -> None:
 		db.cursor.execute(f"UPDATE TAGS2 SET NAME=? WHERE GUILD={self.guild.id} AND NAME=?", (name, self.name))
 		db.conn.commit()
 		self.name = name
 
-	def edit(self, content: str, img: bool, nsfw: bool):
+	def edit(self, content: str, img: bool, nsfw: bool) -> None:
 		self.content = content
 		self.img = img
 		self.nsfw = nsfw
 		db.cursor.execute(f"UPDATE TAGS2 SET CONTENT=?, IMG={int(self.img)}, NSFW={int(self.nsfw)} WHERE GUILD={self.guild.id} AND NAME=?", (self.content, self.name))
 		db.conn.commit()
 
-	def delete(self):
+	def delete(self) -> None:
 		db.cursor.execute(f"DELETE FROM TAGS2 WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
 		db.conn.commit()
 
 
-async def tag_check(interaction: discord.Interaction):
+async def tag_check(interaction: discord.Interaction) -> None:
 	db.cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild.id}")
 	check = db.cursor.fetchall()
 	if check == []:
@@ -50,12 +50,12 @@ async def tag_check(interaction: discord.Interaction):
 		raise exceptions.DisabledTagsError('Tags are not enabled on this guild')
 
 
-def add_tag(interaction: discord.Interaction, name: str, content: str, nsfw: bool):
+def add_tag(interaction: discord.Interaction, name: str, content: str, nsfw: bool) -> None:
     db.cursor.execute("INSERT INTO TAGS2 VALUES(?,?,?,?,?,?)", (interaction.guild.id, interaction.user.id, name, content, int(nsfw), 0))
     db.conn.commit()
 
 
-def check_tag_name(interaction: discord.Interaction, tag_name: str):
+def check_tag_name(interaction: discord.Interaction, tag_name: str) -> None:
     for char in tag_name:
         if char in (' ', '_', '~', '*', '`', '|', ''):
             raise ValueError('Invalid characters detected')
@@ -63,7 +63,7 @@ def check_tag_name(interaction: discord.Interaction, tag_name: str):
         raise exceptions.ExistentTagError(f'Tag "{tag_name}" already exists')
 
 
-def get_tag(interaction: discord.Interaction, name:str, guild=None):
+def get_tag(interaction: discord.Interaction, name: str, guild: discord.Guild | None = None) -> Tag:
     db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild_id if guild is None else guild.id} AND NAME=?", (name,))
     tag = db.cursor.fetchall()
     db.conn.commit()
@@ -74,7 +74,7 @@ def get_tag(interaction: discord.Interaction, name:str, guild=None):
         raise exceptions.NonExistentTagError('This tag does not exist')
 
 
-def get_member_tags(interaction: discord.Interaction, user:discord.Member):
+def get_member_tags(interaction: discord.Interaction, user: discord.Member) -> list[Tag]:
     db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild.id} AND USER={user.id}")
     tags = db.cursor.fetchall()
     db.conn.commit()
@@ -84,7 +84,7 @@ def get_member_tags(interaction: discord.Interaction, user:discord.Member):
         raise exceptions.NonExistentTagError('This user doesn\'t have tags')
 
 
-def get_guild_tags(interaction: discord.Interaction):
+def get_guild_tags(interaction: discord.Interaction) -> list[Tag]:
     db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild.id}")
     tags = db.cursor.fetchall()
     db.conn.commit()

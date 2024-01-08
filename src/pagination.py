@@ -31,17 +31,23 @@ class Page:
 
 
 class Paginator(discord.ui.View):
-	def __init__(self, interaction:discord.Interaction, *, pages:list=[], entries:int=None, timeout:float=180.0):
+	def __init__(self,
+		interaction: discord.Interaction,
+		*,
+		pages: list[Page] = [],
+		entries: int | None = None,
+		timeout: float = 180.0
+	):
 		super().__init__(timeout=timeout)
 		self.interaction = interaction
 		self.page_num = 1
-		self.page = None
-		self.pages = []
+		self.page: Page | None = None
+		self.pages: list[Page] = []
 		self.entries = entries
 		self.add_pages(pages)
 
 
-	def add_pages(self, pages:list):
+	def add_pages(self, pages: list) -> None:
 		count = 0
 		for page in pages:
 			count += 1
@@ -50,28 +56,28 @@ class Paginator(discord.ui.View):
 		self.pages += pages
 
 
-	async def interaction_check(self, interaction: discord.Interaction):
+	async def interaction_check(self, interaction: discord.Interaction) -> bool:
 		return self.interaction.user.id == interaction.user.id
 
 
 	@discord.ui.button(emoji=core.first_emoji, style=discord.ButtonStyle.blurple, disabled=True)
-	async def first(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def first(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		await self.set_page(interaction, button, 1)
 
 	@discord.ui.button(emoji=core.back_emoji, style=discord.ButtonStyle.blurple, disabled=True)
-	async def back(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		await self.set_page(interaction, button, self.page_num - 1)
 
 	@discord.ui.button(emoji=core.next_emoji, style=discord.ButtonStyle.blurple)
-	async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def next(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		await self.set_page(interaction, button, self.page_num + 1)
 
 	@discord.ui.button(emoji=core.last_emoji, style=discord.ButtonStyle.blurple)
-	async def last(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def last(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		await self.set_page(interaction, button, len(self.pages))
 
 	@discord.ui.button(emoji=core.search_emoji, style=discord.ButtonStyle.blurple)
-	async def search(self, interaction: discord.Interaction, button: discord.ui.Button):
+	async def search(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
 		total_pages = len(self.pages)
 
 		class SearchModal(discord.ui.Modal, title='Escribe un número de página'):
@@ -82,16 +88,22 @@ class Paginator(discord.ui.View):
 				max_length=len(str(total_pages))
 			)
 
-		async def on_submit(modal):
-			async def func(interaction: discord.Interaction):
+		async def on_submit(modal: SearchModal):
+			async def func(interaction: discord.Interaction) -> None:
 				try:
 					value = int(modal.answer.value)
 					if 0 < value <= total_pages:
 						await self.set_page(interaction, button, value)
 					else:
-						await interaction.response.send_message(core.Warning.error(f'Escribe un número entre el 1 y el {total_pages}'), ephemeral=True)
+						await interaction.response.send_message(
+							core.Warning.error(f'Escribe un número entre el 1 y el {total_pages}'),
+							ephemeral=True
+						)
 				except ValueError:
-					await interaction.response.send_message(core.Warning.error('Valor incorrecto. Escribe un número'), ephemeral=True)
+					await interaction.response.send_message(
+						core.Warning.error('Valor incorrecto. Escribe un número'),
+						ephemeral=True
+					)
 			return func
 
 		modal = SearchModal()
@@ -100,7 +112,7 @@ class Paginator(discord.ui.View):
 		await interaction.response.send_modal(modal)
 
 	
-	async def on_timeout(self):
+	async def on_timeout(self) -> None:
 		self.children[0].disabled = True
 		self.children[1].disabled = True
 		self.children[2].disabled = True
@@ -109,7 +121,7 @@ class Paginator(discord.ui.View):
 		await self.interaction.edit_original_response(view=self)
 
 
-	async def set_page(self, interaction:discord.Interaction, button:discord.ui.Button, page:int, interact=True):
+	async def set_page(self, interaction: discord.Interaction, button: discord.ui.Button, page: int, interact=True) -> None:
 		self.page = self.pages[page-1]
 		self.page_num = page
 		self.children[0].disabled = self.page_num == 1
@@ -118,4 +130,3 @@ class Paginator(discord.ui.View):
 		self.children[3].disabled = self.page_num == len(self.pages)
 		await interaction.response.defer()
 		await self.interaction.edit_original_response(content=self.page.content, embed=self.page.embed, view=self)
-

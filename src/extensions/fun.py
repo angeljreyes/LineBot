@@ -11,14 +11,14 @@ import db
 
 
 class Fun(commands.Cog):
-	def __init__(self, bot):
+	def __init__(self, bot: commands.Bot):
 		self.bot = bot
 
 
 	# soy
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 1.5)
-	async def soy(self, interaction):
+	async def soy(self, interaction: discord.Interaction):
 		"""Descubre quién eres"""
 		await interaction.response.send_message(choice((
 			'Eres re gay, te encanta chuparla',
@@ -52,10 +52,10 @@ class Fun(commands.Cog):
 	@app_commands.command(name='iq')
 	@app_commands.checks.cooldown(1, 1.5)
 	@app_commands.rename(user='usuario')
-	async def _iq(self, interaction, user:discord.Member=None):
+	async def _iq(self, interaction: discord.Interaction, user: discord.Member | None):
 		"""Calcula tu IQ o el de otra persona
 
-		user: discord.Member
+		user: discord.Member | None
 			Usuario al que buscar IQ
 		"""
 		iqs = (
@@ -83,7 +83,7 @@ class Fun(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5.0)
 	@app_commands.rename(search='buscar', joke_id='id', image='imagen')
-	async def dadjoke(self, interaction, search:str=None, joke_id:str=None, image:bool=False):
+	async def dadjoke(self, interaction: discord.Interaction, search: str | None, joke_id: str | None, image: bool = False):
 		"""Envia chistes que dan menos risa que los de Siri
 
 		search: str
@@ -124,7 +124,7 @@ class Fun(commands.Cog):
 
 	# nothing
 	@app_commands.command()
-	async def nothing(self, interaction):
+	async def nothing(self, interaction: discord.Interaction):
 		"""Literalmente no hace nada"""
 		pass
 
@@ -133,10 +133,10 @@ class Fun(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 1.5)
 	@app_commands.rename(user='usuario')
-	async def gay(self, interaction, user:discord.Member=None):
+	async def gay(self, interaction: discord.Interaction, user: discord.Member | None):
 		"""Detecta como de homosexual eres
 
-		user: discord.Member
+		user: discord.Member | None
 			Usuario al que medirle la homosexualidad
 		"""
 		username = interaction.user.name if user is None else user.name
@@ -182,10 +182,10 @@ class Fun(commands.Cog):
 	@tictactoe_group.command(name='against-player')
 	@app_commands.checks.cooldown(1, 15)
 	@app_commands.rename(opponent='oponente')
-	async def against_player(self, interaction: discord.Interaction, opponent:discord.Member=None):
+	async def against_player(self, interaction: discord.Interaction, opponent: discord.Member | None):
 		"""Juega una partida de Tic tac Toe contra otra persona
 
-		opponent: discord.Member
+		opponent: discord.Member | None
 			Usuario contra el que quieres jugar
 		"""
 		if opponent is None:
@@ -227,7 +227,7 @@ class Fun(commands.Cog):
 	@app_commands.command(name='8ball')
 	@app_commands.checks.cooldown(1, 2.5)
 	@app_commands.rename(question='pregunta')
-	async def _8ball(self, interaction, question:str):
+	async def _8ball(self, interaction: discord.Interaction, question: str):
 		"""Pregúntale algo al bot para que te dé su opinión
 
 		question: str
@@ -254,5 +254,5 @@ class Fun(commands.Cog):
 
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
 	await bot.add_cog(Fun(bot), guilds=core.bot_guilds)

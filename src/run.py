@@ -14,7 +14,7 @@ import db
 
 # Create the bot client
 class LineBot(commands.Bot):
-	async def setup_hook(self):
+	async def setup_hook(self) -> None:
 		# Load the extensions which contain commands and utilities
 		for extension in (
 			'listeners',
@@ -45,7 +45,7 @@ bot = LineBot(command_prefix='l!', help_command=None, owner_id=core.owner_id, ca
 
 @bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds)
 @app_commands.checks.cooldown(1, 15)
-async def tictactoe_context(interaction: discord.Interaction, user: discord.Member):
+async def tictactoe_context(interaction: discord.Interaction, user: discord.Member) -> None:
 	if not user.bot:
 		ask_view = core.Confirm(interaction, user)
 		ask_string = f'{user.mention} ¿Quieres unirte a la partida de Tic Tac Toe de **{interaction.user.name}**?' if user.id != interaction.user.id else f'¿Estás tratando de jugar contra ti mismo?'
@@ -69,10 +69,10 @@ async def tictactoe_context(interaction: discord.Interaction, user: discord.Memb
 	else:
 		await interaction.response.send_message(content=game.get_content(), view=game)
 
-async def main():
+async def main() -> None:
 	# Create the event that catches any unknown errors and logs them
 	@bot.event
-	async def on_error(event, *args, **kwargs):
+	async def on_error(event: str, *args, **kwargs) -> None:
 		ctx = args[0]
 		log = f'Ha ocurrido un error: "{ctx.message.content}" {repr(ctx.message)}'
 		core.logger.error(f'{log}\n{format_exc()}')
