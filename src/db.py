@@ -13,7 +13,7 @@ cursor = conn.cursor()
 cursor.execute("SELECT COMMAND FROM COMMANDSTATS")
 
 commandstats_commands = [command[0] for command in cursor.fetchall()]
-conn.commit
+conn.commit()
 
 
 def default_color(interaction: discord.Interaction) -> int | discord.Color:
