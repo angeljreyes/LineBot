@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 from time import perf_counter
 from platform import platform, python_version

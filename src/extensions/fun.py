@@ -1,4 +1,3 @@
-import asyncio
 from random import choice, randint
 
 import discord

@@ -1,4 +1,3 @@
-import asyncio
 import exceptions
 from datetime import timedelta
 

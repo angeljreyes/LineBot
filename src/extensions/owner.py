@@ -1,4 +1,3 @@
-import asyncio
 from math import floor
 from re import findall
 from timeit import default_timer as timer
