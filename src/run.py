@@ -79,11 +79,6 @@ async def main() -> None:
 		await bot.get_channel(core.error_logging_channel).send(f'<@{bot.owner_id}>', delete_after=30)
 
 
-	# @bot.event
-	# async def on_guild_join(guild):
-	#     botdata.logger.info(f'El bot ha entrado a un servidor: {repr(guild)}')
-
-
 	# Start the bot
 	async with bot:
 		db.cursor.execute(f"SELECT VALUE FROM RESOURCES WHERE KEY='{core.bot_mode}_token'")
