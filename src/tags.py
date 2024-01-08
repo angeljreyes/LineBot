@@ -20,12 +20,12 @@ class Tag:
 		return self.name
 
 	def gift(self, user: discord.Member) -> None:
-		db.cursor.execute(f"UPDATE TAGS2 SET USER={user.id} WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
+		db.cursor.execute(f"UPDATE TAGS SET USER={user.id} WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
 		db.conn.commit()
 		self.user = user
 
 	def rename(self, name: str) -> None:
-		db.cursor.execute(f"UPDATE TAGS2 SET NAME=? WHERE GUILD={self.guild.id} AND NAME=?", (name, self.name))
+		db.cursor.execute(f"UPDATE TAGS SET NAME=? WHERE GUILD={self.guild.id} AND NAME=?", (name, self.name))
 		db.conn.commit()
 		self.name = name
 
@@ -33,11 +33,11 @@ class Tag:
 		self.content = content
 		self.img = img
 		self.nsfw = nsfw
-		db.cursor.execute(f"UPDATE TAGS2 SET CONTENT=?, IMG={int(self.img)}, NSFW={int(self.nsfw)} WHERE GUILD={self.guild.id} AND NAME=?", (self.content, self.name))
+		db.cursor.execute(f"UPDATE TAGS SET CONTENT=?, IMG={int(self.img)}, NSFW={int(self.nsfw)} WHERE GUILD={self.guild.id} AND NAME=?", (self.content, self.name))
 		db.conn.commit()
 
 	def delete(self) -> None:
-		db.cursor.execute(f"DELETE FROM TAGS2 WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
+		db.cursor.execute(f"DELETE FROM TAGS WHERE GUILD={self.guild.id} AND NAME=?", (self.name,))
 		db.conn.commit()
 
 
@@ -51,7 +51,7 @@ async def tag_check(interaction: discord.Interaction) -> None:
 
 
 def add_tag(interaction: discord.Interaction, name: str, content: str, nsfw: bool) -> None:
-    db.cursor.execute("INSERT INTO TAGS2 VALUES(?,?,?,?,?,?)", (interaction.guild.id, interaction.user.id, name, content, int(nsfw), 0))
+    db.cursor.execute("INSERT INTO TAGS VALUES(?,?,?,?,?,?)", (interaction.guild.id, interaction.user.id, name, content, int(nsfw), 0))
     db.conn.commit()
 
 
@@ -64,7 +64,7 @@ def check_tag_name(interaction: discord.Interaction, tag_name: str) -> None:
 
 
 def get_tag(interaction: discord.Interaction, name: str, guild: discord.Guild | None = None) -> Tag:
-    db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild_id if guild is None else guild.id} AND NAME=?", (name,))
+    db.cursor.execute(f"SELECT * FROM TAGS WHERE GUILD={interaction.guild_id if guild is None else guild.id} AND NAME=?", (name,))
     tag = db.cursor.fetchall()
     db.conn.commit()
     if tag != []:
@@ -75,7 +75,7 @@ def get_tag(interaction: discord.Interaction, name: str, guild: discord.Guild | 
 
 
 def get_member_tags(interaction: discord.Interaction, user: discord.Member) -> list[Tag]:
-    db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild.id} AND USER={user.id}")
+    db.cursor.execute(f"SELECT * FROM TAGS WHERE GUILD={interaction.guild.id} AND USER={user.id}")
     tags = db.cursor.fetchall()
     db.conn.commit()
     if tags != []:
@@ -85,7 +85,7 @@ def get_member_tags(interaction: discord.Interaction, user: discord.Member) -> l
 
 
 def get_guild_tags(interaction: discord.Interaction) -> list[Tag]:
-    db.cursor.execute(f"SELECT * FROM TAGS2 WHERE GUILD={interaction.guild.id}")
+    db.cursor.execute(f"SELECT * FROM TAGS WHERE GUILD={interaction.guild.id}")
     tags = db.cursor.fetchall()
     db.conn.commit()
     if tags != []:
