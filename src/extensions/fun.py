@@ -55,7 +55,7 @@ class Fun(commands.Cog):
 	async def _iq(self, interaction: discord.Interaction, user: discord.Member | None):
 		"""Calcula tu IQ o el de otra persona
 
-		user: discord.Member | None
+		user
 			Usuario al que buscar IQ
 		"""
 		iqs = (
@@ -86,11 +86,11 @@ class Fun(commands.Cog):
 	async def dadjoke(self, interaction: discord.Interaction, search: str | None, joke_id: str | None, image: bool = False):
 		"""Envia chistes que dan menos risa que los de Siri
 
-		search: str
+		search
 			Buscar una broma con el termino indicado
-		joke_id: str
+		joke_id
 			Buscar una broma por su ID
-		image: bool
+		image
 			Mostrar la broma como imagen
 		"""
 		#search
@@ -136,7 +136,7 @@ class Fun(commands.Cog):
 	async def gay(self, interaction: discord.Interaction, user: discord.Member | None):
 		"""Detecta como de homosexual eres
 
-		user: discord.Member | None
+		user
 			Usuario al que medirle la homosexualidad
 		"""
 		username = interaction.user.name if user is None else user.name
@@ -185,7 +185,7 @@ class Fun(commands.Cog):
 	async def against_player(self, interaction: discord.Interaction, opponent: discord.Member | None):
 		"""Juega una partida de Tic tac Toe contra otra persona
 
-		opponent: discord.Member | None
+		opponent
 			Usuario contra el que quieres jugar
 		"""
 		if opponent is None:
@@ -230,7 +230,7 @@ class Fun(commands.Cog):
 	async def _8ball(self, interaction: discord.Interaction, question: str):
 		"""Pregúntale algo al bot para que te dé su opinión
 
-		question: str
+		question
 			Pregunta que el bot responderá
 		"""
 		await interaction.response.send_message(embed=core.embed_author(

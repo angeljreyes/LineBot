@@ -21,11 +21,11 @@ class Modtxt(commands.Cog):
 	async def emojitext(self, interaction: discord.Interaction, text: str, use_alts: bool = False, ephemeral: bool = False):
 		"""Devuelve el texto transformado en emojis
 
-		text: str
+		text
 			Texto a convertir en emojis
-		use_alts: bool
+		use_alts
 			Usar emojis alterantivos
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		text = text.lower()
@@ -75,15 +75,15 @@ class Modtxt(commands.Cog):
 	):
 		"""Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro
 
-		replacing: str
+		replacing
 			Lo que se va a reemplazar en el texto
-		replacement: str
+		replacement
 			Por lo que se va a reemplazar
-		text: str
+		text
 			Un texto
-		count: int
+		count
 			El límite de veces que se reemplazarán los caracteres
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.defer(ephemeral=ephemeral, thinking=True)
@@ -110,11 +110,11 @@ class Modtxt(commands.Cog):
 	):
 		"""Devuelve el texto enviado con cada letra espaciada el número de veces indicado
 
-		text: str
+		text
 			Texto al que se le agregarán espacios
-		spaces: int
+		spaces
 			Cantidad de espacios entre cada caracter
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		if spaces > 30: 
@@ -134,9 +134,9 @@ class Modtxt(commands.Cog):
 	async def vaporwave(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Devuelve el texto en vaporwave
 
-		text: str
+		text
 			Texto a convertir a vaporwave
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		output = ""
@@ -160,9 +160,9 @@ class Modtxt(commands.Cog):
 	async def sarcastic(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""ConVIeRtE el TEXtO a SarcAStiCO
 
-		text: str
+		text
 			Texto a convertir a sArcÁStICo
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.send_message(''.join((choice((letter.lower(), letter.upper())) for letter in text)), ephemeral=ephemeral)
@@ -175,9 +175,9 @@ class Modtxt(commands.Cog):
 	async def uppercase(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Convierte un texto a mayúsculas
 
-		text: str
+		text
 			Texto a convertir a MAYÚSCULAS
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.send_message(await commands.clean_content().convert(interaction, text.upper()), ephemeral=ephemeral)
@@ -190,9 +190,9 @@ class Modtxt(commands.Cog):
 	async def lowercase(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Convierte un texto a minúsculas
 
-		text: str
+		text
 			Texto a convertir a minúsculas
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.send_message(await commands.clean_content().convert(interaction, text.lower()), ephemeral=ephemeral)
@@ -205,9 +205,9 @@ class Modtxt(commands.Cog):
 	async def swapcase(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Intercambia las minúsculas y las mayúsculas de un texto
 
-		text: str
+		text
 			Texto a intercambiar minúsculas y mayúsculas
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.send_message(await commands.clean_content().convert(interaction, text.swapcase()), ephemeral=ephemeral)
@@ -220,9 +220,9 @@ class Modtxt(commands.Cog):
 	async def capitalize(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Convierte la primera letra de cada palabra a mayúsculas
 
-		text: str
+		text
 			Texto a convertir a Capitalizar
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.send_message(await commands.clean_content().convert(interaction, text.title()), ephemeral=ephemeral)
@@ -235,9 +235,9 @@ class Modtxt(commands.Cog):
 	async def reverse(self, interaction: discord.Interaction, text: str, ephemeral: bool = False):
 		"""Revierte un texto
 
-		text: str
+		text
 			Texto a convertir a invertir
-		ephemeral: bool
+		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
 		await interaction.response.send_message(await commands.clean_content().convert(interaction, text[::-1]), ephemeral=ephemeral)

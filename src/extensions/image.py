@@ -27,9 +27,9 @@ class Image(commands.Cog):
 	):
 		"""Google "quizás quisiste decir"
 
-		top: app_commands.Range[str, 1, 45]
+		top
 			Texto superior
-		bottom: app_commands.Range[str, 1, 40]
+		bottom
 			Texto inferior
 		"""
 		await interaction.response.send_message(await self.api.did_you_mean(top, bottom))
@@ -47,9 +47,9 @@ class Image(commands.Cog):
 	):
 		"""Haz un meme con la plantilla de drake
 
-		top: app_commands.Range[str, 1, 250]
+		top
 			Texto superior
-		bottom: app_commands.Range[str, 1, 250]
+		bottom
 			Texto inferior
 		"""
 		await interaction.response.send_message(await self.api.drake(top, bottom))
@@ -151,7 +151,7 @@ class Image(commands.Cog):
 	):
 		"""Busca una skin de Minecraft
 
-		user: app_commands.Range[str, 1, 16]
+		user
 			Nombre de usuario de Minecraft
 		"""
 		username = quote(user)

@@ -36,9 +36,6 @@ class About(commands.Cog):
 	@app_commands.command()
 	async def links(self, interaction: discord.Interaction):
 		"""Obtén los links oficiales del bot"""
-		# emb = discord.Embed(title='Links', colour=db.default_color(interaction))
-		# for link in core.links:
-		# 	emb.add_field(name=link, value=f'[Aquí]({core.links[link]})')
 		view = discord.ui.View()
 		for link in core.links:
 			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
@@ -53,7 +50,7 @@ class About(commands.Cog):
 	async def changelog(self, interaction: discord.Interaction, version: str = core.bot_version):
 		"""Revisa el registro de cambios de la última versión del bot o de una especificada
 
-		version: str
+		version
 			Una versión de Line Bot
 		"""
 		if version == 'list':
@@ -89,7 +86,7 @@ class About(commands.Cog):
 	async def color(self, interaction: discord.Interaction, value: str = ''):
 		"""Cambia el color de los embeds del bot
 
-		value: str
+		value
 			Elige un color de la lista o escribe un #hex o rgb(r, g ,b)
 		"""
 		if value == '':
@@ -160,7 +157,7 @@ class About(commands.Cog):
 	async def commandstats(self, interaction: discord.Interaction, command: str | None):
 		"""Muestra cuáles son los comandos más usados y cuántas veces se han
 
-		command: str
+		command
 			Un comando del bot
 		"""
 		if command is None:

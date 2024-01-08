@@ -98,7 +98,7 @@ class Util(commands.Cog):
 	):
 		"""Crea encuestas de manera sencilla
 
-		description: app_commands.Range[str, 1, 256]
+		description
 			Una pregunta, tema o afirmación que describa la encuesta
 		"""
 		emojis = [f'{number}\ufe0f\u20e3' for number in range(1, 10)] + [u'\U0001f51f',]
@@ -142,7 +142,7 @@ class Util(commands.Cog):
 	async def tag_show(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
 		"""Muestra el contenido de un tag
 
-		tag_name: discord.Range[str, 1, 32]
+		tag_name
 			Nombre de un tag
 		"""
 		await tags.tag_check(interaction)
@@ -214,11 +214,11 @@ class Util(commands.Cog):
 	):
 		"""Crea un tag
 
-		tag_name: app_commands.Range[str, 1, 32]
+		tag_name
 			Nombre del tag que quieres crear
-		tag_content: str
+		tag_content
 			Contenido del tag que quieres crear
-		nsfw: bool = False
+		nsfw
 			Determina si el tag puede mostrarse únicamente en canales NSFW
 		"""
 		await tags.tag_check(interaction)
@@ -301,11 +301,11 @@ class Util(commands.Cog):
 	):
 		"""Edita el contenido de uno de tus tags
 
-		tag_name: app_commands.Range[str, 1, 32]
+		tag_name
 			Nombre del tag que quieres editar
-		tag_content: str
+		tag_content
 			Nuevo contenido del tag
-		nsfw: bool = False
+		nsfw
 			Determina si el tag puede mostrarse únicamente en canales NSFW
 		"""
 		await tags.tag_check(interaction)
@@ -417,7 +417,7 @@ class Util(commands.Cog):
 	async def someone(self, interaction: discord.Interaction, mention: bool = False):
 		"""Menciona a alguien aleatorio del servidor
 
-		mention: bool = False
+		mention
 			Determina si mencionar o no al usuario. Requiere permiso para hacer @everyone
 		"""
 		if mention and interaction.channel.permissions_for(interaction.user).mention_everyone:
@@ -519,7 +519,7 @@ class Util(commands.Cog):
 	async def define_spanish(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
 		"""Busca el significado de una palabra en español en Wiktionary
 
-		query: str
+		query
 			Palabra en español
 		"""
 		await self.handle_define(interaction, query, 'es')
@@ -532,7 +532,7 @@ class Util(commands.Cog):
 	async def define_english(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
 		"""Busca el significado de una palabra en inglés en Wiktionary
 
-		query: str
+		query
 			Palabra en inglés
 		"""
 		await self.handle_define(interaction, query, 'en')
@@ -549,7 +549,7 @@ class Util(commands.Cog):
 	async def binary_encode(self, interaction: discord.Interaction, text: str):
 		"""Convierte texto a código binario
 
-		text: str
+		text
 			El texto que será codificado
 		"""
 		string = ' '.join(bin(ord(char)).split('b')[1].rjust(8, '0') for char in text)
@@ -563,7 +563,7 @@ class Util(commands.Cog):
 	async def binary_decode(self, interaction: discord.Interaction, text: str):
 		"""Convierte código binario a texto
 
-		text: str
+		text
 			El texto que será decodificado
 		"""
 		if search(r'[^0-1]', text.replace(' ', '')):
@@ -587,7 +587,7 @@ class Util(commands.Cog):
 	async def morse_encode(self, interaction: discord.Interaction, text: str):
 		"""Convierte texto a código morse
 
-		text: str
+		text
 			El texto que será codificado
 		"""
 		string = ''
@@ -605,7 +605,7 @@ class Util(commands.Cog):
 	async def morse_decode(self, interaction: discord.Interaction, text: str):
 		"""Convierte código morse a texto
 
-		text: str
+		text
 			El texto que será decodificado
 		"""
 		text += ' '
@@ -632,7 +632,7 @@ class Util(commands.Cog):
 	async def percentencoding_encode(self, interaction: discord.Interaction, text: str):
 		"""Convierte texto a código porcentaje o código URL
 
-		text: str
+		text
 			El texto que será codificado
 		"""
 		await interaction.response.send_message(f'```{quote(text)}```')
@@ -645,7 +645,7 @@ class Util(commands.Cog):
 	async def percentencoding_decode(self, interaction: discord.Interaction, text: str):
 		"""Convierte código porcentaje o código URL a texto
 
-		text: str
+		text
 			El texto que será decodificado
 		"""
 		await interaction.response.send_message(f'```{await commands.clean_content().convert(interaction, unquote(text))}```')
@@ -877,9 +877,9 @@ class Util(commands.Cog):
 	async def count(self, interaction: discord.Interaction, text: str, to_count: str | None):
 		"""Cuenta cuantas veces hay una letra o palabra dentro de otro texto
 
-		text: str
+		text
 			El texto en el que buscar palabras o caracteres
-		to_count: str = None
+		to_count
 			Palabra que contar en el texto. Dejar vacío para contar cualquier palabra o carácter
 		"""
 		count = text.count(to_count)
@@ -912,11 +912,11 @@ class Util(commands.Cog):
 	async def randomnumber(self, interaction: discord.Interaction, start: int, stop: int, step: app_commands.Range[int, 1, 1000000000000000] = 1):
 		"""Obtiene un número aleatorio entre el intervalo especificado. Puedes usar números negativos
 
-		start: int
+		start
 			Mínimo valor posible, se incluye en el rango
-		stop: int
+		stop
 			Máximo valor posible, se excluye del rango
-		step: int = 1
+		step
 			Distancia entre cada número del rango, el valor por defecto es 1
 		"""
 		if start >= stop:
