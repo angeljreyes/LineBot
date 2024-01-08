@@ -19,6 +19,7 @@ class Fun(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 1.5)
 	async def soy(self, interaction):
+		"""Descubre quién eres"""
 		await interaction.response.send_message(choice((
 			'Eres re gay, te encanta chuparla',
 			'Eres un wn con pija dorada',
@@ -52,7 +53,8 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 1.5)
 	@app_commands.rename(user='usuario')
 	async def _iq(self, interaction, user:discord.Member=None):
-		"""
+		"""Calcula tu IQ o el de otra persona
+
 		user: discord.Member
 			Usuario al que buscar IQ
 		"""
@@ -82,7 +84,8 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 5.0)
 	@app_commands.rename(search='buscar', joke_id='id', image='imagen')
 	async def dadjoke(self, interaction, search:str=None, joke_id:str=None, image:bool=False):
-		"""
+		"""Envia chistes que dan menos risa que los de Siri
+
 		search: str
 			Buscar una broma con el termino indicado
 		joke_id: str
@@ -122,6 +125,7 @@ class Fun(commands.Cog):
 	# nothing
 	@app_commands.command()
 	async def nothing(self, interaction):
+		"""Literalmente no hace nada"""
 		pass
 
 
@@ -130,7 +134,8 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 1.5)
 	@app_commands.rename(user='usuario')
 	async def gay(self, interaction, user:discord.Member=None):
-		"""
+		"""Detecta como de homosexual eres
+
 		user: discord.Member
 			Usuario al que medirle la homosexualidad
 		"""
@@ -158,13 +163,17 @@ class Fun(commands.Cog):
 
 
 	# tictactoe
-	tictactoe_group = app_commands.Group(name='tictactoe', description='...')
+	tictactoe_group = app_commands.Group(
+		name='tictactoe',
+		description='Juega una partida de Tic Tac Toe contra la máquina o contra otra persona'
+	)
 
 
 	#tictactoe against-machine
 	@tictactoe_group.command(name='against-machine')
 	@app_commands.checks.cooldown(1, 15)
 	async def against_machine(self, interaction: discord.Interaction):
+		"""Juega una partida de Tic Tac Toe contra la máquina"""
 		game = ttt.TicTacToe(interaction, interaction.user, interaction.guild.me)
 		await interaction.response.send_message(game.get_content(), view=game)
 
@@ -174,7 +183,8 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 15)
 	@app_commands.rename(opponent='oponente')
 	async def against_player(self, interaction: discord.Interaction, opponent:discord.Member=None):
-		"""
+		"""Juega una partida de Tic tac Toe contra otra persona
+
 		opponent: discord.Member
 			Usuario contra el que quieres jugar
 		"""
@@ -218,7 +228,8 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 2.5)
 	@app_commands.rename(question='pregunta')
 	async def _8ball(self, interaction, question:str):
-		"""
+		"""Pregúntale algo al bot para que te dé su opinión
+
 		question: str
 			Pregunta que el bot responderá
 		"""

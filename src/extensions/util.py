@@ -56,6 +56,7 @@ class Util(commands.Cog):
 		option9: str=None,
 		option10: str=None,
 	):
+		"""Devuelve una de las opciones dadas"""
 		embed = discord.Embed(
 			title='Mi elección es...',
 			description=choice(list(filter(lambda x: x is not None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))),
@@ -95,7 +96,8 @@ class Util(commands.Cog):
 		option9: str=None,
 		option10: str=None,
 	):
-		"""
+		"""Crea encuestas de manera sencilla
+
 		description: app_commands.Range[str, 1, 256]
 			Una pregunta, tema o afirmación que describa la encuesta
 		"""
@@ -116,6 +118,7 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 3)
 	async def avatar(self, interaction: discord.Interaction, user: discord.User | discord.Member = None):
+		"""Obtiene tú foto de perfil o la de otro usuario"""
 		if user is None:
 			user = interaction.user
 		await interaction.response.send_message(embed=discord.Embed(
@@ -128,14 +131,15 @@ class Util(commands.Cog):
 	@app_commands.guild_only()
 	class TagGroup(app_commands.Group):
 		pass
-	tag_group = TagGroup(name='tag', description='...')
+	tag_group = TagGroup(name='tag', description='Añade o usa tags tuyos o de otros usuarios')
 
 
 	# tag show
 	@tag_group.command(name='show')
 	@app_commands.rename(tag_name='tag')
 	async def tag_show(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
-		"""
+		"""Muestra el contenido de un tag
+
 		tag_name: discord.Range[str, 1, 32]
 			Nombre de un tag
 		"""
@@ -151,6 +155,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 10, key=lambda i: i.guild_id)
 	@tag_group.command(name='toggle')
 	async def tag_toggle(self, interaction: discord.Interaction):
+		"""Activa los tags en el servidor"""
 		if interaction.channel.permissions_for(interaction.user).manage_guild:
 			db.cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
 			check = db.cursor.fetchall()
@@ -205,7 +210,8 @@ class Util(commands.Cog):
 		tag_content: str,
 		nsfw: bool = False
 	):
-		"""
+		"""Crea un tag
+
 		tag_name: app_commands.Range[str, 1, 32]
 			Nombre del tag que quieres crear
 		tag_content: str
@@ -229,6 +235,7 @@ class Util(commands.Cog):
 		tag_name: app_commands.Range[str, 1, 32],
 		user: discord.Member
 	):
+		"""Regala un tag a otro usuario"""
 		await tags.tag_check(interaction)
 		if user == interaction.user:
 			await interaction.response.send_message(core.Warning.error('No puedes regalarte un tag a ti mismo'), ephemeral=True)
@@ -264,6 +271,7 @@ class Util(commands.Cog):
 		old_name: app_commands.Range[str, 1, 32],
 		new_name: app_commands.Range[str, 1, 32]
 	):
+		"""Cambia el nombre de uno de tus tags"""
 		await tags.tag_check(interaction)
 		tags.check_tag_name(interaction, new_name)
 		tag = tags.get_tag(interaction, old_name)
@@ -290,7 +298,8 @@ class Util(commands.Cog):
 		*,
 		nsfw: bool = False
 	):
-		"""
+		"""Edita el contenido de uno de tus tags
+
 		tag_name: app_commands.Range[str, 1, 32]
 			Nombre del tag que quieres editar
 		tag_content: str
@@ -315,6 +324,7 @@ class Util(commands.Cog):
 	@tag_group.command(name='delete')
 	@app_commands.rename(tag_name='tag')
 	async def tag_delete(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
+		"""Elimina uno de tus tags"""
 		await tags.tag_check(interaction)
 		tag = tags.get_tag(interaction, tag_name)
 		if interaction.user.id == tag.user.id:
@@ -348,6 +358,7 @@ class Util(commands.Cog):
 		guild: int = None,
 		silent: bool = False
 	):
+		"""Reservado"""
 		guild = interaction.guild if guild is None else self.bot.get_guild(guild)
 		tag = tags.get_tag(interaction, tag_name, guild)
 		tag.delete()
@@ -359,6 +370,7 @@ class Util(commands.Cog):
 	@tag_group.command(name='owner')
 	@app_commands.rename(tag_name='tag')
 	async def tag_owner(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
+		"""Muestra el propietario de un tag"""
 		await tags.tag_check(interaction)
 		tag = tags.get_tag(interaction, tag_name)
 		await interaction.response.send_message(core.Warning.info(f'El dueño del tag **{await commands.clean_content().convert(interaction, tag.name)}** es `{await commands.clean_content().convert(interaction, str(tag.user))}`'))
@@ -369,6 +381,7 @@ class Util(commands.Cog):
 	@tag_group.command(name='list')
 	@app_commands.rename(user='usuario')
 	async def tag_list(self, interaction: discord.Interaction, user: discord.Member = None):
+		"""Muestra una lista de tus tags o de los tags de otro usuario"""
 		await tags.tag_check(interaction)
 		if user is None:
 			user = interaction.user
@@ -385,6 +398,7 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 20)
 	@tag_group.command(name='serverlist')
 	async def tag_serverlist(self, interaction: discord.Interaction):
+		"""Muestra los tags de todo el servidor"""
 		await tags.tag_check(interaction)
 		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
@@ -400,7 +414,8 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(mention='mencionar')
 	async def someone(self, interaction: discord.Interaction, mention: bool = False):
-		"""
+		"""Menciona a alguien aleatorio del servidor
+
 		mention: bool = False
 			Determina si mencionar o no al usuario. Requiere permiso para hacer @everyone
 		"""
@@ -412,7 +427,7 @@ class Util(commands.Cog):
 
 	class DefineGroup(app_commands.Group):
 		pass
-	define_group = DefineGroup(name='define', description='...')
+	define_group = DefineGroup(name='define', description='Busca el significado de una palabra en Wiktionary')
 
 
 	async def handle_define(self, interaction: discord.Interaction, query: str, lang: str):
@@ -503,7 +518,7 @@ class Util(commands.Cog):
 	@define_group.command(name='spanish')
 	@app_commands.rename(query='búsqueda')
 	async def define_spanish(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
-		"""
+		"""Busca el significado de una palabra en español en Wiktionary
 		query: str
 			Palabra en español
 		"""
@@ -515,7 +530,8 @@ class Util(commands.Cog):
 	@define_group.command(name='english')
 	@app_commands.rename(query='búsqueda')
 	async def define_english(self, interaction: discord.Interaction, query: app_commands.Range[str, 1, 256]):
-		"""
+		"""Busca el significado de una palabra en inglés en Wiktionary
+
 		query: str
 			Palabra en inglés
 		"""
@@ -525,7 +541,7 @@ class Util(commands.Cog):
 	# binary
 	class BinaryGroup(app_commands.Group):
 		pass
-	binary_group = BinaryGroup(name='binary', description='...')
+	binary_group = BinaryGroup(name='binary', description='Codifica o decodifica código binario')
 
 
 	# binary encode
@@ -533,7 +549,8 @@ class Util(commands.Cog):
 	@binary_group.command(name='encode')
 	@app_commands.rename(text='texto')
 	async def binary_encode(self, interaction: discord.Interaction, text: str):
-		"""
+		"""Convierte texto a código binario
+
 		text: str
 			El texto que será codificado
 		"""
@@ -546,7 +563,8 @@ class Util(commands.Cog):
 	@binary_group.command(name='decode')
 	@app_commands.rename(text='texto')
 	async def binary_decode(self, interaction: discord.Interaction, text: str):
-		"""
+		"""Convierte código binario a texto
+
 		text: str
 			El texto que será decodificado
 		"""
@@ -563,7 +581,7 @@ class Util(commands.Cog):
 	# morse
 	class MorseGroup(app_commands.Group):
 		pass
-	morse_group = MorseGroup(name='morse', description='...')
+	morse_group = MorseGroup(name='morse', description='Codifica o decodifica código morse')
 
 
 	# morse encode
@@ -571,7 +589,8 @@ class Util(commands.Cog):
 	@morse_group.command(name='encode')
 	@app_commands.rename(text='texto')
 	async def morse_encode(self, interaction: discord.Interaction, text: str):
-		"""
+		"""Convierte texto a código morse
+
 		text: str
 			El texto que será codificado
 		"""
@@ -588,7 +607,8 @@ class Util(commands.Cog):
 	@morse_group.command(name='decode')
 	@app_commands.rename(text='texto')
 	async def morse_decode(self, interaction: discord.Interaction, text: str):
-		"""
+		"""Convierte código morse a texto
+
 		text: str
 			El texto que será decodificado
 		"""
@@ -608,7 +628,7 @@ class Util(commands.Cog):
 	# percentencoding
 	class PercentGroup(app_commands.Group):
 		pass
-	percent_group = PercentGroup(name='percent-encoding', description='...')
+	percent_group = PercentGroup(name='percent-encoding', description='Codifica o decodifica código porcentaje o código URL')
 
 
 	# percentencoding encode
@@ -616,7 +636,8 @@ class Util(commands.Cog):
 	@percent_group.command(name='encode')
 	@app_commands.rename(text='texto')
 	async def percentencoding_encode(self, interaction: discord.Interaction, text: str):
-		"""
+		"""Convierte texto a código porcentaje o código URL
+
 		text: str
 			El texto que será codificado
 		"""
@@ -628,7 +649,8 @@ class Util(commands.Cog):
 	@percent_group.command(name='decode')
 	@app_commands.rename(text='texto')
 	async def percentencoding_decode(self, interaction: discord.Interaction, text: str):
-		"""
+		"""Convierte código porcentaje o código URL a texto
+
 		text: str
 			El texto que será decodificado
 		"""
@@ -641,6 +663,7 @@ class Util(commands.Cog):
 	@app_commands.rename(user='usuario')
 	@commands.guild_only()
 	async def userinfo(self, interaction: discord.Interaction, user: discord.User = None):
+		"""Obtiene información de un usuario. Habrá más información si el usuario se encuentra en el servidor"""
 		if user is None:
 			user = interaction.user
 		data_dict = {
@@ -688,6 +711,7 @@ class Util(commands.Cog):
 	@app_commands.rename(role='rol')
 	@commands.guild_only()
 	async def roleinfo(self, interaction: discord.Interaction, role: discord.Role):
+		"""Obtiene información de un rol"""
 		data_dict = {
 			'Nombre': role.name,
 			'Mención': role.mention,
@@ -711,6 +735,7 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(channel='canal')
 	async def channelinfo(self, interaction: discord.Interaction, channel: app_commands.AppCommandChannel = None):
+		"""Obtiene la información de un canal de cualquier tipo o una categoría"""
 		if channel is None:
 			channel = interaction.channel
 		if isinstance(channel, app_commands.AppCommandChannel):
@@ -807,6 +832,7 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@commands.guild_only()
 	async def serverinfo(self, interaction: discord.Interaction):
+		"""Obtiene la información de este servidor"""
 		guild = interaction.guild
 		data_dict = {
 			'Nombre': guild.name,
@@ -855,7 +881,8 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(to_count='contar', text='texto')
 	async def count(self, interaction: discord.Interaction, text: str, to_count: str = None):
-		"""
+		"""Cuenta cuantas veces hay una letra o palabra dentro de otro texto
+
 		text: str
 			El texto en el que buscar palabras o caracteres
 		to_count: str = None
@@ -889,7 +916,8 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(start='mínimo', stop='máximo', step='salto')
 	async def randomnumber(self, interaction: discord.Interaction, start: int, stop: int, step: app_commands.Range[int, 1, 1000000000000000] = 1):
-		"""
+		"""Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos
+
 		start: int
 			Mínimo valor posible, se incluye en el rango
 		stop: int

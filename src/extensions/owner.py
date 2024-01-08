@@ -19,6 +19,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def die(self, interaction):
+		"""Apaga el bot"""
 		await interaction.response.send_message(u'\U0001f480', ephemeral=True)
 		print('\nBot apagado')
 		try:
@@ -31,6 +32,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def getmsg(self, interaction, id:str):
+		"""Obtiene los datos de un mensaje"""
 		msg = await interaction.channel.fetch_message(id)
 		await interaction.response.send_message(f'```py\n{msg}\n```', ephemeral=True)
 
@@ -39,6 +41,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def eval(self, interaction, ephemeral:bool=False, silent:bool=False):
+		"""Ejecuta código"""
 		class CodeModal(discord.ui.Modal, title='Eval'):
 			answer = discord.ui.TextInput(label='Código', style=discord.TextStyle.paragraph)
 
@@ -103,6 +106,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def reload(self, interaction, extension:str, sync:bool=False):
+		"""Recarga un módulo"""
 		await interaction.response.defer(ephemeral=True, thinking=True)
 		await self.bot.reload_extension('extensions.' + extension)
 		core.config_commands(self.bot)
@@ -116,6 +120,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def unload(self, interaction, extension:str, sync:bool=False):
+		"""Descarga un módulo"""
 		await interaction.response.defer(ephemeral=True, thinking=True)
 		await self.bot.unload_extension('extensions.' + extension)
 		core.config_commands(self.bot)
@@ -129,6 +134,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def load(self, interaction, extension:str, sync:bool=False):
+		"""Carga un módulo"""
 		await interaction.response.defer(ephemeral=True, thinking=True)
 		await self.bot.load_extension('extensions.' + extension)
 		core.config_commands(self.bot)
@@ -142,6 +148,7 @@ class Owner(commands.Cog):
 	@app_commands.command()
 	@core.owner_only()
 	async def blacklist(self, interaction, user:discord.User):
+		"""Mete o saca a un usuario de la blacklist"""
 		if core.check_blacklist(interaction, user, False):
 			db.cursor.execute(f"INSERT INTO BLACKLIST VALUES({user.id})")
 			await interaction.response.send_message(u'\U00002935', ephemeral=True)

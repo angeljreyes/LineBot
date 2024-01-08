@@ -19,7 +19,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(5, 5.0)
 	@app_commands.rename(text='texto', use_alts='usar-alts', ephemeral='privado')
 	async def emojitext(self, interaction, text:str, use_alts:bool=False, ephemeral:bool=False):
-		"""
+		"""Devuelve el texto transformado en emojis
+
 		text: str
 			Texto a convertir en emojis
 		use_alts: bool
@@ -64,7 +65,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(5, 5.0)
 	@app_commands.rename(replacing='reemplazar', replacement='por', text='en', count='límite', ephemeral='privado')
 	async def replace(self, interaction, replacing:str, replacement:str, text:str, count:int=-1, ephemeral:bool=False):
-		"""
+		"""Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro
+
 		replacing: str
 			Lo que se va a reemplazar en el texto
 		replacement: str
@@ -92,7 +94,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 5.0)
 	@app_commands.rename(text='text', spaces='espacios', ephemeral='privado')
 	async def spacedtext(self, interaction, text:str, spaces:int=1, ephemeral:bool=False):
-		"""
+		"""Devuelve el texto enviado con cada letra espaciada el número de veces indicado
+
 		text: str
 			Texto al que se le agregarán espacios
 		spaces: int
@@ -115,7 +118,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(3, 5.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def vaporwave(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""Devuelve el texto en vaporwave
+
 		text: str
 			Texto a convertir a vaporwave
 		ephemeral: bool
@@ -139,7 +143,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def sarcastic(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""ConVIeRtE el TEXtO a SarcAStiCO
+
 		text: str
 			Texto a convertir a sArcÁStICo
 		ephemeral: bool
@@ -153,7 +158,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def uppercase(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""Convierte un texto a mayúsculas
+
 		text: str
 			Texto a convertir a MAYÚSCULAS
 		ephemeral: bool
@@ -167,7 +173,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def lowercase(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""Convierte un texto a minúsculas
+
 		text: str
 			Texto a convertir a minúsculas
 		ephemeral: bool
@@ -181,7 +188,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def swapcase(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""Intercambia las minúsculas y las mayúsculas de un texto
+
 		text: str
 			Texto a intercambiar minúsculas y mayúsculas
 		ephemeral: bool
@@ -195,7 +203,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def capitalize(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""Convierte la primera letra de cada palabra a mayúsculas
+
 		text: str
 			Texto a convertir a Capitalizar
 		ephemeral: bool
@@ -209,7 +218,8 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 2.0)
 	@app_commands.rename(text='texto', ephemeral='privado')
 	async def reverse(self, interaction, text:str, ephemeral:bool=False):
-		"""
+		"""Revierte un texto
+
 		text: str
 			Texto a convertir a invertir
 		ephemeral: bool

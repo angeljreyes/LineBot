@@ -23,6 +23,7 @@ class About(commands.Cog):
 	# ping
 	@app_commands.command(name='ping')
 	async def _ping(self, interaction: discord.Interaction):
+		"""Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando"""
 		content = core.Warning.info('Pong!')[:-1]
 		counter_start = perf_counter()
 		await interaction.response.send_message(content)
@@ -34,6 +35,7 @@ class About(commands.Cog):
 	# links
 	@app_commands.command()
 	async def links(self, interaction: discord.Interaction):
+		"""Obtén los links oficiales del bot"""
 		# emb = discord.Embed(title='Links', colour=db.default_color(interaction))
 		# for link in core.links:
 		# 	emb.add_field(name=link, value=f'[Aquí]({core.links[link]})')
@@ -49,7 +51,8 @@ class About(commands.Cog):
 	@app_commands.checks.cooldown(1, 3.0)
 	@app_commands.rename(version='versión')
 	async def changelog(self, interaction: discord.Interaction, version: str = core.bot_version):
-		"""
+		"""Revisa el registro de cambios de la última versión del bot o de una especificada
+
 		version: str
 			Una versión de Line Bot
 		"""
@@ -84,7 +87,8 @@ class About(commands.Cog):
 	@app_commands.checks.cooldown(1, 3)
 	@app_commands.rename(value='valor')
 	async def color(self, interaction: discord.Interaction, value: str = ''):
-		"""
+		"""Cambia el color de los embeds del bot
+
 		value: str
 			Elige un color de la lista o escribe un #hex o rgb(r, g ,b)
 		"""
@@ -125,6 +129,7 @@ class About(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5.0)
 	async def stats(self, interaction):
+		"""Muestra información sobre el bot"""
 		embed = discord.Embed(title='Información de Line Bot', colour=db.default_color(interaction))
 		embed.add_field(name='Sistema operativo', value=platform(aliased=True, terse=True))
 		embed.add_field(name='\u200b', value='\u200b')
@@ -153,7 +158,8 @@ class About(commands.Cog):
 	@app_commands.checks.cooldown(1, 10.0)
 	@app_commands.rename(command='comando')
 	async def commandstats(self, interaction, command: str = None):
-		"""
+		"""Muestra cuáles son los comandos más usados y cuántas veces se han
+
 		command: str
 			Un comando del bot
 		"""

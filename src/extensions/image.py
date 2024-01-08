@@ -25,7 +25,8 @@ class Image(commands.Cog):
 		top: app_commands.Range[str, 1, 45],
 		bottom: app_commands.Range[str, 1, 40]
 	):
-		"""
+		"""Google "quizás quisiste decir"
+
 		top: app_commands.Range[str, 1, 45]
 			Texto superior
 		bottom: app_commands.Range[str, 1, 40]
@@ -44,7 +45,8 @@ class Image(commands.Cog):
 		top: app_commands.Range[str, 1, 250],
 		bottom: app_commands.Range[str, 1, 250]
 	):
-		"""
+		"""Haz un meme con la plantilla de drake
+
 		top: app_commands.Range[str, 1, 250]
 			Texto superior
 		bottom: app_commands.Range[str, 1, 250]
@@ -62,6 +64,7 @@ class Image(commands.Cog):
 		interaction: discord.Interaction,
 		text: app_commands.Range[str, 1, 500]
 	):
+		"""Tom llamando"""
 		await interaction.response.send_message(await self.api.calling(text))
 
 
@@ -74,6 +77,7 @@ class Image(commands.Cog):
 		interaction: discord.Interaction,
 		text: app_commands.Range[str, 1, 500]
 	):
+		"""Texto con fuente de Supreme"""
 		await interaction.response.send_message(await self.api.supreme(text))
 
 
@@ -86,6 +90,7 @@ class Image(commands.Cog):
 		interaction: discord.Interaction,
 		text: app_commands.Range[str, 1, 250]
 	):
+		"""Cursed captcha"""
 		# I had to do it this way because Client.captcha() is broken
 		url = f'https://api.alexflipnote.dev/captcha?text={quote(text)}'
 		await interaction.response.send_message(url)
@@ -100,6 +105,7 @@ class Image(commands.Cog):
 		interaction: discord.Interaction,
 		text: app_commands.Range[str, 1, 500]
 	):
+		"""facts"""
 		await interaction.response.send_message(await self.api.facts(text))
 
 
@@ -107,6 +113,7 @@ class Image(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5)
 	async def birb(self, interaction: discord.Interaction):
+		"""Random birb"""
 		await interaction.response.send_message(await self.api.birb())
 
 
@@ -114,6 +121,7 @@ class Image(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5)
 	async def dog(self, interaction: discord.Interaction):
+		"""Imagen random de un perro"""
 		await interaction.response.send_message(await self.api.dog())
 
 
@@ -121,6 +129,7 @@ class Image(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5)
 	async def cat(self, interaction: discord.Interaction):
+		"""Imagen random de un gato"""
 		await interaction.response.send_message(await self.api.cat())
 
 
@@ -128,6 +137,7 @@ class Image(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5)
 	async def sadcat(self, interaction: discord.Interaction):
+		"""Imagen random de un gato triste"""
 		await interaction.response.send_message(await self.api.sadcat())
 
 
@@ -139,7 +149,8 @@ class Image(commands.Cog):
 		interaction: discord.Interaction,
 		user: app_commands.Range[str, 1, 16]
 	):
-		"""
+		"""Busca una skin de Minecraft
+
 		user: app_commands.Range[str, 1, 16]
 			Nombre de usuario de Minecraft
 		"""

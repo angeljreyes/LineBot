@@ -44,92 +44,7 @@ next_emoji = '<:next_button:1023675221489750036>'
 last_emoji = '<:last_button:1023677003733422130>'
 search_emoji = '<:search_button:1023680974879465503>'
 
-
 eval_returned_value = None
-
-
-descs = {
-	'ping': 'Muestra en milisegundos lo que tarda el bot en enviar un mensaje desde que mandaste el comando',
-	'soy': 'Descubre quién eres',
-	'say': 'Haz que el bot diga algo',
-	'emojitext': 'Devuelve el texto transformado en emojis',
-	'replace': 'Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro',
-	'spacedtext': 'Devuelve el texto enviado con cada letra espaciada el número de veces indicado',
-	'vaporwave': 'Devuelve el texto en vaporwave',
-	'choose': 'Devuelve una de las opciones dadas',
-	'poll': 'Crea encuestas de manera sencilla',
-	'avatar': 'Obtiene tú foto de perfil o la de otro usuario',
-	'sarcastic': 'ConVIeRtE el TEXtO a SarcAStiCO',
-	'iq': 'Calcula tu IQ o el de otra persona',
-	'tag': 'Añade o usa tags tuyos o de otros usuarios',
-	'tag show': 'Muestra el contenido de un tag',
-	'tag toggle': 'Activa los tags en el servidor',
-	'tag add': 'Crea un tag',
-	'tag gift': 'Regala un tag a otro usuario',
-	'tag rename': 'Cambia el nombre de uno de tus tags',
-	'tag edit': 'Edita el contenido de uno de tus tags',
-	'tag delete': 'Elimina uno de tus tags',
-	'tag forcedelete': 'Reservado',
-	'tag owner': 'Muestra el propietario de un tag',
-	'tag list': 'Muestra una lista de tus tags o de los tags de otro usuario',
-	'tag serverlist': 'Muestra los tags de todo el servidor',
-	'links': 'Obtén los links oficiales del bot',
-	'someone': 'Menciona a alguien aleatorio del servidor',
-	'dadjoke': 'Envia chistes que dan menos risa que los de Siri',
-	'nothing': 'Literalmente no hace nada',
-	'gay': 'Detecta como de homosexual eres',
-	'changelog': 'Revisa el registro de cambios de la última versión del bot o de una especificada',
-	'color': 'Cambia el color de los embeds del bot',
-	'define': 'Busca el significado de una palabra en Wiktionary',
-	'define spanish': 'Busca el significado de una palabra en español en Wiktionary',
-	'define english': 'Busca el significado de una palabra en inglés en Wiktionary',
-	'die': 'Apaga el bot',
-	'getmsg': 'Obtiene los datos de un mensaje',
-	'eval': 'Ejecuta código',
-	'reload': 'Recarga un módulo',
-	'unload': 'Descarga un módulo',
-	'load': 'Carga un módulo',
-	'binary': 'Codifica o decodifica código binario',
-	'binary encode': 'Convierte texto a código binario',
-	'binary decode': 'Convierte código binario a texto',
-	'morse': 'Codifica o decodifica código morse',
-	'morse encode': 'Convierte texto a código morse',
-	'morse decode': 'Convierte código morse a texto',
-	'percent-encoding': 'Codifica o decodifica código porcentaje o código URL',
-	'percent-encoding encode': 'Convierte texto a código porcentaje o código URL',
-	'percent-encoding decode': 'Convierte código porcentaje o código URL a texto',
-	'hackban': 'Banea a un usuario sin necesidad de que esté en el server',
-	'userinfo': 'Obtiene información de un usuario. Habrá más información si el usuario se encuentra en el servidor',
-	'roleinfo': 'Obtiene información de un rol',
-	'channelinfo': 'Obtiene la información de un canal de cualquier tipo o una categoría',
-	'serverinfo': 'Obtiene la información de este servidor',
-	'blacklist': 'Mete o saca a un usuario de la blacklist',
-	'uppercase': 'Convierte un texto a mayúsculas',
-	'lowercase': 'Convierte un texto a minúsculas',
-	'swapcase': 'Intercambia las minúsculas y las mayúsculas de un texto',
-	'capitalize': 'Convierte la primera letra de cada palabra a mayúsculas',
-	'count': 'Cuenta cuantas veces hay una letra o palabra dentro de otro texto',
-	'stats': 'Muestra información sobre el bot',
-	'tictactoe': 'Juega una partida de Tic Tac Toe contra la máquina o contra otra persona',
-	'tictactoe against-machine': 'Juega una partida de Tic Tac Toe contra la máquina',
-	'tictactoe against-player': 'Juega una partida de Tic tac Toe contra otra persona',
-	'reverse': 'Revierte un texto',
-	'randomnumber': 'Obtiene un número aleatorio entre el intervalo especificado. Puedes usar número negativos',
-	'8ball': 'Preguntale algo el bot para que te responda',
-	'didyoumean': 'Google "quizás quisiste decir"',
-	'drake': 'Haz un meme con la plantilla de drake',
-	'birb': 'Random birb',
-	'dog': 'Imagen random de un perro',
-	'cat': 'Imagen random de un gato',
-	'sadcat': 'Imagen random de un gato triste',
-	'calling': 'Tom llamando',
-	'captcha': 'Cursed captcha',
-	'facts': 'facts',
-	'supreme': 'Texto con fuente de Supreme',
-	'commandstats': 'Muestra cuáles son los comandos más usados y cuántas veces se han',
-	'r34': 'Busca en rule34.xxx. Deja vacío para buscar imagenes aleatorias',
-	'mcskin': 'Busca una skin de Minecraft'
-}
 
 colors = {
 	'random':discord.Colour.default(),
@@ -220,14 +135,11 @@ def owner_only():
 
 def config_commands(bot: commands.Bot) -> None:
 	for command in bot.tree.get_commands(guild=bot_guilds[0]):
-		if command.qualified_name in descs:
-			command.description = descs[command.qualified_name]
-			if isinstance(command, app_commands.Group):
-				for subcommand in command.commands:
-					subcommand.description = descs[subcommand.qualified_name]
-					subcommand.add_check(check_blacklist)
-			else:
-				command.add_check(check_blacklist)
+		if isinstance(command, app_commands.Group):
+			for subcommand in command.commands:
+				subcommand.add_check(check_blacklist)
+		else:
+			command.add_check(check_blacklist)
 
 
 def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True) -> str:
