@@ -128,5 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Line Database
+# Line Database and settings
 line.db
+bot_conf.toml
