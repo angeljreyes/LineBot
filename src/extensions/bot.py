@@ -37,9 +37,14 @@ class About(commands.Cog):
 	async def links(self, interaction: discord.Interaction):
 		"""Obtén los links oficiales del bot"""
 		view = discord.ui.View()
-		for link in core.links:
-			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
-		await interaction.response.send_message(view=view)
+		for label, link in core.links.items():
+			if link:
+				view.add_item(discord.ui.Button(label=label, url=link))
+			
+		if view.children:
+			await interaction.response.send_message(view=view)
+		else:
+			await interaction.response.send_message('No hay links :(')
 
 
 	#changelog
@@ -140,10 +145,13 @@ class About(commands.Cog):
 		embed.add_field(name='Cantidad de usuarios', value=len(self.bot.users))
 		embed.add_field(name='Uptime', value=core.fix_delta(datetime.utcnow() - core.bot_ready_at))
 		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='Dueño del bot', value=str(self.bot.get_user(self.bot.owner_id)))
+		embed.add_field(name='Dueño del bot', value=str(self.bot.application.owner))
+
 		view = discord.ui.View()
-		for link in core.links:
-			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
+		for label, link in core.links.items():
+			if link:
+				view.add_item(discord.ui.Button(label=label, url=link))
+
 		await interaction.response.send_message(embed=embed, view=view)
 
 

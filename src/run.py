@@ -9,7 +9,6 @@ from discord.ext import commands
 
 import core
 import tictactoe as ttt
-import db
 
 
 # Create the bot client
@@ -76,15 +75,18 @@ async def main() -> None:
 		ctx = args[0]
 		log = f'Ha ocurrido un error: "{ctx.message.content}" {repr(ctx.message)}'
 		core.logger.error(f'{log}\n{format_exc()}')
-		await bot.get_channel(core.error_logging_channel).send(f'<@{bot.owner_id}>', delete_after=30)
+		if core.error_logging_channel:
+			await bot.get_channel(core.error_logging_channel).send(bot.application.owner.mention, delete_after=30)
 
 
 	# Start the bot
 	async with bot:
-		db.cursor.execute(f"SELECT VALUE FROM RESOURCES WHERE KEY='{core.bot_mode}_token'")
-		token = db.cursor.fetchall()[0][0]
-		db.conn.commit()
+		token = core.conf['token'][core.bot_mode]
+		if not token:
+			print('No token for the selected mode was found in bot_conf.toml')
+			exit(1)
 		await bot.start(token)
-		del token
+		del core.conf['token'] # Why not just delete the token from memory...
+
 
 asyncio.run(main())
