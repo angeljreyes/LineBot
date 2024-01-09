@@ -131,3 +131,6 @@ dmypy.json
 # Line Database and settings
 line.db
 bot_conf.toml
+
+# Logs
+logs/
