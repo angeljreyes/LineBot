@@ -207,7 +207,7 @@ class Util(commands.Cog):
 	@app_commands.rename(tag_name='nombre', tag_content='contenido')
 	async def tag_add(
 		self,
-		interaction:discord.Interaction, 
+		interaction: discord.Interaction, 
 		tag_name: app_commands.Range[str, 1, 32], 
 		tag_content: str,
 		nsfw: bool = False
@@ -233,7 +233,9 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 10)
 	@tag_group.command(name='gift')
 	@app_commands.rename(tag_name='tag', user='usuario')
-	async def tag_gift(self, interaction: discord.Interaction, 
+	async def tag_gift(
+		self,
+		interaction: discord.Interaction, 
 		tag_name: app_commands.Range[str, 1, 32],
 		user: discord.Member
 	):
@@ -269,7 +271,9 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@tag_group.command(name='rename')
 	@app_commands.rename(old_name='tag', new_name='nuevo')
-	async def tag_rename(self, interaction: discord.Interaction,
+	async def tag_rename(
+		self,
+		interaction: discord.Interaction,
 		old_name: app_commands.Range[str, 1, 32],
 		new_name: app_commands.Range[str, 1, 32]
 	):
