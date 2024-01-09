@@ -159,7 +159,7 @@ class Util(commands.Cog):
 	async def tag_toggle(self, interaction: discord.Interaction):
 		"""Activa los tags en el servidor"""
 		if interaction.channel.permissions_for(interaction.user).manage_guild:
-			db.cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
+			db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
 			check = db.cursor.fetchall()
 			if check == []:
 				confirmation = core.Confirm(interaction, interaction.user)
@@ -172,7 +172,7 @@ class Util(commands.Cog):
 				confirmation.clear_items()
 
 				if confirmation.value:
-					db.cursor.execute(f"INSERT INTO TAGSENABLED VALUES({interaction.guild_id})")
+					db.cursor.execute("INSERT INTO tagsenabled VALUES(?)", (interaction.guild_id,))
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se activaron los tags en este servidor'), view=confirmation)
 
 				else:
@@ -189,7 +189,7 @@ class Util(commands.Cog):
 				confirmation.clear_items()
 
 				if confirmation.value:
-					db.cursor.execute(f"DELETE FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
+					db.cursor.execute("DELETE FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se desactivaron los tags en este servidor'), view=confirmation)
 
 				else:
@@ -313,7 +313,7 @@ class Util(commands.Cog):
 		if interaction.user.id == tag.user.id:
 			if interaction.channel.nsfw:
 				nsfw = True
-			tag.edit(tag_content, False, nsfw)
+			tag.edit(tag_content, nsfw)
 			await interaction.response.send_message(core.Warning.success(f'Se editó el tag **{await commands.clean_content().convert(interaction, tag_name)}**'))
 		
 		else:

@@ -55,7 +55,7 @@ class About(commands.Cog):
 		"""
 		if version == 'list':
 			# Selects released versions if the bot is stable and all versions if it's dev
-			sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[core.bot_mode]
+			sql = {'stable':"SELECT version FROM changelog WHERE hidden=0", 'dev':"SELECT version FROM changelog"}[core.bot_mode]
 			db.cursor.execute(sql)
 			versions = db.cursor.fetchall()
 			db.conn.commit()
@@ -67,7 +67,7 @@ class About(commands.Cog):
 			await interaction.response.send_message(embed=embed)
 
 		else:
-			db.cursor.execute(f"SELECT * FROM CHANGELOG WHERE VERSION=?", (version,))
+			db.cursor.execute("SELECT * FROM changelog WHERE version=?", (version,))
 			try:
 				summary = db.cursor.fetchall()[0]
 			except IndexError:
@@ -95,7 +95,7 @@ class About(commands.Cog):
 			return
 
 		elif value == 'default':
-			db.cursor.execute(f"DELETE FROM COLORS WHERE ID={interaction.user.id}")
+			db.cursor.execute("DELETE FROM colors WHERE id=?", (interaction.user.id,))
 			await interaction.response.send_message(embed=discord.Embed(description=core.Warning.success('El color ha sido reestablecido'), colour=db.default_color(interaction)), ephemeral=True)
 
 		else:
@@ -108,13 +108,13 @@ class About(commands.Cog):
 					await interaction.response.send_message(core.Warning.error(f'Selecciona un color válido, escribe un código hex `#00ffaa`, rgb `rgb(123, 123, 123)` o selecciona "Color por defecto" para reestablecer el color al del rol del bot'), ephemeral=True)
 					return
 
-			db.cursor.execute(f"SELECT ID FROM COLORS WHERE ID={interaction.user.id}")
+			db.cursor.execute("SELECT id FROM colors WHERE id=?", (interaction.user.id,))
 			check = db.cursor.fetchall()
 			# Check if the user is registered in the database or not
 			if check == []:
-				db.cursor.execute(f"INSERT INTO COLORS VALUES({interaction.user.id}, ?)", (new_value,))
+				db.cursor.execute("INSERT INTO colors VALUES(?, ?)", (interaction.user.id, new_value))
 			else:
-				db.cursor.execute(f"UPDATE COLORS SET VALUE=? WHERE ID={interaction.user.id}", (new_value,))
+				db.cursor.execute("UPDATE colors SET value=? WHERE id=?", (new_value, interaction.user.id))
 			embed = discord.Embed(description=core.Warning.success(f'El color ha sido cambiado a **{value}**'), colour=db.default_color(interaction))
 			await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -162,9 +162,14 @@ class About(commands.Cog):
 		"""
 		if command is None:
 			# Send all the commands and their uses
-			db.cursor.execute("SELECT * FROM COMMANDSTATS")
+			db.cursor.execute("SELECT * FROM commandstats ORDER BY uses DESC")
 			stats = db.cursor.fetchall()
-			stats.sort(key=lambda x: x[1], reverse=True)
+			if not stats:
+				await interaction.response.send_message(
+					core.Warning.info('No se encontraron comandos')
+				)
+				return
+
 			fstats = list(map(lambda x: f'`{x[0]}` - {x[1]}', stats))
 			pages = pagination.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', fstats)
 			paginator = pagination.Paginator(interaction, pages=pages, entries=len(fstats))
@@ -172,7 +177,7 @@ class About(commands.Cog):
 
 		else:
 			# Checks if the command exists
-			db.cursor.execute("SELECT * FROM COMMANDSTATS WHERE COMMAND=?", (command,))
+			db.cursor.execute("SELECT * FROM commandstats WHERE command=?", (command,))
 			stats = db.cursor.fetchall()
 			if stats == []:
 				await interaction.response.send_message(core.Warning.error('El comando que escribiste no existe o no se ha usado'), ephemeral=True)

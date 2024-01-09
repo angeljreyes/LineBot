@@ -5,8 +5,8 @@ import db
 import core
 
 
-hidden = 'WHERE HIDDEN=0 ' if core.bot_mode == 'stable' else ''
-sql = f"SELECT VERSION FROM CHANGELOG {hidden}ORDER BY VERSION DESC"
+hidden = "WHERE hidden=0 " if core.bot_mode == 'stable' else ""
+sql = "SELECT version FROM changelog {}ORDER BY version DESC".format(hidden)
 db.cursor.execute(sql)
 db_version_data: list[tuple[str]] = db.cursor.fetchall()
 db.conn.commit()

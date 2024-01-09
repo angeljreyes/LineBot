@@ -8,17 +8,17 @@ import core
 import exceptions
 
 
-conn = connect(f'{Path().resolve().parent}\\data.sqlite3')
+conn = connect('../line.db')
 cursor = conn.cursor()
-cursor.execute("SELECT COMMAND FROM COMMANDSTATS")
 
+cursor.execute("SELECT command FROM commandstats")
 commandstats_commands = [command[0] for command in cursor.fetchall()]
 conn.commit()
 
 
 def default_color(interaction: discord.Interaction) -> int | discord.Color:
 	# Check the color of the user in the database
-	cursor.execute(f"SELECT VALUE FROM COLORS WHERE ID={interaction.user.id}")
+	cursor.execute("SELECT value FROM colors WHERE id=?", (interaction.user.id,))
 	color = cursor.fetchall()
 	if interaction.guild is None and color == []:
 		return discord.Colour.blue()
@@ -36,7 +36,7 @@ def default_color(interaction: discord.Interaction) -> int | discord.Color:
 
 def check_blacklist(interaction: discord.Interaction, user=None, raises=True) -> bool:
 	user = interaction.user if user is None else user
-	cursor.execute(f"SELECT USER FROM BLACKLIST WHERE USER={user.id}")
+	cursor.execute("SELECT user FROM blacklist WHERE user=?", (user.id,))
 	check = cursor.fetchall()
 	conn.commit()
 	if check == []:
