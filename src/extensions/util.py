@@ -356,11 +356,11 @@ class Util(commands.Cog):
 		self,
 		interaction: discord.Interaction,
 		tag_name: app_commands.Range[str, 1, 32],
-		guild: int | None,
+		guild_id: str | None,
 		silent: bool = False
 	):
 		"""Reservado"""
-		guild = interaction.guild if guild is None else self.bot.get_guild(guild)
+		guild = interaction.guild if guild_id is None else self.bot.get_guild(int(guild_id))
 		tag = tags.get_tag(interaction, tag_name, guild)
 		tag.delete()
 		await interaction.response.send_message(core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag_name)}** ha sido eliminado'), ephemeral=silent)
