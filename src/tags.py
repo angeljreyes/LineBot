@@ -2,6 +2,7 @@ import discord
 
 import db
 import exceptions
+from core import Warning
 
 
 class Tag:
