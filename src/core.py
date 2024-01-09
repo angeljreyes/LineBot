@@ -11,7 +11,13 @@ import exceptions
 from db import check_blacklist
 
 
-with open('../bot_conf.toml', 'rb') as f:
+CONF_DIR = '../bot_conf.toml'
+
+if not os.path.isfile(CONF_DIR):
+	print('The configuration file wasn\'t found. Create one by running setup.py')
+	exit(1)
+
+with open(CONF_DIR, 'rb') as f:
 	conf = tomllib.load(f)
 
 # stable / dev

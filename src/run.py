@@ -1,4 +1,5 @@
 import asyncio
+from os.path import isfile
 from traceback import format_exc
 
 from icecream import install
@@ -7,6 +8,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+if not isfile('../line.db'):
+	print('The database wasn\'t found. Create a databse by running setup.py')
+	exit(1)
 import core
 import tictactoe as ttt
 
