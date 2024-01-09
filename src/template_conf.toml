@@ -1,5 +1,8 @@
 dev_mode = false
 guilds = []
+
+# Set this up if you wanne be mentioned on a channel every time
+# an uncaught exception occurs... for some reason
 error_channel_id = 0
 
 [token]
@@ -14,7 +17,8 @@ vote = ""
 [emoji]
 # You can upload the emoji in ./static/emoji
 # to a private server and use them here
-# like this -> "<:name:id>" -> "<hello:123>"
+# like this -> "<:name:id>" -> "<:hello:123>"
+# NOTE: Your bot needs to be on that server
 check = ":white_check_mark:"
 cross = ":x:"
 circle = ":o:"
