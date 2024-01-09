@@ -386,7 +386,7 @@ class Util(commands.Cog):
 		await tags.tag_check(interaction)
 		if user is None:
 			user = interaction.user
-		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user)))
+		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user, raises=True)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tag_list)
 		if len(pages) == 1:
 			paginator = None
@@ -401,7 +401,7 @@ class Util(commands.Cog):
 	async def tag_serverlist(self, interaction: discord.Interaction):
 		"""Muestra los tags de todo el servidor"""
 		await tags.tag_check(interaction)
-		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction)))
+		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction, raises=True)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
 		if len(pages) == 1:
 			paginator = None
