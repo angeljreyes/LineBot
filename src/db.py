@@ -13,7 +13,6 @@ cursor = conn.cursor()
 
 cursor.execute("SELECT command FROM commandstats")
 commandstats_commands = [command[0] for command in cursor.fetchall()]
-conn.commit()
 
 
 def default_color(interaction: discord.Interaction) -> int | discord.Color:
@@ -38,7 +37,6 @@ def check_blacklist(interaction: discord.Interaction, user=None, raises=True) ->
 	user = interaction.user if user is None else user
 	cursor.execute("SELECT user FROM blacklist WHERE user=?", (user.id,))
 	check = cursor.fetchall()
-	conn.commit()
 	if check == []:
 		return True
 	if raises:

@@ -58,7 +58,6 @@ class About(commands.Cog):
 			sql = {'stable':"SELECT version FROM changelog WHERE hidden=0", 'dev':"SELECT version FROM changelog"}[core.bot_mode]
 			db.cursor.execute(sql)
 			versions = db.cursor.fetchall()
-			db.conn.commit()
 			versions.reverse()
 			embed = discord.Embed(title='Changelog', colour=db.default_color(interaction))
 			version_list = ', '.join([f'`{version[0]}`' for version in versions])
@@ -73,7 +72,6 @@ class About(commands.Cog):
 			except IndexError:
 				await interaction.response.send_message(core.Warning.error('Versión inválida'), ephemeral=True)
 				return
-			db.conn.commit()
 			embed = discord.Embed(title=f'Versión {summary[0]} - {summary[1]}', description=summary[2], colour=db.default_color(interaction))
 			await interaction.response.send_message(embed=embed)
 
@@ -185,7 +183,6 @@ class About(commands.Cog):
 			else:
 				stats = stats[0]
 				await interaction.response.send_message(core.Warning.info(f'`{stats[0]}` se ha usado {stats[1]} {"veces" if stats[1] != 1 else "vez"}'))		
-		db.conn.commit()
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -65,7 +65,6 @@ def get_tag(interaction: discord.Interaction, name: str, guild: discord.Guild | 
     guild_id = interaction.guild_id if guild is None else guild.id
     db.cursor.execute("SELECT * FROM tags WHERE guild=? AND name=?", (guild_id, name))
     tag = db.cursor.fetchall()
-    db.conn.commit()
     if tag != []:
         tag = tag[0]
         return Tag(interaction, tag[0], tag[1], tag[2], tag[3], bool(tag[4]))
@@ -76,7 +75,6 @@ def get_tag(interaction: discord.Interaction, name: str, guild: discord.Guild | 
 def get_member_tags(interaction: discord.Interaction, user: discord.Member) -> list[Tag]:
     db.cursor.execute("SELECT * FROM tags WHERE guild=? AND user=?", (interaction.guild.id, user.id))
     tags = db.cursor.fetchall()
-    db.conn.commit()
     if tags != []:
         return [Tag(interaction, tag[0], tag[1], tag[2], tag[3], bool(tag[4])) for tag in tags]
     else:
@@ -86,7 +84,6 @@ def get_member_tags(interaction: discord.Interaction, user: discord.Member) -> l
 def get_guild_tags(interaction: discord.Interaction) -> list[Tag]:
     db.cursor.execute("SELECT * FROM tags WHERE guild=?", (interaction.guild.id,))
     tags = db.cursor.fetchall()
-    db.conn.commit()
     if tags != []:
         return [Tag(interaction, tag[0], tag[1], tag[2], tag[3], bool(tag[4])) for tag in tags]
     else:

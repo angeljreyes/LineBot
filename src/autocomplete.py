@@ -9,7 +9,6 @@ hidden = "WHERE hidden=0 " if core.bot_mode == 'stable' else ""
 sql = "SELECT version FROM changelog {}ORDER BY version DESC".format(hidden)
 db.cursor.execute(sql)
 db_version_data: list[tuple[str]] = db.cursor.fetchall()
-db.conn.commit()
 cached_versions = [version[0] for version in db_version_data]
 
 
