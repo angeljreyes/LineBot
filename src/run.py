@@ -44,7 +44,7 @@ intents.invites = False
 intents.voice_states = False
 intents.message_content = False
 
-bot = LineBot(command_prefix='l!', help_command=None, owner_id=core.owner_id, case_insensitive=True, intents=intents)
+bot = LineBot(command_prefix=[], help_command=None, intents=intents)
 
 @bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds)
 @app_commands.checks.cooldown(1, 15)
