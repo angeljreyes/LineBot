@@ -160,8 +160,8 @@ class Util(commands.Cog):
 		"""Activa los tags en el servidor"""
 		if interaction.channel.permissions_for(interaction.user).manage_guild:
 			db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
-			check = db.cursor.fetchall()
-			if check == []:
+			check: tuple[int] | None = db.cursor.fetchone()
+			if check is None:
 				confirmation = core.Confirm(interaction, interaction.user)
 				await interaction.response.send_message(core.Warning.question('Los tags en este servidor están desactivados. ¿Quieres activarlos?'), view=confirmation, ephemeral=True)
 				await confirmation.wait()

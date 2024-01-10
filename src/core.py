@@ -8,7 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import exceptions
-from db import check_blacklist
+import db
 
 
 CONF_DIR = '../bot_conf.toml'
@@ -24,7 +24,11 @@ with open(CONF_DIR, 'rb') as f:
 bot_mode = 'dev' if conf['dev_mode'] else 'stable'
 bot_version = '2.0'
 bot_ready_at = datetime.utcnow()
-bot_guilds = [discord.Object(id=guild_id) for guild_id in conf['guilds']]
+bot_guilds: list[discord.Object] | None
+if conf['dev_mode']:
+	bot_guilds = [discord.Object(id=guild_id) for guild_id in conf['guilds']]
+else:
+	bot_guilds = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
@@ -54,6 +58,12 @@ last_emoji = conf['emoji']['last']
 search_emoji = conf['emoji']['search']
 
 eval_returned_value = None
+
+hidden = "WHERE hidden=0 " if bot_mode == 'stable' else ""
+sql = "SELECT version FROM changelog {}ORDER BY version DESC".format(hidden)
+db.cursor.execute(sql)
+db_version_data: list[tuple[str]] = db.cursor.fetchall()
+cached_versions = [version[0] for version in db_version_data]
 
 colors = {
 	'random':discord.Colour.default(),
@@ -133,6 +143,13 @@ async def sync_tree(bot: commands.Bot) -> None:
 	logger.info('Command tree synced')
 
 
+def get_bot_guild(interaction: discord.Interaction) -> discord.Guild | None:
+	if not conf['dev_mode']:
+		return None
+
+	return interaction.guild
+
+
 def owner_only():
 	def predicate(interaction: discord.Interaction) -> bool:
 		if interaction.user.id == interaction.client.application.owner.id:
@@ -149,9 +166,30 @@ def config_commands(bot: commands.Bot) -> None:
 	for command in bot.tree.get_commands(guild=bot_guilds[0]):
 		if isinstance(command, app_commands.Group):
 			for subcommand in command.commands:
-				subcommand.add_check(check_blacklist)
+				subcommand.add_check(db.check_blacklist)
 		else:
-			command.add_check(check_blacklist)
+			command.add_check(db.check_blacklist)
+
+
+async def fetch_app_command(
+		interaction: discord.Interaction,
+		command: str,
+	) -> app_commands.AppCommand | None:
+	stack = command.split(' ')
+	stack.reverse()
+	commands: list[app_commands.AppCommand] = await interaction.client.tree.fetch_commands(guild=get_bot_guild(interaction))
+
+	while stack:
+		curr = stack.pop()
+		for command in commands:
+			if command.name == curr:
+				if (command.options and
+					isinstance(command.options[0], app_commands.AppCommandGroup)):
+					commands = command.options
+					break
+				return command
+
+	return None
 
 
 def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True) -> str:

@@ -2,7 +2,7 @@ import discord
 
 import db
 import exceptions
-from core import Warning
+import core
 
 
 RawTag = tuple[int, int, str, str, int]
@@ -56,10 +56,18 @@ class Tag:
 
 async def tag_check(interaction: discord.Interaction) -> None:
 	db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild.id,))
-	check = db.cursor.fetchall()
-	if check == []:
-		await interaction.response.send_message(Warning.info(
-			f'Los tags están desactivados en este servidor. {"Actívalos" if interaction.channel.permissions_for(interaction.user).manage_guild else "Pídele a un administrador que los active"} con el comando {list(filter(lambda x: x.name == "toggle", list(filter(lambda x: x.name == "tag", await interaction.client.tree.fetch_commands(guild=interaction.guild)))[0].options))[0].mention}'))
+	check = db.cursor.fetchone()
+
+	if not check:
+		has_permission = interaction.channel.permissions_for(interaction.user).manage_guild
+		toggle_command = await core.fetch_app_command(interaction, 'tag toggle')
+
+		await interaction.response.send_message(core.Warning.info(
+			'Los tags están desactivados en este servidor. ' +
+			('Actívalos ' if has_permission else 'Pídele a un administrador que los active ') +
+			f'con el comando {toggle_command.mention}'
+		))
+
 		raise exceptions.DisabledTagsError('Tags are not enabled on this guild')
 
 

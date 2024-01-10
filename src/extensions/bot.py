@@ -59,25 +59,20 @@ class About(commands.Cog):
 			Una versión de Line Bot
 		"""
 		if version == 'list':
-			# Selects released versions if the bot is stable and all versions if it's dev
-			sql = {'stable':"SELECT version FROM changelog WHERE hidden=0", 'dev':"SELECT version FROM changelog"}[core.bot_mode]
-			db.cursor.execute(sql)
-			versions = db.cursor.fetchall()
-			versions.reverse()
 			embed = discord.Embed(title='Changelog', colour=db.default_color(interaction))
-			version_list = ', '.join([f'`{version[0]}`' for version in versions])
+			version_list = ', '.join([f'`{version}`' for version in core.cached_versions])
 			embed.add_field(name='Lista de versiones:', value=version_list)
-			embed.set_footer(text=f'Cantidad de versiones: {len(versions)}')
+			embed.set_footer(text=f'Cantidad de versiones: {len(core.cached_versions)}')
 			await interaction.response.send_message(embed=embed)
 
 		else:
 			db.cursor.execute("SELECT * FROM changelog WHERE version=?", (version,))
-			try:
-				summary = db.cursor.fetchall()[0]
-			except IndexError:
+			summary: tuple[str, str, str, int] | None = db.cursor.fetchone()
+			if summary is None:
 				await interaction.response.send_message(core.Warning.error('Versión inválida'), ephemeral=True)
 				return
-			embed = discord.Embed(title=f'Versión {summary[0]} - {summary[1]}', description=summary[2], colour=db.default_color(interaction))
+			name, date, content, _ = summary
+			embed = discord.Embed(title=f'Versión {name} - {date}', description=content, colour=db.default_color(interaction))
 			await interaction.response.send_message(embed=embed)
 
 
@@ -184,13 +179,14 @@ class About(commands.Cog):
 		else:
 			# Checks if the command exists
 			db.cursor.execute("SELECT * FROM commandstats WHERE command=?", (command,))
-			stats = db.cursor.fetchall()
-			if stats == []:
-				await interaction.response.send_message(core.Warning.error('El comando que escribiste no existe o no se ha usado'), ephemeral=True)
+			stats: tuple[str, int] | None = db.cursor.fetchone()
 
-			else:
-				stats = stats[0]
-				await interaction.response.send_message(core.Warning.info(f'`{stats[0]}` se ha usado {stats[1]} {"veces" if stats[1] != 1 else "vez"}'))		
+			if stats is None:
+				await interaction.response.send_message(core.Warning.error('El comando que escribiste no existe o no se ha usado'), ephemeral=True)
+				return
+
+			command_name, uses = stats
+			await interaction.response.send_message(core.Warning.info(f'`/{command_name}` se ha usado {uses} {"veces" if stats[1] != 1 else "vez"}'))		
 
 
 async def setup(bot: commands.Bot) -> None:
