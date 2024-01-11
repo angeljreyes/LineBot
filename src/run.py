@@ -1,4 +1,5 @@
 import asyncio
+import tomllib
 from os.path import isfile
 from traceback import format_exc
 
@@ -85,12 +86,18 @@ async def main() -> None:
 
 	# Start the bot
 	async with bot:
-		token = core.conf['token'][core.bot_mode]
+		with open(core.CONF_DIR, 'rb') as f:
+			token = (
+				tomllib.load(f)
+					.get('token', {})
+					.get(core.bot_mode, None)
+			)
+
 		if not token:
 			print('No token for the selected mode was found in bot_conf.toml')
 			exit(1)
+
 		await bot.start(token)
-		del core.conf['token'] # Why not just delete the token from memory...
 
 
 asyncio.run(main())

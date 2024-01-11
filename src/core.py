@@ -20,6 +20,11 @@ if not os.path.isfile(CONF_DIR):
 with open(CONF_DIR, 'rb') as f:
 	conf = tomllib.load(f)
 
+# For security reasons, tokens are not accesible from core.conf
+# and have to be loaded independently
+if 'token' in conf:
+	del conf['token']
+
 # stable / dev
 bot_mode = 'dev' if conf['dev_mode'] else 'stable'
 bot_version = '2.0'
