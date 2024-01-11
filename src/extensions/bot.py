@@ -37,9 +37,14 @@ class About(commands.Cog):
 	async def links(self, interaction: discord.Interaction):
 		"""Obtén los links oficiales del bot"""
 		view = discord.ui.View()
-		for link in core.links:
-			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
-		await interaction.response.send_message(view=view)
+		for label, link in core.links.items():
+			if link:
+				view.add_item(discord.ui.Button(label=label, url=link))
+			
+		if view.children:
+			await interaction.response.send_message(view=view)
+		else:
+			await interaction.response.send_message('No hay links :(')
 
 
 	#changelog
@@ -54,27 +59,20 @@ class About(commands.Cog):
 			Una versión de Line Bot
 		"""
 		if version == 'list':
-			# Selects released versions if the bot is stable and all versions if it's dev
-			sql = {'stable':"SELECT VERSION FROM CHANGELOG WHERE HIDDEN=0", 'dev':"SELECT VERSION FROM CHANGELOG"}[core.bot_mode]
-			db.cursor.execute(sql)
-			versions = db.cursor.fetchall()
-			db.conn.commit()
-			versions.reverse()
 			embed = discord.Embed(title='Changelog', colour=db.default_color(interaction))
-			version_list = ', '.join([f'`{version[0]}`' for version in versions])
+			version_list = ', '.join([f'`{version}`' for version in core.cached_versions])
 			embed.add_field(name='Lista de versiones:', value=version_list)
-			embed.set_footer(text=f'Cantidad de versiones: {len(versions)}')
+			embed.set_footer(text=f'Cantidad de versiones: {len(core.cached_versions)}')
 			await interaction.response.send_message(embed=embed)
 
 		else:
-			db.cursor.execute(f"SELECT * FROM CHANGELOG WHERE VERSION=?", (version,))
-			try:
-				summary = db.cursor.fetchall()[0]
-			except IndexError:
+			db.cursor.execute("SELECT * FROM changelog WHERE version=?", (version,))
+			summary: tuple[str, str, str, int] | None = db.cursor.fetchone()
+			if summary is None:
 				await interaction.response.send_message(core.Warning.error('Versión inválida'), ephemeral=True)
 				return
-			db.conn.commit()
-			embed = discord.Embed(title=f'Versión {summary[0]} - {summary[1]}', description=summary[2], colour=db.default_color(interaction))
+			name, date, content, _ = summary
+			embed = discord.Embed(title=f'Versión {name} - {date}', description=content, colour=db.default_color(interaction))
 			await interaction.response.send_message(embed=embed)
 
 
@@ -95,7 +93,7 @@ class About(commands.Cog):
 			return
 
 		elif value == 'default':
-			db.cursor.execute(f"DELETE FROM COLORS WHERE ID={interaction.user.id}")
+			db.cursor.execute("DELETE FROM colors WHERE id=?", (interaction.user.id,))
 			await interaction.response.send_message(embed=discord.Embed(description=core.Warning.success('El color ha sido reestablecido'), colour=db.default_color(interaction)), ephemeral=True)
 
 		else:
@@ -108,13 +106,13 @@ class About(commands.Cog):
 					await interaction.response.send_message(core.Warning.error(f'Selecciona un color válido, escribe un código hex `#00ffaa`, rgb `rgb(123, 123, 123)` o selecciona "Color por defecto" para reestablecer el color al del rol del bot'), ephemeral=True)
 					return
 
-			db.cursor.execute(f"SELECT ID FROM COLORS WHERE ID={interaction.user.id}")
+			db.cursor.execute("SELECT id FROM colors WHERE id=?", (interaction.user.id,))
 			check = db.cursor.fetchall()
 			# Check if the user is registered in the database or not
 			if check == []:
-				db.cursor.execute(f"INSERT INTO COLORS VALUES({interaction.user.id}, ?)", (new_value,))
+				db.cursor.execute("INSERT INTO colors VALUES(?, ?)", (interaction.user.id, new_value))
 			else:
-				db.cursor.execute(f"UPDATE COLORS SET VALUE=? WHERE ID={interaction.user.id}", (new_value,))
+				db.cursor.execute("UPDATE colors SET value=? WHERE id=?", (new_value, interaction.user.id))
 			embed = discord.Embed(description=core.Warning.success(f'El color ha sido cambiado a **{value}**'), colour=db.default_color(interaction))
 			await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -142,10 +140,13 @@ class About(commands.Cog):
 		embed.add_field(name='Cantidad de usuarios', value=len(self.bot.users))
 		embed.add_field(name='Uptime', value=core.fix_delta(datetime.utcnow() - core.bot_ready_at))
 		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='Dueño del bot', value=str(self.bot.get_user(self.bot.owner_id)))
+		embed.add_field(name='Dueño del bot', value=str(self.bot.application.owner))
+
 		view = discord.ui.View()
-		for link in core.links:
-			view.add_item(discord.ui.Button(label=link, url=core.links[link]))
+		for label, link in core.links.items():
+			if link:
+				view.add_item(discord.ui.Button(label=label, url=link))
+
 		await interaction.response.send_message(embed=embed, view=view)
 
 
@@ -162,9 +163,14 @@ class About(commands.Cog):
 		"""
 		if command is None:
 			# Send all the commands and their uses
-			db.cursor.execute("SELECT * FROM COMMANDSTATS")
+			db.cursor.execute("SELECT * FROM commandstats ORDER BY uses DESC")
 			stats = db.cursor.fetchall()
-			stats.sort(key=lambda x: x[1], reverse=True)
+			if not stats:
+				await interaction.response.send_message(
+					core.Warning.info('No se encontraron comandos')
+				)
+				return
+
 			fstats = list(map(lambda x: f'`{x[0]}` - {x[1]}', stats))
 			pages = pagination.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', fstats)
 			paginator = pagination.Paginator(interaction, pages=pages, entries=len(fstats))
@@ -172,15 +178,15 @@ class About(commands.Cog):
 
 		else:
 			# Checks if the command exists
-			db.cursor.execute("SELECT * FROM COMMANDSTATS WHERE COMMAND=?", (command,))
-			stats = db.cursor.fetchall()
-			if stats == []:
-				await interaction.response.send_message(core.Warning.error('El comando que escribiste no existe o no se ha usado'), ephemeral=True)
+			db.cursor.execute("SELECT * FROM commandstats WHERE command=?", (command,))
+			stats: tuple[str, int] | None = db.cursor.fetchone()
 
-			else:
-				stats = stats[0]
-				await interaction.response.send_message(core.Warning.info(f'`{stats[0]}` se ha usado {stats[1]} {"veces" if stats[1] != 1 else "vez"}'))		
-		db.conn.commit()
+			if stats is None:
+				await interaction.response.send_message(core.Warning.error('El comando que escribiste no existe o no se ha usado'), ephemeral=True)
+				return
+
+			command_name, uses = stats
+			await interaction.response.send_message(core.Warning.info(f'`/{command_name}` se ha usado {uses} {"veces" if stats[1] != 1 else "vez"}'))		
 
 
 async def setup(bot: commands.Bot) -> None:

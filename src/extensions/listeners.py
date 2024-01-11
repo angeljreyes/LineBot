@@ -131,12 +131,15 @@ class Listeners(commands.Cog):
 
 		if core.bot_mode == 'stable':
 			# Update the command stats
-			db.cursor.execute(f"SELECT * FROM COMMANDSTATS WHERE COMMAND='{command.name}'")
-			db_command_data = db.cursor.fetchall()
-			if db_command_data == []:
-				db.cursor.execute(f"INSERT INTO COMMANDSTATS VALUES('{command.name}', 1)")
+			db.cursor.execute("SELECT * FROM commandstats WHERE command='?'", (command.qualified_name,))
+			db_command_data: tuple[str, int] | None = db.cursor.fetchone()
+
+			if db_command_data is None:
+				db.cursor.execute("INSERT INTO commandstats VALUES('?', 1)", (command.qualified_name,))
+
 			else:
-				db.cursor.execute(f"UPDATE COMMANDSTATS SET USES={db_command_data[0][1] + 1} WHERE COMMAND='{db_command_data[0][0]}'")
+				command_name, command_uses = db_command_data
+				db.cursor.execute("UPDATE commandstats SET uses=? WHERE command='?'", (command_uses + 1, command_name))
 
 			db.conn.commit()
 

@@ -1,29 +1,47 @@
 import logging
+import tomllib
+import os
 from datetime import datetime, timedelta, timezone
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from pathlib import Path
 
 import exceptions
-from db import check_blacklist
+import db
 
+
+CONF_DIR = '../bot_conf.toml'
+
+if not os.path.isfile(CONF_DIR):
+	print('The configuration file wasn\'t found. Create one by running setup.py')
+	exit(1)
+
+with open(CONF_DIR, 'rb') as f:
+	conf = tomllib.load(f)
+
+# For security reasons, tokens are not accesible from core.conf
+# and have to be loaded independently
+if 'token' in conf:
+	del conf['token']
 
 # stable / dev
-bot_mode = 'dev'
+bot_mode = 'dev' if conf['dev_mode'] else 'stable'
 bot_version = '2.0'
 bot_ready_at = datetime.utcnow()
-bot_guilds = [
-	discord.Object(id=724380436775567440),
-	discord.Object(id=716165191238287361)
-]
-owner_id = 337029735144226825
+bot_guilds: list[discord.Object] | None
+if conf['dev_mode']:
+	bot_guilds = [discord.Object(id=guild_id) for guild_id in conf['guilds']]
+else:
+	bot_guilds = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
-logging_file = f'{Path().resolve().parent}\\logs\\{datetime.today().date()}_{bot_mode}.log'
+LOG_DIR = '../logs/'
+if not os.path.exists(LOG_DIR):
+	os.mkdir(LOG_DIR)
+logging_file = f'{LOG_DIR}{datetime.today().date()}_{bot_mode}.log'
 handler = logging.FileHandler(filename=logging_file, encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
@@ -31,20 +49,26 @@ logger.addHandler(handler)
 default_prefix = {'stable':'l!', 'dev':'ld!'}[bot_mode]
 prefix_table = {'stable':"PREFIXES", 'dev':"DEVPREFIXES"}[bot_mode]
 
-error_logging_channel = 725390426780991531
+error_logging_channel = conf['error_channel_id']
 
-check_emoji = '<:check:873788609398968370>'
-cross_emoji = '<:x_:873229915170947132>'
-circle_emoji = '<:o_:873229913518383126>'
-empty_emoji = '<:empty:873754002427359252>'
+check_emoji = conf['emoji']['check']
+cross_emoji = conf['emoji']['cross']
+circle_emoji = conf['emoji']['circle']
+empty_emoji = conf['emoji']['empty']
 
-first_emoji = '<:first_button:1023679433019764857>'
-back_emoji = '<:back_button:1023673076023578766>'
-next_emoji = '<:next_button:1023675221489750036>'
-last_emoji = '<:last_button:1023677003733422130>'
-search_emoji = '<:search_button:1023680974879465503>'
+first_emoji = conf['emoji']['first']
+back_emoji = conf['emoji']['back']
+next_emoji = conf['emoji']['next']
+last_emoji = conf['emoji']['last']
+search_emoji = conf['emoji']['search']
 
 eval_returned_value = None
+
+hidden = "WHERE hidden=0 " if bot_mode == 'stable' else ""
+sql = "SELECT version FROM changelog {}ORDER BY version DESC".format(hidden)
+db.cursor.execute(sql)
+db_version_data: list[tuple[str]] = db.cursor.fetchall()
+cached_versions = [version[0] for version in db_version_data]
 
 colors = {
 	'random':discord.Colour.default(),
@@ -111,9 +135,9 @@ bucket_types = {
 bools = {True: 'Sí', False: 'No'}
 
 links = {
-	'Invítame a un servidor': 'https://discord.com/oauth2/authorize?client_id=582009564724199434&scope=bot&permissions=-9',
-	'Mi página de top.gg': 'https://top.gg/bot/582009564724199434',
-	'Vota por mí': 'https://top.gg/bot/582009564724199434/vote'
+	'Invítame a un servidor': conf['links']['invite'],
+	'Mi página de top.gg': conf['links']['topgg'],
+	'Vota por mí': conf['links']['vote']
 }
 
 
@@ -124,9 +148,16 @@ async def sync_tree(bot: commands.Bot) -> None:
 	logger.info('Command tree synced')
 
 
+def get_bot_guild(interaction: discord.Interaction) -> discord.Guild | None:
+	if not conf['dev_mode']:
+		return None
+
+	return interaction.guild
+
+
 def owner_only():
 	def predicate(interaction: discord.Interaction) -> bool:
-		if interaction.user.id == owner_id:
+		if interaction.user.id == interaction.client.application.owner.id:
 			return True
 		else:
 			raise exceptions.NotOwner()
@@ -134,12 +165,36 @@ def owner_only():
 
 
 def config_commands(bot: commands.Bot) -> None:
+	if not bot_guilds:
+		return
+
 	for command in bot.tree.get_commands(guild=bot_guilds[0]):
 		if isinstance(command, app_commands.Group):
 			for subcommand in command.commands:
-				subcommand.add_check(check_blacklist)
+				subcommand.add_check(db.check_blacklist)
 		else:
-			command.add_check(check_blacklist)
+			command.add_check(db.check_blacklist)
+
+
+async def fetch_app_command(
+		interaction: discord.Interaction,
+		command: str,
+	) -> app_commands.AppCommand | None:
+	stack = command.split(' ')
+	stack.reverse()
+	commands: list[app_commands.AppCommand] = await interaction.client.tree.fetch_commands(guild=get_bot_guild(interaction))
+
+	while stack:
+		curr = stack.pop()
+		for command in commands:
+			if command.name == curr:
+				if (command.options and
+					isinstance(command.options[0], app_commands.AppCommandGroup)):
+					commands = command.options
+					break
+				return command
+
+	return None
 
 
 def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True) -> str:

@@ -1,4 +1,6 @@
 import asyncio
+import tomllib
+from os.path import isfile
 from traceback import format_exc
 
 from icecream import install
@@ -7,9 +9,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+if not isfile('../line.db'):
+	print('The database wasn\'t found. Create a databse by running setup.py')
+	exit(1)
 import core
 import tictactoe as ttt
-import db
 
 
 # Create the bot client
@@ -41,7 +45,7 @@ intents.invites = False
 intents.voice_states = False
 intents.message_content = False
 
-bot = LineBot(command_prefix='l!', help_command=None, owner_id=core.owner_id, case_insensitive=True, intents=intents)
+bot = LineBot(command_prefix=[], help_command=None, intents=intents)
 
 @bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds)
 @app_commands.checks.cooldown(1, 15)
@@ -76,15 +80,24 @@ async def main() -> None:
 		ctx = args[0]
 		log = f'Ha ocurrido un error: "{ctx.message.content}" {repr(ctx.message)}'
 		core.logger.error(f'{log}\n{format_exc()}')
-		await bot.get_channel(core.error_logging_channel).send(f'<@{bot.owner_id}>', delete_after=30)
+		if core.error_logging_channel:
+			await bot.get_channel(core.error_logging_channel).send(bot.application.owner.mention, delete_after=30)
 
 
 	# Start the bot
 	async with bot:
-		db.cursor.execute(f"SELECT VALUE FROM RESOURCES WHERE KEY='{core.bot_mode}_token'")
-		token = db.cursor.fetchall()[0][0]
-		db.conn.commit()
+		with open(core.CONF_DIR, 'rb') as f:
+			token = (
+				tomllib.load(f)
+					.get('token', {})
+					.get(core.bot_mode, None)
+			)
+
+		if not token:
+			print('No token for the selected mode was found in bot_conf.toml')
+			exit(1)
+
 		await bot.start(token)
-		del token
+
 
 asyncio.run(main())

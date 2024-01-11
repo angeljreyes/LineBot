@@ -159,9 +159,9 @@ class Util(commands.Cog):
 	async def tag_toggle(self, interaction: discord.Interaction):
 		"""Activa los tags en el servidor"""
 		if interaction.channel.permissions_for(interaction.user).manage_guild:
-			db.cursor.execute(f"SELECT GUILD FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
-			check = db.cursor.fetchall()
-			if check == []:
+			db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
+			check: tuple[int] | None = db.cursor.fetchone()
+			if check is None:
 				confirmation = core.Confirm(interaction, interaction.user)
 				await interaction.response.send_message(core.Warning.question('Los tags en este servidor están desactivados. ¿Quieres activarlos?'), view=confirmation, ephemeral=True)
 				await confirmation.wait()
@@ -172,7 +172,7 @@ class Util(commands.Cog):
 				confirmation.clear_items()
 
 				if confirmation.value:
-					db.cursor.execute(f"INSERT INTO TAGSENABLED VALUES({interaction.guild_id})")
+					db.cursor.execute("INSERT INTO tagsenabled VALUES(?)", (interaction.guild_id,))
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se activaron los tags en este servidor'), view=confirmation)
 
 				else:
@@ -189,7 +189,7 @@ class Util(commands.Cog):
 				confirmation.clear_items()
 
 				if confirmation.value:
-					db.cursor.execute(f"DELETE FROM TAGSENABLED WHERE GUILD={interaction.guild_id}")
+					db.cursor.execute("DELETE FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
 					await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se desactivaron los tags en este servidor'), view=confirmation)
 
 				else:
@@ -207,7 +207,7 @@ class Util(commands.Cog):
 	@app_commands.rename(tag_name='nombre', tag_content='contenido')
 	async def tag_add(
 		self,
-		interaction:discord.Interaction, 
+		interaction: discord.Interaction, 
 		tag_name: app_commands.Range[str, 1, 32], 
 		tag_content: str,
 		nsfw: bool = False
@@ -233,7 +233,9 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 10)
 	@tag_group.command(name='gift')
 	@app_commands.rename(tag_name='tag', user='usuario')
-	async def tag_gift(self, interaction: discord.Interaction, 
+	async def tag_gift(
+		self,
+		interaction: discord.Interaction, 
 		tag_name: app_commands.Range[str, 1, 32],
 		user: discord.Member
 	):
@@ -269,7 +271,9 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@tag_group.command(name='rename')
 	@app_commands.rename(old_name='tag', new_name='nuevo')
-	async def tag_rename(self, interaction: discord.Interaction,
+	async def tag_rename(
+		self,
+		interaction: discord.Interaction,
 		old_name: app_commands.Range[str, 1, 32],
 		new_name: app_commands.Range[str, 1, 32]
 	):
@@ -313,7 +317,7 @@ class Util(commands.Cog):
 		if interaction.user.id == tag.user.id:
 			if interaction.channel.nsfw:
 				nsfw = True
-			tag.edit(tag_content, False, nsfw)
+			tag.edit(tag_content, nsfw)
 			await interaction.response.send_message(core.Warning.success(f'Se editó el tag **{await commands.clean_content().convert(interaction, tag_name)}**'))
 		
 		else:
@@ -356,11 +360,11 @@ class Util(commands.Cog):
 		self,
 		interaction: discord.Interaction,
 		tag_name: app_commands.Range[str, 1, 32],
-		guild: int | None,
+		guild_id: str | None,
 		silent: bool = False
 	):
 		"""Reservado"""
-		guild = interaction.guild if guild is None else self.bot.get_guild(guild)
+		guild = interaction.guild if guild_id is None else self.bot.get_guild(int(guild_id))
 		tag = tags.get_tag(interaction, tag_name, guild)
 		tag.delete()
 		await interaction.response.send_message(core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag_name)}** ha sido eliminado'), ephemeral=silent)
@@ -386,7 +390,7 @@ class Util(commands.Cog):
 		await tags.tag_check(interaction)
 		if user is None:
 			user = interaction.user
-		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user)))
+		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user, raises=True)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tag_list)
 		if len(pages) == 1:
 			paginator = None
@@ -401,7 +405,7 @@ class Util(commands.Cog):
 	async def tag_serverlist(self, interaction: discord.Interaction):
 		"""Muestra los tags de todo el servidor"""
 		await tags.tag_check(interaction)
-		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction)))
+		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction, raises=True)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
 		if len(pages) == 1:
 			paginator = None

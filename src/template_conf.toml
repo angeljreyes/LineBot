@@ -1,0 +1,30 @@
+dev_mode = false
+guilds = []
+
+# Set this up if you wanne be mentioned on a channel every time
+# an uncaught exception occurs... for some reason
+error_channel_id = 0
+
+[token]
+stable = "" # <---- YOUR TOKEN GOES HERE
+dev = "" # <- or here
+
+[links]
+topgg = ""
+invite = ""
+vote = ""
+
+[emoji]
+# You can upload the emoji in ./static/emoji
+# to a private server and use them here
+# like this -> "<:name:id>" -> "<:hello:123>"
+# NOTE: Your bot needs to be on that server
+check = ":white_check_mark:"
+cross = ":x:"
+circle = ":o:"
+empty = ":black_small_square:"
+first = ":rewind:"
+back = ":arrow_backward:"
+next = ":arrow_forward:"
+last = ":fast_forward:"
+search = ":mag:"

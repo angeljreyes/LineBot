@@ -154,11 +154,11 @@ class Owner(commands.Cog):
 	async def blacklist(self, interaction: discord.Interaction, user: discord.User):
 		"""Mete o saca a un usuario de la blacklist"""
 		if core.check_blacklist(interaction, user, False):
-			db.cursor.execute(f"INSERT INTO BLACKLIST VALUES({user.id})")
+			db.cursor.execute("INSERT INTO blacklist VALUES(?)", (user.id,))
 			await interaction.response.send_message(u'\U00002935', ephemeral=True)
 		
 		else:
-			db.cursor.execute(f"DELETE FROM BLACKLIST WHERE USER={user.id}")
+			db.cursor.execute("DELETE FROM blacklist WHERE user=?", (user.id,))
 			await interaction.response.send_message(u'\U00002934', ephemeral=True)
 
 		db.conn.commit()
