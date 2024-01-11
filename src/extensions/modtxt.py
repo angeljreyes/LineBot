@@ -65,14 +65,14 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(5, 5.0)
 	@app_commands.rename(replacing='reemplazar', replacement='por', text='en', count='límite', ephemeral='privado')
 	async def replace(
-		self,
-		interaction: discord.Interaction,
-		replacing: str,
-		replacement: str,
-		text: str,
-		count: int = -1,
-		ephemeral: bool = False
-	):
+			self,
+			interaction: discord.Interaction,
+			replacing: str,
+			replacement: str,
+			text: str,
+			count: int = -1,
+			ephemeral: bool = False
+		):
 		"""Reemplaza el texto del primer parámetro por el segundo parametro en un tercer parámetro
 
 		replacing
@@ -102,12 +102,12 @@ class Modtxt(commands.Cog):
 	@app_commands.checks.cooldown(2, 5.0)
 	@app_commands.rename(text='text', spaces='espacios', ephemeral='privado')
 	async def spacedtext(
-		self,
-		interaction: discord.Interaction,
-		text: str,
-		spaces: int = 1,
-		ephemeral: bool = False
-	):
+			self,
+			interaction: discord.Interaction,
+			text: str,
+			spaces: int = 1,
+			ephemeral: bool = False
+		):
 		"""Devuelve el texto enviado con cada letra espaciada el número de veces indicado
 
 		text

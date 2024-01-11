@@ -119,10 +119,10 @@ class Listeners(commands.Cog):
 
 	@commands.Cog.listener('on_app_command_completion')
 	async def command_logging(
-		self,
-		interaction: discord.Interaction,
-		command: app_commands.Command | app_commands.ContextMenu
-	) -> None:
+			self,
+			interaction: discord.Interaction,
+			command: app_commands.Command | app_commands.ContextMenu
+		) -> None:
 		core.logger.info(
 			f'Se he usado un comando: "{command.name} {interaction.namespace}", '
 			f'servidor "{interaction.guild.name} <{interaction.guild.id}>", '

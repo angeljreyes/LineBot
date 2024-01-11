@@ -250,11 +250,11 @@ def embed_author(embed: discord.Embed, user: discord.User) -> discord.Embed:
 
 class Confirm(discord.ui.View):
 	def __init__(
-		self, interaction: discord.Interaction,
-		user: discord.User,
-		*,
-		timeout: float = 180
-	):
+			self, interaction: discord.Interaction,
+			user: discord.User,
+			*,
+			timeout: float = 180
+		):
 		super().__init__()
 		self._interaction = interaction
 		self.user = user

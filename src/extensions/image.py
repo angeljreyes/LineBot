@@ -20,11 +20,11 @@ class Image(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@app_commands.rename(top="superior", bottom="inferior")
 	async def didyoumean(
-		self,
-		interaction: discord.Interaction,
-		top: app_commands.Range[str, 1, 45],
-		bottom: app_commands.Range[str, 1, 40]
-	):
+			self,
+			interaction: discord.Interaction,
+			top: app_commands.Range[str, 1, 45],
+			bottom: app_commands.Range[str, 1, 40]
+		):
 		"""Google "quizás quisiste decir"
 
 		top
@@ -40,11 +40,11 @@ class Image(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@app_commands.rename(top="superior", bottom="inferior")
 	async def drake(
-		self,
-		interaction: discord.Interaction,
-		top: app_commands.Range[str, 1, 250],
-		bottom: app_commands.Range[str, 1, 250]
-	):
+			self,
+			interaction: discord.Interaction,
+			top: app_commands.Range[str, 1, 250],
+			bottom: app_commands.Range[str, 1, 250]
+		):
 		"""Haz un meme con la plantilla de drake
 
 		top
@@ -60,10 +60,10 @@ class Image(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@app_commands.rename(text='texto')
 	async def calling(
-		self,
-		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 500]
-	):
+			self,
+			interaction: discord.Interaction,
+			text: app_commands.Range[str, 1, 500]
+		):
 		"""Tom llamando"""
 		await interaction.response.send_message(await self.api.calling(text))
 
@@ -73,10 +73,10 @@ class Image(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@app_commands.rename(text='texto')
 	async def supreme(
-		self,
-		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 500]
-	):
+			self,
+			interaction: discord.Interaction,
+			text: app_commands.Range[str, 1, 500]
+		):
 		"""Texto con fuente de Supreme"""
 		await interaction.response.send_message(await self.api.supreme(text))
 
@@ -86,10 +86,10 @@ class Image(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@app_commands.rename(text='texto')
 	async def captcha(
-		self,
-		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 250]
-	):
+			self,
+			interaction: discord.Interaction,
+			text: app_commands.Range[str, 1, 250]
+		):
 		"""Cursed captcha"""
 		# I had to do it this way because Client.captcha() is broken
 		url = f'https://api.alexflipnote.dev/captcha?text={quote(text)}'
@@ -101,10 +101,10 @@ class Image(commands.Cog):
 	@app_commands.checks.cooldown(1, 5)
 	@app_commands.rename(text='texto')
 	async def facts(
-		self,
-		interaction: discord.Interaction,
-		text: app_commands.Range[str, 1, 500]
-	):
+			self,
+			interaction: discord.Interaction,
+			text: app_commands.Range[str, 1, 500]
+		):
 		"""facts"""
 		await interaction.response.send_message(await self.api.facts(text))
 
@@ -145,10 +145,10 @@ class Image(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5)
 	async def mcskin(
-		self,
-		interaction: discord.Interaction,
-		user: app_commands.Range[str, 1, 16]
-	):
+			self,
+			interaction: discord.Interaction,
+			user: app_commands.Range[str, 1, 16]
+		):
 		"""Busca una skin de Minecraft
 
 		user

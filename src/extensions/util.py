@@ -43,19 +43,19 @@ class Util(commands.Cog):
 		option10='opción10'
 	)
 	async def choose(
-		self,
-		interaction: discord.Interaction,
-		option1: str,
-		option2: str,
-		option3: str | None,
-		option4: str | None,
-		option5: str | None,
-		option6: str | None,
-		option7: str | None,
-		option8: str | None,
-		option9: str | None,
-		option10: str | None
-	):
+			self,
+			interaction: discord.Interaction,
+			option1: str,
+			option2: str,
+			option3: str | None,
+			option4: str | None,
+			option5: str | None,
+			option6: str | None,
+			option7: str | None,
+			option8: str | None,
+			option9: str | None,
+			option10: str | None
+		):
 		"""Devuelve una de las opciones dadas"""
 		embed = discord.Embed(
 			title='Mi elección es...',
@@ -82,20 +82,20 @@ class Util(commands.Cog):
 		option10='opción10'
 	)
 	async def poll(
-		self,
-		interaction: discord.Interaction,
-		description: app_commands.Range[str, 1, 256],
-		option1: str,
-		option2: str,
-		option3: str | None,
-		option4: str | None,
-		option5: str | None,
-		option6: str | None,
-		option7: str | None,
-		option8: str | None,
-		option9: str | None,
-		option10: str | None
-	):
+			self,
+			interaction: discord.Interaction,
+			description: app_commands.Range[str, 1, 256],
+			option1: str,
+			option2: str,
+			option3: str | None,
+			option4: str | None,
+			option5: str | None,
+			option6: str | None,
+			option7: str | None,
+			option8: str | None,
+			option9: str | None,
+			option10: str | None
+		):
 		"""Crea encuestas de manera sencilla
 
 		description
@@ -206,12 +206,12 @@ class Util(commands.Cog):
 	@tag_group.command(name='add')
 	@app_commands.rename(tag_name='nombre', tag_content='contenido')
 	async def tag_add(
-		self,
-		interaction: discord.Interaction, 
-		tag_name: app_commands.Range[str, 1, 32], 
-		tag_content: str,
-		nsfw: bool = False
-	):
+			self,
+			interaction: discord.Interaction, 
+			tag_name: app_commands.Range[str, 1, 32], 
+			tag_content: str,
+			nsfw: bool = False
+		):
 		"""Crea un tag
 
 		tag_name
@@ -234,11 +234,11 @@ class Util(commands.Cog):
 	@tag_group.command(name='gift')
 	@app_commands.rename(tag_name='tag', user='usuario')
 	async def tag_gift(
-		self,
-		interaction: discord.Interaction, 
-		tag_name: app_commands.Range[str, 1, 32],
-		user: discord.Member
-	):
+			self,
+			interaction: discord.Interaction, 
+			tag_name: app_commands.Range[str, 1, 32],
+			user: discord.Member
+		):
 		"""Regala un tag a otro usuario"""
 		await tags.tag_check(interaction)
 		if user == interaction.user:
@@ -272,11 +272,11 @@ class Util(commands.Cog):
 	@tag_group.command(name='rename')
 	@app_commands.rename(old_name='tag', new_name='nuevo')
 	async def tag_rename(
-		self,
-		interaction: discord.Interaction,
-		old_name: app_commands.Range[str, 1, 32],
-		new_name: app_commands.Range[str, 1, 32]
-	):
+			self,
+			interaction: discord.Interaction,
+			old_name: app_commands.Range[str, 1, 32],
+			new_name: app_commands.Range[str, 1, 32]
+		):
 		"""Cambia el nombre de uno de tus tags"""
 		await tags.tag_check(interaction)
 		tags.check_tag_name(interaction, new_name)
@@ -297,12 +297,12 @@ class Util(commands.Cog):
 	@tag_group.command(name='edit')
 	@app_commands.rename(tag_name='tag', tag_content='contenido')
 	async def tag_edit(
-		self,
-		interaction: discord.Interaction,
-		tag_name: app_commands.Range[str, 1, 32],
-		tag_content: str,
-		nsfw: bool = False
-	):
+			self,
+			interaction: discord.Interaction,
+			tag_name: app_commands.Range[str, 1, 32],
+			tag_content: str,
+			nsfw: bool = False
+		):
 		"""Edita el contenido de uno de tus tags
 
 		tag_name
@@ -357,12 +357,12 @@ class Util(commands.Cog):
 	@tag_group.command(name='forcedelete')
 	@core.owner_only()
 	async def forcedelete(
-		self,
-		interaction: discord.Interaction,
-		tag_name: app_commands.Range[str, 1, 32],
-		guild_id: str | None,
-		silent: bool = False
-	):
+			self,
+			interaction: discord.Interaction,
+			tag_name: app_commands.Range[str, 1, 32],
+			guild_id: str | None,
+			silent: bool = False
+		):
 		"""Reservado"""
 		guild = interaction.guild if guild_id is None else self.bot.get_guild(int(guild_id))
 		tag = tags.get_tag(interaction, tag_name, guild)
