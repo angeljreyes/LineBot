@@ -83,7 +83,13 @@ class Fun(commands.Cog):
 	@app_commands.command()
 	@app_commands.checks.cooldown(1, 5.0)
 	@app_commands.rename(search='buscar', joke_id='id', image='imagen')
-	async def dadjoke(self, interaction: discord.Interaction, search: str | None, joke_id: str | None, image: bool = False):
+	async def dadjoke(
+			self,
+			interaction: discord.Interaction,
+			search: str | None,
+			joke_id: str | None,
+			image: bool = False
+		):
 		"""Envia chistes que dan menos risa que los de Siri
 
 		search
@@ -93,33 +99,57 @@ class Fun(commands.Cog):
 		image
 			Mostrar la broma como imagen
 		"""
+		BASE_URL = 'https://icanhazdadjoke.com/'
+		HEADERS = {'Accept': 'application/json'}
+
 		#search
 		if search is not None:
-			request = get('https://icanhazdadjoke.com/search', params={'term':search}, headers={'Accept':'application/json'}).json()
+			request: dict = get(
+				f'{BASE_URL}search',
+				params={'term': search},
+				headers=HEADERS
+			).json()
 			try:
-				request = request['results'][0]
+				request: dict[str, str] = request['results'][0]
 			except IndexError:
-				await interaction.response.send_message(core.Warning.error('No se encontraron resultados'), ephemeral=True)
+				await interaction.response.send_message(
+					core.Warning.error('No se encontraron resultados'),
+					ephemeral=True
+				)
 				return
+
 		# id
 		elif joke_id is not None:
-			url = 'https://icanhazdadjoke.com/j/' + joke_id
+			url = f'{BASE_URL}j/{joke_id}'
+
 		# random
 		else:
-			url = 'https://icanhazdadjoke.com/'
+			url = BASE_URL
+
 		if search is None:
-			request = get(url, headers={'Accept':'application/json'}).json()
-		try:
-			request_id = request['id']
-			if image:
-				url = f'https://icanhazdadjoke.com/j/{request_id}.png'
-				embed = discord.Embed(title='Dad joke', colour=db.default_color(interaction)).set_image(url=url).set_footer(text='Joke ID: '+request_id)
-			else:
-				embed = discord.Embed(title='Dad joke', description=request['joke'], colour=db.default_color(interaction)).set_footer(text='Joke ID: '+request_id)
-		except KeyError:
-			await interaction.response.send_message(core.Warning.error('ID inválida'), ephemeral=True)
-		else: 
-			await interaction.response.send_message(embed=embed)
+			request = get(url, headers=HEADERS).json()
+
+		if 'id' not in request:
+			await interaction.response.send_message(
+				core.Warning.error('ID inválida'),
+				ephemeral=True
+			)
+			return
+
+		request_id = request['id']
+		embed = (discord.Embed(
+			title='Dad joke',
+			colour=db.default_color(interaction)
+		)
+			.set_footer(text=f'Joke ID: {request_id}'))
+
+		if image:
+			url = f'{BASE_URL}j/{request_id}.png'
+			embed.set_image(url=url)
+		else:
+			embed.description = request['joke']
+
+		await interaction.response.send_message(embed=embed)
 
 
 	# nothing
