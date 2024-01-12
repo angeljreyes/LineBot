@@ -59,7 +59,7 @@ class Fun(commands.Cog):
 			Usuario al que buscar IQ
 		"""
 		iqs = (
-			'-10, tu cabeza está en blanco, ni siquiera deberias estar respirando :thinking:',
+			'-10, tu cabeza está en blanco, ni siquiera deberías estar respirando :thinking:',
 			'0, cómo entraste siquiera a este servidor?',
 			'10, no sabes ni leer seguro',
 			'30, un perro iguala tu inteligencia',
@@ -72,7 +72,7 @@ class Fun(commands.Cog):
 			'150, no puedes cargar con el peso de tu cerebro',
 			'170, el Einstein te dicen',
 			'200 :0000',
-			'300, tu cerebro es una pc master race dou',
+			'300, tu cerebro es una pc master race',
 			'infinito qqq'
 		)
 		msg = f'{"Tienes" if user is None else user.name + ", tienes"} un IQ de {choice(iqs)}'
