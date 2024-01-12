@@ -1,5 +1,6 @@
+import requests
 from random import choice, randint
-from requests import get
+from urllib.parse import quote
 
 import discord
 from discord import app_commands
@@ -13,6 +14,8 @@ import db
 class Fun(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
+		self.DADJOKE_BASE_URL = 'https://icanhazdadjoke.com/'
+		self.DADJOKE_HEADERS = {'Accept': 'application/json'}
 
 
 	# soy
@@ -80,54 +83,128 @@ class Fun(commands.Cog):
 
 
 	# dadjoke
-	@app_commands.command()
-	@app_commands.checks.cooldown(1, 5.0)
-	@app_commands.rename(search='buscar', joke_id='id', image='imagen')
-	async def dadjoke(
+	dadjoke_group = app_commands.Group(
+		name='dadjoke',
+		description='Envía chistes que dan menos risa que los de Siri'
+	)
+
+
+	async def send_dadjoke(
 			self,
 			interaction: discord.Interaction,
-			search: str | None,
-			joke_id: str | None,
-			image: bool = False
-		):
-		"""Envia chistes que dan menos risa que los de Siri
+			*,
+			joke: str,
+			joke_id: str,
+			status: int,
+			is_image: bool
+		) -> None:
+		if status != 200:
+			await interaction.response.send_message(
+				core.Warning.error(f'Hubo un error con [la API]({self.DADJOKE_BASE_URL}) :('),
+				ephemeral=True
+			)
+			return
 
-		search
-			Buscar una broma con el termino indicado
-		joke_id
-			Buscar una broma por su ID
-		image
-			Mostrar la broma como imagen
-		"""
-		BASE_URL = 'https://icanhazdadjoke.com/'
-		HEADERS = {'Accept': 'application/json'}
+		embed = (discord.Embed(
+			title='Dad joke',
+			colour=db.default_color(interaction)
+		)
+			.set_footer(text=f'Joke ID: {joke_id}'))
 
-		#search
-		if search is not None:
-			request: dict = get(
-				f'{BASE_URL}search',
-				params={'term': search},
-				headers=HEADERS
-			).json()
-			try:
-				request: dict[str, str] = request['results'][0]
-			except IndexError:
-				await interaction.response.send_message(
-					core.Warning.error('No se encontraron resultados'),
-					ephemeral=True
-				)
-				return
-
-		# id
-		elif joke_id is not None:
-			url = f'{BASE_URL}j/{joke_id}'
-
-		# random
+		if is_image:
+			image_url = f'{self.DADJOKE_BASE_URL}j/{joke_id}.png'
+			embed.set_image(url=image_url)
 		else:
-			url = BASE_URL
+			embed.description = joke
 
-		if search is None:
-			request = get(url, headers=HEADERS).json()
+		await interaction.response.send_message(embed=embed)
+
+
+	# dadjoke random
+	@dadjoke_group.command(name='random')
+	@app_commands.checks.cooldown(1, 5.0)
+	@app_commands.rename(is_image='imagen')
+	async def dadjoke_random(self, interaction: discord.Interaction, is_image: bool = False):
+		"""Mostrar un chiste random
+		
+		is_image
+			Mostrar el chiste como imagen
+		"""
+		request: dict = requests.get(
+			self.DADJOKE_BASE_URL,
+			headers=self.DADJOKE_HEADERS
+		).json()
+
+		await self.send_dadjoke(
+			interaction,
+			joke=request['joke'],
+			joke_id=request['id'],
+			status=request['status'],
+			is_image=is_image
+		)
+
+
+	# dadjoke search
+	@dadjoke_group.command(name='search')
+	@app_commands.checks.cooldown(1, 5.0)
+	@app_commands.rename(query='búsqueda', is_image='imagen')
+	async def dadjoke_search(
+			self,
+			interaction: discord.Interaction,
+			query: str,
+			is_image: bool = False
+		):
+		"""Buscar un chiste por su contenido
+		
+		query
+			Busca un chiste que contenga esta búsqueda
+		is_image
+			Mostrar el chiste como imagen
+		"""
+		request: dict = requests.get(
+			f'{self.DADJOKE_BASE_URL}search',
+			params={'term': query},
+			headers=self.DADJOKE_HEADERS
+		).json()
+
+		if not request.get('results', None):
+			await interaction.response.send_message(
+				core.Warning.error('No se encontraron resultados'),
+				ephemeral=True
+			)
+			return
+
+		result: dict = request['results'][0]
+		await self.send_dadjoke(
+			interaction,
+			joke=result['joke'],
+			joke_id=result['id'],
+			status=request['status'],
+			is_image=is_image
+		)
+
+
+	# dadjoke fetch
+	@dadjoke_group.command(name='fetch')
+	@app_commands.checks.cooldown(1, 5.0)
+	@app_commands.rename(joke_id='id', is_image='imagen')
+	async def dadjoke_fetch(
+			self,
+			interaction: discord.Interaction,
+			joke_id: str,
+			is_image: bool = False
+		):
+		"""Buscar un chiste por su ID
+		
+		joke_id
+			ID del chiste que quieres buscar
+		is_image
+			Mostrar el chiste como imagen
+		"""
+		request: dict = requests.get(
+			f'{self.DADJOKE_BASE_URL}j/{quote(joke_id)}',
+			headers=self.DADJOKE_HEADERS
+		).json()
 
 		if 'id' not in request:
 			await interaction.response.send_message(
@@ -136,20 +213,13 @@ class Fun(commands.Cog):
 			)
 			return
 
-		request_id = request['id']
-		embed = (discord.Embed(
-			title='Dad joke',
-			colour=db.default_color(interaction)
+		await self.send_dadjoke(
+			interaction,
+			joke=request['joke'],
+			joke_id=request['id'],
+			status=request['status'],
+			is_image=is_image
 		)
-			.set_footer(text=f'Joke ID: {request_id}'))
-
-		if image:
-			url = f'{BASE_URL}j/{request_id}.png'
-			embed.set_image(url=url)
-		else:
-			embed.description = request['joke']
-
-		await interaction.response.send_message(embed=embed)
 
 
 	# nothing
