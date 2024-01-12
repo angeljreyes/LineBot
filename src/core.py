@@ -2,6 +2,7 @@ import logging
 import tomllib
 import os
 from datetime import datetime, timedelta, timezone
+from typing import TypeVar
 
 import discord
 from discord import app_commands
@@ -141,6 +142,10 @@ links = {
 }
 
 
+T = TypeVar('T')
+Missing = discord.utils._MissingSentinel
+
+
 async def sync_tree(bot: commands.Bot) -> None:
 	logger.info('Syncing command tree...')
 	for guild in bot_guilds:
@@ -246,6 +251,10 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
 def embed_author(embed: discord.Embed, user: discord.User) -> discord.Embed:
 	return embed.set_author(name=user.name, icon_url=user.avatar.url)
 
+
+def split_list(lst: list[T], n: int) -> list[list[T]]:
+	for i in range(0, len(lst), n):
+		yield lst[i : i+n]
 
 
 class Confirm(discord.ui.View):

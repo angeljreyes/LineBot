@@ -1,59 +1,119 @@
+from typing import Iterable, Self
+
 import discord
+from discord.utils import MISSING
+
 import core
 import db
+
 
 class Page:
 	__slots__ = ('content', 'embed')
 
-	def __init__(self, content: str=None, *, embed: discord.Embed=None):
+	def __init__(
+			self,
+			content: str | None = None,
+			*,
+			embed: discord.Embed | None = None
+		):
 		self.content = content
 		self.embed = embed
 
-	@staticmethod
-	def from_list(interaction, title:str, iterable: list, *, colour=None):
-		formated = []
-		count = 0
+	@classmethod
+	def from_list(
+		 	cls,
+			interaction: discord.Interaction,
+			title: str,
+			iterable: Iterable[str],
+			*,
+			colour=None
+		) -> list[Self]:
+		formated: list[str] = []
+
 		if colour is None:
 			colour = db.default_color(interaction)
-		for i in iterable:
-			count += 1
-			formated.append(f'{count}. {i}')
 
-		pages = []
-		for i in range(int((len(formated) - 1)//20 + 1)):
+		for i, s in enumerate(iterable):
+			formated.append(f'{i}. {s}')
+
+		pages: list[Page] = []
+		ENTRIES_PER_PAGE = 20
+
+		for chunk in core.split_list(formated, ENTRIES_PER_PAGE):
 			pages.append(Page(embed=discord.Embed(
 				title=title,
-				description='\n'.join(formated[i*20:i*20+20]),
+				description='\n'.join(chunk),
 				colour=colour
 			)))
+
 		return pages
 
 
 
 class Paginator(discord.ui.View):
-	def __init__(self,
-		interaction: discord.Interaction,
-		*,
-		pages: list[Page] = [],
-		entries: int | None = None,
-		timeout: float = 180.0
-	):
+	def __init__(
+			self,
+			interaction: discord.Interaction,
+			*,
+			pages: list[Page] = [],
+			entries: int | None = None,
+			timeout: float = 180.0
+		):
 		super().__init__(timeout=timeout)
 		self.interaction = interaction
 		self.page_num = 1
 		self.page: Page | None = None
 		self.pages: list[Page] = []
 		self.entries = entries
-		self.add_pages(pages)
+		self.set_pages(pages)
+		self.children: list[discord.ui.Button]
 
 
-	def add_pages(self, pages: list) -> None:
-		count = 0
-		for page in pages:
-			count += 1
-			if page.embed is not None:
-				page.embed.set_footer(text=(f'Página {len(self.pages)+count} de {len(pages) + len(self.pages)}' if len(self.pages)+len(pages) > 1 else '') + f'{(str(" ("+str(self.entries)+" resultados)")) if self.entries is not None else ""}' + (f' | {page.embed.footer.text}' if page.embed.footer.text is not None else ""))
-		self.pages += pages
+	@classmethod
+	def optional(
+			cls,
+			interaction: discord.Interaction,
+			*,
+			pages: list[Page] = [],
+			entries: int | None = None,
+			timeout: float = 180.0
+		) -> Self | core.Missing:
+		"""Returns MISSING if there's only one page"""
+		if len(pages) == 1:
+			return MISSING
+		
+		return cls(
+			interaction,
+			pages=pages,
+			entries=entries,
+			timeout=timeout
+		)
+
+
+	def set_pages(self, pages: list[Page]) -> Self:
+		self.pages = []
+		final_length = len(pages)
+
+		for i, page in enumerate(pages, start=1):
+			if page.embed is None:
+				continue
+
+			footer_parts: list[str] = []
+
+			if final_length > 1:
+				footer_parts.append(f'Página {i} de {final_length}')
+			
+			if self.entries is not None:
+				footer_parts.append(f'{self.entries} resultados')
+			
+			if page.embed.footer.text is not None:
+				footer_parts.append(page.embed.footer.text)
+
+			footer = ' | '.join(footer_parts)
+			page.embed.set_footer(text=footer)
+			self.pages.append(page)
+
+		return self
 
 
 	async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -113,15 +173,18 @@ class Paginator(discord.ui.View):
 
 	
 	async def on_timeout(self) -> None:
-		self.children[0].disabled = True
-		self.children[1].disabled = True
-		self.children[2].disabled = True
-		self.children[3].disabled = True
-		self.children[4].disabled = True
+		for child in self.children:
+			child.disabled = True
 		await self.interaction.edit_original_response(view=self)
 
 
-	async def set_page(self, interaction: discord.Interaction, button: discord.ui.Button, page: int, interact=True) -> None:
+	async def set_page(
+			self,
+			interaction: discord.Interaction,
+			button: discord.ui.Button,
+			page: int,
+			interact=True
+		) -> None:
 		self.page = self.pages[page-1]
 		self.page_num = page
 		self.children[0].disabled = self.page_num == 1

@@ -171,9 +171,7 @@ class About(commands.Cog):
 				)
 				return
 
-			fstats = list(map(lambda x: f'`{x[0]}` - {x[1]}', stats))
-			pages = pagination.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', fstats)
-			paginator = pagination.Paginator(interaction, pages=pages, entries=len(fstats))
+			paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(f_stats))
 			await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 		else:

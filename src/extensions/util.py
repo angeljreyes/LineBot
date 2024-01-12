@@ -392,10 +392,7 @@ class Util(commands.Cog):
 			user = interaction.user
 		tag_list = list(map(lambda tag: f'"{tag}"', tags.get_member_tags(interaction, user, raises=True)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tag_list)
-		if len(pages) == 1:
-			paginator = None
-		else:
-			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tag_list))
+		paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(tag_list))
 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 
@@ -407,10 +404,7 @@ class Util(commands.Cog):
 		await tags.tag_check(interaction)
 		tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', tags.get_guild_tags(interaction, raises=True)))
 		pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
-		if len(pages) == 1:
-			paginator = None
-		else:
-			paginator = pagination.Paginator(interaction, pages=pages, entries=len(tag_list))
+		paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(tag_list))
 		await interaction.response.send_message(embed=pages[0].embed, view=paginator)
 
 
@@ -508,12 +502,10 @@ class Util(commands.Cog):
 
 		pages.append(curr_page)
 
-		if len(pages) > 1:
-			paginator = pagination.Paginator(interaction, pages=pages, entries=entry_count)
-			await interaction.followup.send(embed=pages[0].embed, view=paginator)
-		else:
+		paginator = pagination.Paginator.optional(interaction, pages=pages, entries=entry_count)
+		if paginator is None:
 			pages[0].embed.set_footer(text=f'{entry_count} resultados')
-			await interaction.followup.send(embed=pages[0].embed)
+		await interaction.followup.send(embed=pages[0].embed, view=paginator)
 
 
 	# define spanish
