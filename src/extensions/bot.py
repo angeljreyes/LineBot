@@ -144,22 +144,43 @@ class About(commands.Cog):
 	@app_commands.checks.cooldown(1, 5.0)
 	async def stats(self, interaction: discord.Interaction):
 		"""Muestra información sobre el bot"""
-		embed = discord.Embed(title='Información de Line Bot', colour=db.default_color(interaction))
-		embed.add_field(name='Sistema operativo', value=platform(aliased=True, terse=True))
-		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='CPU', value=get_cpu_info()['brand_raw'])
-		embed.add_field(name='Uso de CPU', value=f'{Process().cpu_percent()}% / {cpu_percent()}%')
-		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='Uso de RAM', value=f'{Process().memory_info().vms//1000000} MB / {virtual_memory().used//1000000} MB / {virtual_memory().total//1000000} MB')
-		embed.add_field(name='Librería', value=f'Discord.py {discord.__version__}')
-		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='Versión de Python', value='Python ' + python_version())
-		embed.add_field(name='Cantidad de servidores', value=len(self.bot.guilds))
-		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='Cantidad de usuarios', value=len(self.bot.users))
-		embed.add_field(name='Uptime', value=core.fix_delta(datetime.utcnow() - core.bot_ready_at))
-		embed.add_field(name='\u200b', value='\u200b')
-		embed.add_field(name='Dueño del bot', value=str(self.bot.application.owner))
+		process = Process()
+
+		platf = platform(aliased=True, terse=True)
+
+		cpu = get_cpu_info()['brand_raw']
+		process_cpu_usage = process.cpu_percent()
+		os_cpu_usage = cpu_percent()
+
+		MEGABYTE = 1e6
+		process_ram = process.memory_info().vms // MEGABYTE
+		used_ram = virtual_memory().used // MEGABYTE
+		total_ram = virtual_memory().total // MEGABYTE
+
+		uptime = core.fix_delta(datetime.utcnow() - core.bot_ready_at)
+
+		embed = (discord.Embed(
+			title='Información de Line Bot',
+			colour=db.default_color(interaction)
+		)
+			.add_field(name='Sistema operativo', value=platf)
+			.add_field(name='\u200b', value='\u200b') # Invisible column for style
+			.add_field(name='CPU', value=cpu)
+			.add_field(name='Uso de CPU', value=f'{process_cpu_usage}% / {os_cpu_usage}%')
+			.add_field(name='\u200b', value='\u200b')
+			.add_field(
+				name='Uso de RAM',
+				value=f'{process_ram} MB / {used_ram} MB / {total_ram} MB'
+			)
+			.add_field(name='Librería', value=f'Discord.py {discord.__version__}')
+			.add_field(name='\u200b', value='\u200b')
+			.add_field(name='Versión de Python', value=f'Python {python_version()}')
+			.add_field(name='Cantidad de servidores', value=len(self.bot.guilds))
+			.add_field(name='\u200b', value='\u200b')
+			.add_field(name='Cantidad de usuarios', value=len(self.bot.users))
+			.add_field(name='Uptime', value=uptime)
+			.add_field(name='\u200b', value='\u200b')
+			.add_field(name='Dueño del bot', value=str(self.bot.application.owner)))
 
 		view = discord.ui.View()
 		for label, link in core.links.items():
