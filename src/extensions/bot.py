@@ -92,36 +92,51 @@ class About(commands.Cog):
 			Elige un color de la lista o escribe un #hex o rgb(r, g ,b)
 		"""
 		if value == '':
-			embed = discord.Embed(description=':arrow_left: Este es tu color actual', colour=db.default_color(interaction))
+			embed = discord.Embed(
+				description=':arrow_left: Este es tu color actual',
+				colour=db.default_color(interaction)
+			)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
 			return
 
-		elif value == 'default':
+		if value == 'default':
 			db.cursor.execute("DELETE FROM colors WHERE id=?", (interaction.user.id,))
-			await interaction.response.send_message(embed=discord.Embed(description=core.Warning.success('El color ha sido reestablecido'), colour=db.default_color(interaction)), ephemeral=True)
-
-		else:
-			if value == 'random':
-				new_value = 0
-			else:
-				try:
-					new_value = (await commands.ColourConverter().convert(interaction, value)).value
-				except:
-					await interaction.response.send_message(core.Warning.error(f'Selecciona un color válido, escribe un código hex `#00ffaa`, rgb `rgb(123, 123, 123)` o selecciona "Color por defecto" para reestablecer el color al del rol del bot'), ephemeral=True)
-					return
-
-			db.cursor.execute("SELECT id FROM colors WHERE id=?", (interaction.user.id,))
-			check = db.cursor.fetchall()
-			# Check if the user is registered in the database or not
-			if check == []:
-				db.cursor.execute("INSERT INTO colors VALUES(?, ?)", (interaction.user.id, new_value))
-			else:
-				db.cursor.execute("UPDATE colors SET value=? WHERE id=?", (new_value, interaction.user.id))
-			embed = discord.Embed(description=core.Warning.success(f'El color ha sido cambiado a **{value}**'), colour=db.default_color(interaction))
+			embed = discord.Embed(
+				description=core.Warning.success('El color ha sido reestablecido'),
+				colour=db.default_color(interaction)
+			)
 			await interaction.response.send_message(embed=embed, ephemeral=True)
+			db.conn.commit()
+			return
+
+		if value == 'random':
+			new_value = 0
+		else:
+			try:
+				new_value = (await commands.ColourConverter().convert(interaction, value)).value
+			except (commands.CommandError, commands.BadArgument):
+				await interaction.response.send_message(core.Warning.error(
+					'Selecciona un color válido, escribe un código hex `#00ffaa`, '
+					'rgb `rgb(123, 123, 123)` o selecciona "Color por defecto" para '
+					'reestablecer el color al del rol del bot'
+				), ephemeral=True)
+				return
+
+		db.cursor.execute("SELECT id FROM colors WHERE id=?", (interaction.user.id,))
+		check: tuple[int] | None = db.cursor.fetchone()
+		# Check if the user is registered in the database or not
+		if check is None:
+			db.cursor.execute("INSERT INTO colors VALUES(?, ?)", (interaction.user.id, new_value))
+		else:
+			db.cursor.execute("UPDATE colors SET value=? WHERE id=?", (new_value, interaction.user.id))
+
+		embed = discord.Embed(
+			description=core.Warning.success(f'El color ha sido cambiado a **{value}**'),
+			colour=db.default_color(interaction)
+		)
+		await interaction.response.send_message(embed=embed, ephemeral=True)
 
 		db.conn.commit()
-
 
 
 	# stats
