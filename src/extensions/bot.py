@@ -204,12 +204,16 @@ class About(commands.Cog):
 		if command is None:
 			# Send all the commands and their uses
 			db.cursor.execute("SELECT * FROM commandstats ORDER BY uses DESC")
-			stats = db.cursor.fetchall()
-			if not stats:
+			all_stats: list[tuple[str, int]] = db.cursor.fetchall()
+
+			if not all_stats:
 				await interaction.response.send_message(
 					core.Warning.info('No se encontraron comandos')
 				)
 				return
+
+			f_stats = list(map(lambda x: f'`{x[0]}` - {x[1]}', all_stats))
+			pages = pagination.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', f_stats)
 
 			paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(f_stats))
 			await interaction.response.send_message(embed=pages[0].embed, view=paginator)
