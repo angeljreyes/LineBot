@@ -172,20 +172,20 @@ class Fun(commands.Cog):
 		username = interaction.user.name if user is None else user.name
 		percent = randint(0, 100)
 		extra = {
-			10:'se le cayó el pene',
-			9:'le dan asco las mujeres',
-			8:'se corre al pensar en hombres',
-			7:'le encanta chupar piroca',
-			6:'está pensando en penes ahora mismo',
-			5:'es bisexual, re normie',
-			4:'seguro está enamorado de su mejor amigo',
-			3:'es el chico afeminado del grupo',
-			2:'aunque no lo acepte, le excita un poco el porno gay',
-			1:'hombre heterosexual promedio',
-			0:'le dan asco los hombres'
+			10: 'se le cayó el pene',
+			9: 'le dan asco las mujeres',
+			8: 'se corre al pensar en hombres',
+			7: 'le encanta chupar piroca',
+			6: 'está pensando en penes ahora mismo',
+			5: 'es bisexual, re normie',
+			4: 'seguro está enamorado de su mejor amigo',
+			3: 'es el chico afeminado del grupo',
+			2: 'aunque no lo acepte, le excita un poco el porno gay',
+			1: 'hombre heterosexual promedio',
+			0: 'le dan asco los hombres'
 		}[percent//10]
 		embed = discord.Embed(
-			title='Medidor gamer de homosexualidad',
+			title='Medidor de homosexualidad',
 			description=f'{username} es un {percent}% gay, {extra}.',
 			colour=db.default_color(interaction)
 		)
