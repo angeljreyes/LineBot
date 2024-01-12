@@ -22,12 +22,12 @@ class Fun(commands.Cog):
 		"""Descubre quién eres"""
 		await interaction.response.send_message(choice((
 			'Eres re gay, te encanta chuparla',
-			'Eres un wn con pija dorada',
+			'Eres un weon con pija dorada',
 			'Eres un jugador de Free Fire y te matan 2374 veces por partida',
 			'Eres mi exclavo sexual B)',
 			'Eres un gamer de nivel superior :cowboy:',
 			'Eres el novio de Trump B(',
-			'Eres el CEO de Anonymous y le puedes hackear la PC al Tech Nigga',
+			'Eres el CEO de Anonymous y le puedes hackear la PC al Markass Brownlee',
 			'Eres hijo de WindyGirk y Yao Cabrera',
 			'Eres hijo de Elon Musk :o',
 			'gay',
@@ -36,7 +36,7 @@ class Fun(commands.Cog):
 			'Eres anti-vacunas',
 			'Eres alguien',
 			'Zoquete',
-			'Eres Eren Jeager',
+			'Eres Eren Jaeger',
 			'Un indigente',
 			'Eres un gordo termotanque',
 			'La reencarnación de la Reina Isabel II',
