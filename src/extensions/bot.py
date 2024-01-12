@@ -58,10 +58,10 @@ class About(commands.Cog):
 			Una versión de Line Bot
 		"""
 		if version == 'list':
-			embed = discord.Embed(title='Changelog', colour=db.default_color(interaction))
 			version_list = ', '.join([f'`{version}`' for version in core.cached_versions])
-			embed.add_field(name='Lista de versiones:', value=version_list)
-			embed.set_footer(text=f'Cantidad de versiones: {len(core.cached_versions)}')
+			embed = (discord.Embed(title='Changelog', colour=db.default_color(interaction))
+				.add_field(name='Lista de versiones:', value=version_list)
+				.set_footer(text=f'Cantidad de versiones: {len(core.cached_versions)}'))
 			await interaction.response.send_message(embed=embed)
 
 		else:
@@ -70,8 +70,13 @@ class About(commands.Cog):
 			if summary is None:
 				await interaction.response.send_message(core.Warning.error('Versión inválida'), ephemeral=True)
 				return
+
 			name, date, content, _ = summary
-			embed = discord.Embed(title=f'Versión {name} - {date}', description=content, colour=db.default_color(interaction))
+			embed = discord.Embed(
+				title=f'Versión {name} - {date}',
+				description=content,
+				colour=db.default_color(interaction)
+			)
 			await interaction.response.send_message(embed=embed)
 
 
