@@ -57,15 +57,14 @@ async def tictactoe_context(interaction: discord.Interaction, user: discord.Memb
 		await ask_view.wait()
 		
 		if ask_view.value is None:
-				await interaction.edit_original_response(view=ask_view)
-				return
+			await interaction.edit_original_response(view=ask_view)
+			return
 			
-		elif not ask_view.value:
+		if not ask_view.value:
 			await ask_view.last_interaction.response.edit_message(content=core.Warning.cancel('La partida fue rechazada'), view=ask_view)
 			return
 
-		else:
-			await ask_view.last_interaction.response.defer()
+		await ask_view.last_interaction.response.defer()
 
 	game = ttt.TicTacToe(interaction, interaction.user, user)
 	if interaction.response.is_done():

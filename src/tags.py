@@ -1,3 +1,5 @@
+from typing import Self
+
 import discord
 
 import db
@@ -42,9 +44,9 @@ class Tag:
 		db.cursor.execute("DELETE FROM tags WHERE guild=? AND name=?", (self.guild.id, self.name,))
 		db.conn.commit()
 
-	@staticmethod
-	def from_db(interaction: discord.Interaction, data: RawTag) -> 'Tag':
-		return Tag(
+	@classmethod
+	def from_db(cls, interaction: discord.Interaction, data: RawTag) -> Self:
+		return cls(
 			interaction,
 			guild_id=data[0],
 			user_id=data[1],

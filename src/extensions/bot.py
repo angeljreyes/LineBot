@@ -17,7 +17,6 @@ import autocomplete
 class About(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
-		# self.send = bot.get_cog('GlobalCog').send
 
 
 	# ping
