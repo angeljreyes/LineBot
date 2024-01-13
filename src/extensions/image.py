@@ -156,16 +156,16 @@ class Image(commands.Cog):
 		"""
 		username = quote(user)
 		url = f'https://minotar.net/skin/{username}.png'
-		embed = (
-			discord.Embed(
-				title=f'Skin de {user}',
-				colour=db.default_color(interaction),
-				url=url
-			)
-				.set_image(url=f'https://minotar.net/armor/body/{username}/400.png')
-				.set_thumbnail(url=url)
-				.set_footer(text='Steve podría significar que el jugador no existe o la API está caída')
+		embed = (discord.Embed(
+			title=f'Skin de {user}',
+			colour=db.default_color(interaction),
+			url=url
 		)
+			.set_image(url=f'https://minotar.net/armor/body/{username}/400.png')
+			.set_thumbnail(url=url)
+			.set_footer(text='Steve podría significar que el jugador no '
+				'existe o la API está caída'))
+
 		await interaction.response.send_message(embed=embed)
 
 
