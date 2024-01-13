@@ -274,7 +274,7 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 15)
 	async def against_machine(self, interaction: discord.Interaction):
 		"""Juega una partida de Tic Tac Toe contra la máquina"""
-		game = ttt.TicTacToe(interaction, interaction.user, interaction.guild.me)
+		game = ttt.TicTacToe(interaction, interaction.user, interaction.client.user)
 		await interaction.response.send_message(game.get_content(), view=game)
 
 
@@ -290,34 +290,52 @@ class Fun(commands.Cog):
 		"""
 		if opponent is None:
 			join_view = ttt.JoinView(interaction)
-			await interaction.response.send_message(core.Warning.searching(f'**{interaction.user.name}** está buscando un oponente para jugar Tic Tac Toe'), view=join_view)
+			await interaction.response.send_message(
+				core.Warning.searching(
+					f'**{interaction.user.name}** está buscando un '
+					'oponente para jugar Tic Tac Toe'),
+				view=join_view
+			)
 			await join_view.wait()
 
 			if join_view.user is None:
 				return
 
-			else:
-				opponent = join_view.user
-				await join_view.interaction.response.defer()
+			opponent = join_view.user
+			await join_view.interaction.response.defer()
 
+		elif opponent.bot:
+			await interaction.response.send_message(
+				core.Warning.error('No puedes jugar contra un bot'),
+				ephemeral=True
+			)
+			return
+		
 		else:
-			if opponent.bot:
-				await interaction.response.send_message(core.Warning.error('No puedes jugar contra un bot'), ephemeral=True)
-				return
 			ask_view = core.Confirm(interaction, opponent)
-			ask_string = f'{opponent.mention} ¿Quieres unirte a la partida de Tic Tac Toe de **{interaction.user.name}**?' if opponent.id != interaction.user.id else f'¿Estás tratando de jugar contra ti mismo?'
+
+			if opponent == interaction.user:
+				ask_string = f'¿Estás tratando de jugar contra ti mismo?'
+			else:
+				ask_string = (
+					f'{opponent.mention} ¿Quieres unirte a la partida '
+					f'de Tic Tac Toe de **{interaction.user.name}**?'
+				)
+
 			await interaction.response.send_message(ask_string, view=ask_view)
 			await ask_view.wait()
 
 			if ask_view.value is None:
 				return
 			
-			elif not ask_view.value:
-				await ask_view.last_interaction.response.edit_message(content=core.Warning.cancel('La partida fue rechazada'), view=ask_view)
+			if not ask_view.value:
+				await ask_view.last_interaction.response.edit_message(
+					content=core.Warning.cancel('La partida fue rechazada'),
+					view=ask_view
+				)
 				return
 
-			else:
-				await ask_view.last_interaction.response.defer()
+			await ask_view.last_interaction.response.defer()
 
 		game = ttt.TicTacToe(interaction, interaction.user, opponent)
 		await interaction.edit_original_response(content=game.get_content(), view=game)

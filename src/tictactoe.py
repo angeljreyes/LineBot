@@ -19,6 +19,8 @@ class JoinView(discord.ui.View):
 
 	@discord.ui.button(label='Unirse', emoji=u'\U0001f4e5', style=discord.ButtonStyle.blurple)
 	async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
+		if interaction.user == self._interaction.user:
+			return
 		self.user = interaction.user
 		self.interaction = interaction
 		button.disabled = True
@@ -36,7 +38,7 @@ class TicTacToeButton(discord.ui.Button['TicTacToe']):
 		self.y = y
 
 	async def interaction_check(self, interaction: discord.Interaction):
-		if interaction.user.id == self.view.players[self.view.current_player].id:
+		if interaction.user == self.view.players[self.view.current_player]:
 			return True
 		else:
 			await interaction.response.defer()
