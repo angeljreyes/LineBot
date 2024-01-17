@@ -66,9 +66,12 @@ class TicTacToe(discord.ui.View):
 	O = 1
 	Tie = 2
 
-	def __init__(self, interaction: discord.Interaction, playerX: discord.User, playerO: discord.User):
+	def __init__(
+			self,
+			interaction: discord.Interaction,
 			playerX: discord.abc.User,
 			playerO: discord.abc.User
+		):
 		super().__init__()
 		self.interaction = interaction
 		self.timeout = 90
