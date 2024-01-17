@@ -1,6 +1,7 @@
 from datetime import datetime
 from time import perf_counter
 from platform import platform, python_version
+from typing import cast
 
 import discord
 from discord import app_commands
@@ -113,7 +114,8 @@ class About(commands.Cog):
 			new_value = 0
 		else:
 			try:
-				new_value = (await commands.ColourConverter().convert(interaction, value)).value
+				ctx = cast(commands.Context, interaction)
+				new_value = (await commands.ColourConverter().convert(ctx, value)).value
 			except (commands.CommandError, commands.BadArgument):
 				await interaction.response.send_message(core.Warning.error(
 					'Selecciona un color válido, escribe un código hex `#00ffaa`, '
@@ -159,6 +161,8 @@ class About(commands.Cog):
 
 		uptime = core.fix_delta(datetime.utcnow() - core.bot_ready_at)
 
+		bot_owner = cast(discord.AppInfo, self.bot.application).owner
+
 		embed = (discord.Embed(
 			title='Información de Line Bot',
 			colour=db.default_color(interaction)
@@ -180,7 +184,7 @@ class About(commands.Cog):
 			.add_field(name='Cantidad de usuarios', value=len(self.bot.users))
 			.add_field(name='Uptime', value=uptime)
 			.add_field(name='\u200b', value='\u200b')
-			.add_field(name='Dueño del bot', value=str(self.bot.application.owner)))
+			.add_field(name='Dueño del bot', value=str(bot_owner)))
 
 		view = discord.ui.View()
 		for label, link in core.links.items():
@@ -216,7 +220,7 @@ class About(commands.Cog):
 			pages = pagination.Page.from_list(interaction, 'Comandos más usados (Desde 27/06/2020)', f_stats)
 
 			paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(f_stats))
-			await interaction.response.send_message(embed=pages[0].embed, view=paginator)
+			await interaction.response.send_message(embed=pages[0].embed, view=paginator) # type: ignore
 
 		else:
 			# Checks if the command exists
