@@ -1,6 +1,5 @@
 from random import choice
 from re import match
-from typing import cast
 
 import discord
 from discord import app_commands
