@@ -108,7 +108,7 @@ class Util(commands.Cog):
 			description='\n'.join([f'{emojis[option]} {options[option]}' for option in range(len(options))]),
 			colour=db.default_color(interaction)
 		)
-		embed.set_author(name=f'Encuesta hecha por {str(interaction.user.name)}', icon_url=interaction.user.avatar.url)
+		embed.set_author(name=f'Encuesta hecha por {str(interaction.user.name)}', icon_url=interaction.user.display_avatar.url)
 		await interaction.response.send_message(embed=embed)
 		for option in range(len(options)):
 			await (await interaction.original_response()).add_reaction(emojis[option])
@@ -448,7 +448,7 @@ class Util(commands.Cog):
 				colour=db.default_color(interaction)
 			).set_author(
 				name='Wiktionary',
-				icon_url=interaction.user.avatar.url
+				icon_url=interaction.user.display_avatar.url
 			)
 		)
 		pages: list[pagination.Page] = [] 
@@ -685,7 +685,7 @@ class Util(commands.Cog):
 						'dnd': 'No molestar'
 					}[str(client[1])] for client in ((':desktop: ', user.desktop_status), (':iphone: ', user.mobile_status), (':globe_with_meridians: ', user.web_status)))),
 				})
-		embed = discord.Embed(title='Información del usuario', colour=db.default_color(interaction)).set_thumbnail(url=user.avatar.url)
+		embed = discord.Embed(title='Información del usuario', colour=db.default_color(interaction)).set_thumbnail(url=user.display_avatar.url)
 		for data in data_dict:
 			if data_dict[data] is not None:
 				if data == 'Apodo':
