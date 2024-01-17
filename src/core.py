@@ -146,10 +146,6 @@ links = {
 }
 
 
-T = TypeVar('T')
-Missing = discord.utils._MissingSentinel
-
-
 async def sync_tree(bot: commands.Bot) -> None:
 	logger.info('Syncing command tree...')
 	for guild in bot_guilds:
