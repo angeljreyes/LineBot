@@ -39,23 +39,24 @@ class Modtxt(commands.Cog):
 		}
 		translations = {
 			r'[a-z]': lambda letter: reg_ind(letter),
-			r'ñ': lambda letter: reg_ind('n'),
-			r' ': lambda letter: ' '*3,
+			r'ñ': lambda _: reg_ind('n'),
+			r' ': lambda _: ' '*3,
 			r'[0-9]+': lambda letter: f'{letter}\ufe0f\u20e3',
-			'\?': lambda letter: ':grey_question:',
-			'\!': lambda letter: ':grey_exclamation:'
+			r'\?': lambda _: ':grey_question:',
+			r'\!': lambda _: ':grey_exclamation:'
 		}
 		for letter in text:
 			if use_alts and letter in alt_emojis:
 				result += f'{alt_emojis[letter]} '
-			else:
-				for translation in translations:
-					if match(translation, letter):
-						result += f'{translations[translation](letter)} '
-						break
+				continue
 
-				else:
-					result += f'{letter} '
+			for translation in translations:
+				if match(translation, letter):
+					result += f'{translations[translation](letter)} '
+					break
+
+			else: # else clause executes if the loop doesn't end with a break
+				result += f'{letter} '
 
 		await interaction.response.send_message(result, ephemeral=ephemeral)
 
