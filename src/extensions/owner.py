@@ -31,9 +31,12 @@ class Owner(commands.Cog):
 	# getmsg
 	@app_commands.command()
 	@core.owner_only()
-	async def getmsg(self, interaction: discord.Interaction, id:str):
+	async def getmsg(self, interaction: discord.Interaction, id: str):
 		"""Obtiene los datos de un mensaje"""
-		msg = await interaction.channel.fetch_message(id)
+		if not isinstance(interaction.channel, discord.abc.Messageable):
+			return
+
+		msg = await interaction.channel.fetch_message(int(id))
 		await interaction.response.send_message(f'```py\n{msg}\n```', ephemeral=True)
 
 
