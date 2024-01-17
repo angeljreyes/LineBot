@@ -166,7 +166,7 @@ class Owner(commands.Cog):
 	@core.owner_only()
 	async def blacklist(self, interaction: discord.Interaction, user: discord.User):
 		"""Mete o saca a un usuario de la blacklist"""
-		if core.check_blacklist(interaction, user, False):
+		if db.check_blacklist(interaction, user, False):
 			db.cursor.execute("INSERT INTO blacklist VALUES(?)", (user.id,))
 			await interaction.response.send_message(u'\U00002935', ephemeral=True)
 		
