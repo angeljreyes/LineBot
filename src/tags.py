@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, cast
 
 import discord
 
@@ -15,8 +15,17 @@ class Tag:
 
 	def __init__(self, interaction: discord.Interaction, guild_id: int, user_id: int, name: str, content: str, nsfw: bool):
 		self.interaction = interaction
-		self.guild = interaction.client.get_guild(guild_id)
-		self.user = interaction.client.get_user(user_id)
+
+		guild = interaction.client.get_guild(guild_id)
+		if guild is None:
+			raise KeyError('Invalid guild')
+		self.guild = guild
+
+		user = interaction.client.get_user(user_id)
+		if user is None:
+			raise KeyError('Invalid user')
+		self.user = user
+
 		self.name = name
 		self.content = content
 		self.nsfw = bool(nsfw)
@@ -57,23 +66,34 @@ class Tag:
 
 
 async def tag_check(interaction: discord.Interaction) -> None:
+	if interaction.guild is None:
+		raise Exception('The developer missed a guild_only check :(')
+	
 	db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild.id,))
 	check = db.cursor.fetchone()
 
 	if not check:
-		has_permission = interaction.channel.permissions_for(interaction.user).manage_guild
+		if interaction.channel is None:
+			raise exceptions.DisabledTagsError('Invalid channel')
+
+		member = cast(discord.Member, interaction.user)
+		has_permission = interaction.channel.permissions_for(member).manage_guild
 		toggle_command = await core.fetch_app_command(interaction, 'tag toggle')
 
-		await interaction.response.send_message(core.Warning.info(
-			'Los tags están desactivados en este servidor. ' +
-			('Actívalos ' if has_permission else 'Pídele a un administrador que los active ') +
-			f'con el comando {toggle_command.mention}'
-		))
+		if toggle_command is not None:
+			await interaction.response.send_message(core.Warning.info(
+				'Los tags están desactivados en este servidor. ' +
+				('Actívalos ' if has_permission else 'Pídele a un administrador que los active ') +
+				f'con el comando {toggle_command.mention}'
+			))
 
 		raise exceptions.DisabledTagsError('Tags are not enabled on this guild')
 
 
 def add_tag(interaction: discord.Interaction, name: str, content: str, nsfw: bool) -> None:
+	if interaction.guild is None:
+		raise Exception('The developer missed a guild_only check :(')
+		
 	db.cursor.execute("INSERT INTO tags VALUES(?,?,?,?,?)", (interaction.guild.id, interaction.user.id, name, content, int(nsfw)))
 	db.conn.commit()
 
@@ -106,6 +126,9 @@ def get_tag(
 
 
 def get_member_tags(interaction: discord.Interaction, user: discord.Member, *, raises=False) -> list[Tag]:
+	if interaction.guild is None:
+		raise Exception('The developer missed a guild_only check :(')
+		
 	db.cursor.execute("SELECT * FROM tags WHERE guild=? AND user=?", (interaction.guild.id, user.id))
 	tags: list[RawTag] = db.cursor.fetchall()
 	if tags:
@@ -118,6 +141,9 @@ def get_member_tags(interaction: discord.Interaction, user: discord.Member, *, r
 
 
 def get_guild_tags(interaction: discord.Interaction, *, raises=False) -> list[Tag]:
+	if interaction.guild is None:
+		raise Exception('The developer missed a guild_only check :(')
+		
 	db.cursor.execute("SELECT * FROM tags WHERE guild=?", (interaction.guild.id,))
 	tags: list[RawTag] = db.cursor.fetchall()
 
