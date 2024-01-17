@@ -1,5 +1,6 @@
 from random import choice
 from re import match
+from typing import cast
 
 import discord
 from discord import app_commands
@@ -163,7 +164,8 @@ class Modtxt(commands.Cog):
 		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
-		await interaction.response.send_message(''.join((choice((letter.lower(), letter.upper())) for letter in text)), ephemeral=ephemeral)
+		msg = ''.join((choice((letter.lower(), letter.upper())) for letter in text))
+		await interaction.response.send_message(msg, ephemeral=ephemeral)
 
 
 	# uppercase
@@ -178,7 +180,9 @@ class Modtxt(commands.Cog):
 		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
-		await interaction.response.send_message(await commands.clean_content().convert(interaction, text.upper()), ephemeral=ephemeral)
+		ctx = await self.bot.get_context(interaction)
+		msg = await commands.clean_content().convert(ctx, text.upper())
+		await interaction.response.send_message(msg, ephemeral=ephemeral)
 
 
 	# lowercase
