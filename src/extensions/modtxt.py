@@ -106,7 +106,7 @@ class Modtxt(commands.Cog):
 			self,
 			interaction: discord.Interaction,
 			text: str,
-			spaces: int = 1,
+			spaces: app_commands.Range[int, 1, 30] = 1,
 			ephemeral: bool = False
 		):
 		"""Devuelve el texto enviado con cada letra espaciada el número de veces indicado
@@ -118,13 +118,9 @@ class Modtxt(commands.Cog):
 		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
-		if spaces > 30: 
-			spaces = 30
-		if spaces < 1:
-			spaces = 1
 		output = ''
 		for char in text:
-			output += (char + (' ' * spaces))
+			output += char + (' ' * spaces)
 		await interaction.response.send_message(output, ephemeral=ephemeral)
 
 
