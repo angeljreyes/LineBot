@@ -225,7 +225,7 @@ class Fun(commands.Cog):
 
 	# nothing
 	@app_commands.command()
-	async def nothing(self, interaction: discord.Interaction):
+	async def nothing(self, _: discord.Interaction):
 		"""Literalmente no hace nada"""
 		pass
 
