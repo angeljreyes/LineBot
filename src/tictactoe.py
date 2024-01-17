@@ -1,6 +1,7 @@
 import discord
 import asyncio
 from random import choice
+from typing import cast
 
 import core
 
@@ -11,10 +12,10 @@ class JoinView(discord.ui.View):
 	def __init__(self, interaction: discord.Interaction):
 		super().__init__()
 		self.timeout = 180
-		self.user = None
 		self._interaction = interaction
 
 	async def on_timeout(self):
+		self.user = None
 		self.children[0].disabled = True
 		await self._interaction.edit_original_response(view=self)
 
@@ -22,8 +23,8 @@ class JoinView(discord.ui.View):
 	async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
 		if interaction.user == self._interaction.user:
 			return
-		self.user = interaction.user
-		self.interaction = interaction # type: ignore [no-redef]
+		self.user = cast(discord.Member, interaction.user)
+		self.interaction = interaction
 		button.disabled = True
 		self.stop()
 
@@ -38,11 +39,15 @@ class TicTacToeButton(discord.ui.Button['TicTacToe']):
 		self.x = x
 		self.y = y
 
-	async def interaction_check(self, interaction: discord.Interaction):
+	async def interaction_check(self, interaction: discord.Interaction) -> bool:
+		if self.view is None:
+			return False
+
 		if interaction.user == self.view.players[self.view.current_player]:
 			return True
-		else:
-			await interaction.response.defer()
+
+		await interaction.response.defer()
+		return False
 
 
 	# This function is called whenever this particular button is pressed
@@ -110,7 +115,7 @@ class TicTacToe(discord.ui.View):
 		self.stop()
 		await self.interaction.edit_original_response(content=self.get_content(f':tada: **{self.players[self.current_player].name}** no realizo su jugada a tiempo. ¡**{self.players[self.get_other_player()].name}** ha ganado la partida!'), view=self)
 	
-	async def play(self, interaction, x, y):
+	async def play(self, interaction: discord.Interaction, x: int, y: int):
 		button = self.children[x*3 + y]
 		button.style = {self.X: discord.ButtonStyle.blurple, self.O: discord.ButtonStyle.green}[self.current_player]
 		button.emoji = {self.X: core.cross_emoji, self.O: core.circle_emoji}[self.current_player]
@@ -147,8 +152,11 @@ class TicTacToe(discord.ui.View):
 		if self.current_player == self.O and self.players[self.O].bot:
 			await asyncio.sleep(1.5)
 			available_moves = [[x, y] if self.board[y][x] == 0 else None for x in range(3) for y in range(3)]
-			available_moves = list(filter(lambda x: x is not None, available_moves))
-			button_x, button_y = choice(available_moves)
+			available_moves_filtered = cast(
+				list[list[int]],
+				list(filter(lambda x: x is not None, available_moves))
+			)
+			button_x, button_y = choice(available_moves_filtered)
 			for child in self.children:
 				if self.board[child.y][child.x] not in (self.X, self.O):
 					child.disabled = False
