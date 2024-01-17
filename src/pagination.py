@@ -121,19 +121,19 @@ class Paginator(discord.ui.View):
 
 	@discord.ui.button(emoji=core.first_emoji, style=discord.ButtonStyle.blurple, disabled=True)
 	async def first(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-		await self.set_page(interaction, button, 1)
+		await self.set_page(interaction, 1)
 
 	@discord.ui.button(emoji=core.back_emoji, style=discord.ButtonStyle.blurple, disabled=True)
 	async def back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-		await self.set_page(interaction, button, self.page_num - 1)
+		await self.set_page(interaction, self.page_num - 1)
 
 	@discord.ui.button(emoji=core.next_emoji, style=discord.ButtonStyle.blurple)
 	async def next(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-		await self.set_page(interaction, button, self.page_num + 1)
+		await self.set_page(interaction, self.page_num + 1)
 
 	@discord.ui.button(emoji=core.last_emoji, style=discord.ButtonStyle.blurple)
 	async def last(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-		await self.set_page(interaction, button, len(self.pages))
+		await self.set_page(interaction, len(self.pages))
 
 	@discord.ui.button(emoji=core.search_emoji, style=discord.ButtonStyle.blurple)
 	async def search(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
@@ -152,7 +152,7 @@ class Paginator(discord.ui.View):
 				try:
 					value = int(modal.answer.value)
 					if 0 < value <= total_pages:
-						await self.set_page(interaction, button, value)
+						await self.set_page(interaction, value)
 					else:
 						await interaction.response.send_message(
 							core.Warning.error(f'Escribe un número entre el 1 y el {total_pages}'),
@@ -180,10 +180,8 @@ class Paginator(discord.ui.View):
 	async def set_page(
 			self,
 			interaction: discord.Interaction,
-			button: discord.ui.Button,
-			page: int,
-			interact=True
-		) -> None:
+			page: int
+		) -> Self:
 		self.page = self.pages[page-1]
 		self.page_num = page
 		self.children[0].disabled = self.page_num == 1
@@ -192,3 +190,4 @@ class Paginator(discord.ui.View):
 		self.children[3].disabled = self.page_num == len(self.pages)
 		await interaction.response.defer()
 		await self.interaction.edit_original_response(content=self.page.content, embed=self.page.embed, view=self)
+		return self
