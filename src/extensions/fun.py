@@ -353,6 +353,14 @@ class Fun(commands.Cog):
 		question
 			Pregunta que el bot responderá
 		"""
+		if interaction.guild is not None:
+			random_member = choice(list(filter(
+				lambda x: not x.bot,
+				interaction.guild.members
+			))).mention
+		else:
+			random_member = 'alguien más'
+
 		await interaction.response.send_message(embed=core.embed_author(
 			user=interaction.user, 
 			embed=discord.Embed(
@@ -367,7 +375,7 @@ class Fun(commands.Cog):
 					'¿No era obvio que sí?', 'Está científicamente comprobado que sí',
 					'No, imbécil', 'Es muy probable', 'Es casi imposible', 'Para nada',
 					'Totalmente', 'No lo sé', 'h', 'No lo sé, busca en Google',
-					f'No lo sé, preguntale a {choice(list(filter(lambda x: not x.bot, interaction.guild.members))).mention}'
+					f'No lo sé, preguntale a {random_member}'
 				))
 			)
 		))
