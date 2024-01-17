@@ -57,9 +57,12 @@ class Util(commands.Cog):
 			option10: str | None
 		):
 		"""Devuelve una de las opciones dadas"""
+		options = [option1, option2, option3, option4, option5,
+				option6, option7, option8, option9, option10]
+		desc: str = choice(list(filter(lambda x: x is not None, options)))
 		embed = discord.Embed(
 			title='Mi elección es...',
-			description=choice(list(filter(lambda x: x is not None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))),
+			description=desc,
 			colour=db.default_color(interaction)
 		)
 		await interaction.response.send_message(embed=embed)
@@ -101,17 +104,25 @@ class Util(commands.Cog):
 		description
 			Una pregunta, tema o afirmación que describa la encuesta
 		"""
+		options = [option1, option2, option3, option4, option5,
+				option6, option7, option8, option9, option10]
 		emojis = [f'{number}\ufe0f\u20e3' for number in range(1, 10)] + [u'\U0001f51f',]
-		options = list(filter(lambda x: x is not None, [option1, option2, option3, option4, option5, option6, option7, option8, option9, option10]))
-		embed = discord.Embed(
+		display_options: list[str] = list(filter(lambda x: x is not None, options))
+		desc = '\n'.join([f'{emojis[option]} {display_options[option]}' for option in range(len(display_options))])
+
+		embed = (discord.Embed(
 			title=description,
-			description='\n'.join([f'{emojis[option]} {options[option]}' for option in range(len(options))]),
+			description=desc,
 			colour=db.default_color(interaction)
 		)
-		embed.set_author(name=f'Encuesta hecha por {str(interaction.user.name)}', icon_url=interaction.user.display_avatar.url)
+			.set_author(
+				name=f'Encuesta hecha por {interaction.user.name}',
+				icon_url=interaction.user.display_avatar.url
+			))
 		await interaction.response.send_message(embed=embed)
-		for option in range(len(options)):
-			await (await interaction.original_response()).add_reaction(emojis[option])
+		message = await interaction.original_response()
+		for option in range(len(display_options)):
+			await message.add_reaction(emojis[option])
 
 
 	# avatar
