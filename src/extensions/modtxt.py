@@ -136,15 +136,16 @@ class Modtxt(commands.Cog):
 		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
-		output = ""
+		output = ''
 		other_chars = {32: 12288, 162: 65504, 163: 65505, 165: 65509, 166: 65508, 172: 65506, 
 						175: 65507, 8361: 65510, 10629: 65375, 10630: 65376}
+		ZERO_WIDTH_OFFSET = 65248
 		for character in text:
 			currentchar = ord(character)
 			if 33 <= currentchar <= 126:
-				output += chr(currentchar + 65248)
+				output += chr(currentchar + ZERO_WIDTH_OFFSET)
 			elif currentchar in other_chars:
-				output += chr(other_chars.get(currentchar))
+				output += chr(other_chars[currentchar])
 			else:
 				output += character
 		await interaction.response.send_message(output, ephemeral=ephemeral)
