@@ -251,7 +251,7 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
 	return embed
 
 
-def embed_author(embed: discord.Embed, user: discord.User) -> discord.Embed:
+def embed_author(embed: discord.Embed, user: discord.abc.User) -> discord.Embed:
 	return embed.set_author(name=user.name, icon_url=user.avatar.url)
 
 
@@ -263,7 +263,7 @@ def split_list(lst: list[T], n: int) -> Generator[list[T], None, None]:
 class Confirm(discord.ui.View):
 	def __init__(
 			self, interaction: discord.Interaction,
-			user: discord.User,
+			user: discord.abc.User,
 			*,
 			timeout: float = 180
 		):
