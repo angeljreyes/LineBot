@@ -3,6 +3,7 @@ import tomllib
 import os
 from datetime import datetime, timedelta, timezone
 from typing import TypeVar
+from collections.abc import Generator
 
 import discord
 from discord import app_commands
@@ -11,6 +12,8 @@ from discord.ext import commands
 import exceptions
 import db
 
+
+T = TypeVar('T')
 
 CONF_DIR = '../bot_conf.toml'
 
@@ -252,7 +255,7 @@ def embed_author(embed: discord.Embed, user: discord.User) -> discord.Embed:
 	return embed.set_author(name=user.name, icon_url=user.avatar.url)
 
 
-def split_list(lst: list[T], n: int) -> list[list[T]]:
+def split_list(lst: list[T], n: int) -> Generator[list[T], None, None]:
 	for i in range(0, len(lst), n):
 		yield lst[i : i+n]
 
