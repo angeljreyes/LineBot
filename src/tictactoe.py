@@ -6,6 +6,8 @@ import core
 
 
 class JoinView(discord.ui.View):
+	children: list[discord.ui.Button[discord.ui.View]] # type: ignore [no-redef]
+
 	def __init__(self, interaction: discord.Interaction):
 		super().__init__()
 		self.timeout = 180
@@ -22,7 +24,7 @@ class JoinView(discord.ui.View):
 		if interaction.user == self._interaction.user:
 			return
 		self.user = interaction.user
-		self.interaction = interaction
+		self.interaction = interaction # type: ignore [no-redef]
 		button.disabled = True
 		self.stop()
 
@@ -60,7 +62,7 @@ class TicTacToeButton(discord.ui.Button['TicTacToe']):
 class TicTacToe(discord.ui.View):
 	# This tells the IDE or linter that all our children will be TicTacToeButtons
 	# This is not required
-	children: list[TicTacToeButton]
+	children: list[TicTacToeButton] # type: ignore [type-redef]
 	X = -1
 	O = 1
 	Tie = 2
