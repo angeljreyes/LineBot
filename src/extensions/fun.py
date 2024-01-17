@@ -1,6 +1,7 @@
 import requests
 from random import choice, randint
 from urllib.parse import quote
+from typing import cast
 
 import discord
 from discord import app_commands
@@ -274,7 +275,8 @@ class Fun(commands.Cog):
 	@app_commands.checks.cooldown(1, 15)
 	async def against_machine(self, interaction: discord.Interaction):
 		"""Juega una partida de Tic Tac Toe contra la máquina"""
-		game = ttt.TicTacToe(interaction, interaction.user, interaction.client.user)
+		bot = cast(discord.ClientUser, interaction.client.user)
+		game = ttt.TicTacToe(interaction, interaction.user, bot)
 		await interaction.response.send_message(game.get_content(), view=game)
 
 
