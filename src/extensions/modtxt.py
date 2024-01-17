@@ -231,7 +231,9 @@ class Modtxt(commands.Cog):
 		ephemeral
 			Mandar un mensaje efímero (privado) o no
 		"""
-		await interaction.response.send_message(await commands.clean_content().convert(interaction, text.title()), ephemeral=ephemeral)
+		ctx = await self.bot.get_context(interaction)
+		msg = await commands.clean_content().convert(ctx, text.title())
+		await interaction.response.send_message(msg, ephemeral=ephemeral)
 
 
 	# reverse
