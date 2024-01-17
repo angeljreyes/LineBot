@@ -12,7 +12,6 @@ class JoinView(discord.ui.View):
 		super().__init__()
 		self.timeout = 180
 		self.user = None
-		self.interaction = None
 		self._interaction = interaction
 
 	async def on_timeout(self):

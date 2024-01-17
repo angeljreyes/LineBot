@@ -272,7 +272,6 @@ class Confirm(discord.ui.View):
 		self.user = user
 		self.timeout = timeout
 		self.value: bool | None = None
-		self.last_interaction: discord.Interaction | None = None
 		self.children: list[discord.ui.Button] # type: ignore [no-def]
 
 	async def interaction_check(self, interaction: discord.Interaction) -> bool:
