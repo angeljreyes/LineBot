@@ -148,8 +148,11 @@ links = {
 
 async def sync_tree(bot: commands.Bot) -> None:
 	logger.info('Syncing command tree...')
-	for guild in bot_guilds:
-		await bot.tree.sync(guild=guild)
+	if isinstance(bot_guilds, Missing):
+		await bot.tree.sync()
+	else:
+		for guild in bot_guilds:
+			await bot.tree.sync(guild=guild)
 	logger.info('Command tree synced')
 
 
