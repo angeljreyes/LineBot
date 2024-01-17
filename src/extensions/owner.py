@@ -1,6 +1,8 @@
+from collections.abc import Callable, Coroutine
 from math import floor
 from re import findall
 from timeit import default_timer as timer
+from typing import Any, cast
 
 import discord
 from discord import app_commands
@@ -63,12 +65,20 @@ class Owner(commands.Cog):
 					return_line = findall(r'[^ ].+$', code.splitlines()[-1])[0]
 					code = code[:-(len(return_line))] + f'core.eval_returned_value = {return_line}'
 
-				code = '''@self.bot.tree.command()\n@core.owner_only()\nasync def evalcmd(interaction):\n    '''+code.replace('\n','\n    ')
+				code = ('@self.bot.tree.command()\n'
+						'@core.owner_only()\n'
+						'async def evalcmd(interaction):\n'
+						'\t' + code.replace('\n','\n\t'))
 				try:
 					exec(code)
 					start = timer()
 					try:
-						await self.bot.tree.get_command('evalcmd').callback(interaction)
+						cmd = cast(app_commands.Command, self.bot.tree.get_command('evalcmd'))
+						callback = cast(
+							Callable[[discord.Interaction], Coroutine[Any, Any, Any]],
+							cmd.callback
+						)
+						await callback(interaction)
 					except Exception as e:
 						core.eval_returned_value = e
 					end = timer()
@@ -79,18 +89,18 @@ class Owner(commands.Cog):
 							try:
 								types += str(type(returned_value))
 								if not isinstance(returned_value, str):
-									iter(returned_value)
+									iter(returned_value) # type: ignore
 								else:
 									raise TypeError
 							except TypeError:
 								break
 							else:
 								try:
-									if len(returned_value) == 0:
+									if len(returned_value) == 0: # type: ignore
 										break
-									returned_value = returned_value[0]
+									returned_value = returned_value[0] # type: ignore
 								except (TypeError, KeyError):
-									returned_value = tuple(returned_value)[0]
+									returned_value = tuple(returned_value)[0] # type: ignore
 
 						await interaction.followup.send(embed=discord.Embed(
 							title='Resultados del eval',

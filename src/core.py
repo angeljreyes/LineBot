@@ -2,7 +2,7 @@ import logging
 import tomllib
 import os
 from datetime import datetime, timedelta, timezone
-from typing import TypeVar
+from typing import Any, TypeVar
 from collections.abc import Generator
 
 import discord
@@ -67,7 +67,7 @@ next_emoji = conf['emoji']['next']
 last_emoji = conf['emoji']['last']
 search_emoji = conf['emoji']['search']
 
-eval_returned_value = None
+eval_returned_value: Any = None
 
 hidden = "WHERE hidden=0 " if bot_mode == 'stable' else ""
 sql = "SELECT version FROM changelog {}ORDER BY version DESC".format(hidden)
