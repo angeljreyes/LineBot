@@ -14,6 +14,7 @@ import db
 
 
 T = TypeVar('T')
+Missing = discord.utils._MissingSentinel
 
 CONF_DIR = '../bot_conf.toml'
 
@@ -33,11 +34,11 @@ if 'token' in conf:
 bot_mode = 'dev' if conf['dev_mode'] else 'stable'
 bot_version = '2.0'
 bot_ready_at = datetime.utcnow()
-bot_guilds: list[discord.Object] | None
+bot_guilds: list[discord.Object] | Missing
 if conf['dev_mode']:
 	bot_guilds = [discord.Object(id=guild_id) for guild_id in conf['guilds']]
 else:
-	bot_guilds = None
+	bot_guilds = discord.utils.MISSING
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')

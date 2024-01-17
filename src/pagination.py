@@ -80,7 +80,7 @@ class Paginator(discord.ui.View):
 		) -> Self | core.Missing:
 		"""Returns MISSING if there's only one page"""
 		if len(pages) == 1:
-			return MISSING
+			return discord.utils.MISSING
 		
 		return cls(
 			interaction,
