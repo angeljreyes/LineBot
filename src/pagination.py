@@ -1,7 +1,6 @@
 from typing import Iterable, Self
 
 import discord
-from discord.utils import MISSING
 
 import core
 import db
@@ -21,7 +20,7 @@ class Page:
 
 	@classmethod
 	def from_list(
-		 	cls,
+			cls,
 			interaction: discord.Interaction,
 			title: str,
 			iterable: Iterable[str],
@@ -36,11 +35,11 @@ class Page:
 		for i, s in enumerate(iterable):
 			formated.append(f'{i}. {s}')
 
-		pages: list[Page] = []
+		pages: list[Self] = []
 		ENTRIES_PER_PAGE = 20
 
 		for chunk in core.split_list(formated, ENTRIES_PER_PAGE):
-			pages.append(Page(embed=discord.Embed(
+			pages.append(cls(embed=discord.Embed(
 				title=title,
 				description='\n'.join(chunk),
 				colour=colour
@@ -66,7 +65,7 @@ class Paginator(discord.ui.View):
 		self.pages: list[Page] = []
 		self.entries = entries
 		self.set_pages(pages)
-		self.children: list[discord.ui.Button]
+		self.children: list[discord.ui.Button] # type: ignore [no-redef]
 
 
 	@classmethod
