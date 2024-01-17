@@ -928,4 +928,4 @@ class Util(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-	await bot.add_cog(Util(bot), guilds=core.bot_guilds)
+	await bot.add_cog(Util(bot), guilds=core.bot_guilds) # type: ignore
