@@ -465,6 +465,7 @@ class Util(commands.Cog):
 		pages: list[pagination.Page] = [] 
 		included_parts_of_speech: set[str] = set()
 		curr_page = base_page()
+		assert curr_page.embed is not None
 		entry_count = 0
 
 		# Slightly lower max lengths just to be safe
@@ -500,6 +501,7 @@ class Util(commands.Cog):
 					add_field(curr_page.embed)
 					pages.append(curr_page)
 					curr_page = base_page()
+					assert curr_page.embed is not None
 					field_value = ''
 
 				if len(field_value) + len(entry) + len(field_value) > MAX_FIELD_LENGTH:
@@ -514,9 +516,10 @@ class Util(commands.Cog):
 		pages.append(curr_page)
 
 		paginator = pagination.Paginator.optional(interaction, pages=pages, entries=entry_count)
-		if paginator is None:
+		assert pages[0].embed is not None
+		if isinstance(paginator, core.Missing):
 			pages[0].embed.set_footer(text=f'{entry_count} resultados')
-		await interaction.followup.send(embed=pages[0].embed, view=paginator)
+		await interaction.followup.send(embed=pages[0].embed, view=paginator) # type: ignore
 
 
 	# define spanish
@@ -573,14 +576,22 @@ class Util(commands.Cog):
 		text
 			El texto que será decodificado
 		"""
-		if search(r'[^0-1]', text.replace(' ', '')):
-			await interaction.response.send_message(core.Warning.error('El texto debe ser binario (unos y ceros)'), ephemeral=True)
+		text = text.replace(' ', '')
+		if search(r'[^0-1]', text):
+			await interaction.response.send_message(
+				core.Warning.error('El texto debe ser binario (unos y ceros)'),
+				ephemeral=True
+			)
+			return
 
-		else:
-			string = text.replace(' ', '')
-			string = " ".join(string[i:i+8] for i in range(0, len(string), 8))
-			string = ''.join(chr(int(binary, 2)) for binary in string.split(' '))
-			await interaction.response.send_message(f'```{await commands.clean_content().convert(interaction, string.replace("`", "`឵"))}```')
+		string = ' '.join(text[i:i+8] for i in range(0, len(text), 8))
+		string = ''.join(chr(int(byte, base=2)) for byte in string.split(' '))
+		ctx = await self.bot.get_context(interaction)
+		content = '```{}```'.format(
+			await commands.clean_content()
+				.convert(ctx, string)
+		)
+		await interaction.response.send_message(content)
 
 
 	# morse
@@ -602,7 +613,11 @@ class Util(commands.Cog):
 		for letter in text:
 			if letter in self.morse_dict:
 				string += self.morse_dict[letter] + ' '
-		await interaction.response.send_message(f'```{string}```' if string != '' else core.Warning.error('Los caracteres especificados son incompatibles'))
+
+		content = f'```{string}```' if string else core.Warning.error(
+			'Los caracteres especificados son incompatibles'
+		)
+		await interaction.response.send_message(content)
 
 
 	# morse decode
@@ -625,7 +640,16 @@ class Util(commands.Cog):
 				if citext in list(self.morse_dict.values()):
 					string += list(self.morse_dict.keys())[list(self.morse_dict.values()).index(citext)] 
 				citext = ''
-		await interaction.response.send_message(f'```{(await commands.clean_content().convert(interaction, string)).capitalize()}```' if string != '' else core.Warning.error('Los caracteres especificados son incompatibles'))
+		
+		ctx = await self.bot.get_context(interaction)
+		if string:
+			content = '```{}```'.format(
+				(await commands.clean_content().convert(ctx, string))
+					.capitalize()
+			)
+		else:
+			content = core.Warning.error('Los caracteres especificados son incompatibles')
+		await interaction.response.send_message(content)
 
 	
 	# percentencoding
@@ -655,7 +679,12 @@ class Util(commands.Cog):
 		text
 			El texto que será decodificado
 		"""
-		await interaction.response.send_message(f'```{await commands.clean_content().convert(interaction, unquote(text))}```')
+		ctx = await self.bot.get_context(interaction)
+		content = '```{}```'.format(
+			await commands.clean_content()
+				.convert(ctx, unquote(text))
+		)
+		await interaction.response.send_message(content)
 
 
 	# userinfo
@@ -916,7 +945,13 @@ class Util(commands.Cog):
 	# randomnumber
 	@app_commands.command()
 	@app_commands.rename(start='mínimo', stop='máximo', step='salto')
-	async def randomnumber(self, interaction: discord.Interaction, start: int, stop: int, step: app_commands.Range[int, 1, 1000000000000000] = 1):
+	async def randomnumber(
+			self,
+			interaction: discord.Interaction,
+			start: int,
+			stop: int,
+			step: app_commands.Range[int, 1] = 1
+		):
 		"""Obtiene un número aleatorio entre el intervalo especificado. Puedes usar números negativos
 
 		start
@@ -927,13 +962,18 @@ class Util(commands.Cog):
 			Distancia entre cada número del rango, el valor por defecto es 1
 		"""
 		if start >= stop:
-			await interaction.response.send_message(core.Warning.error('Intervalo inválido. Revisa que el primer número sea menor que el segundo'), ephemeral=True)
+			await interaction.response.send_message(
+				core.Warning.error(
+					'Intervalo inválido. Revisa que '
+					'el primer número sea menor que el segundo'
+				),
+				ephemeral=True)
 			return
 
 		await interaction.response.send_message(embed=discord.Embed(
-			title = f'Número aleatorio entre {start} y {stop}',
-			description = str(randrange(start, stop, step)),
-			colour = db.default_color(interaction)
+			title=f'Número aleatorio entre {start} y {stop}',
+			description=str(randrange(start, stop, step)),
+			colour=db.default_color(interaction)
 		))
 
 
