@@ -692,46 +692,85 @@ class Util(commands.Cog):
 	@app_commands.command()
 	@app_commands.rename(user='usuario')
 	@commands.guild_only()
-	async def userinfo(self, interaction: discord.Interaction, user: discord.User | None):
+	async def userinfo(self, interaction: discord.Interaction, user: discord.Member | discord.User | None):
 		"""Obtiene información de un usuario. Habrá más información si el usuario se encuentra en el servidor"""
 		if user is None:
 			user = interaction.user
-		data_dict = {
-			'Usuario': str(user),
-			'ID': user.id,
-			'Tipo de cuenta~': {True:'Bot', False:'Usuario'}[user.bot] + (' del sistema de discord' if user.system else ''),
-			'Fecha de creación de la cuenta': core.fix_date(user.created_at, elapsed=True, newline=True)
+
+		embed = discord.Embed(
+			title='Información del usuario',
+			colour=db.default_color(interaction)
+		).set_thumbnail(url=user.display_avatar.url)
+
+		activity_descriptions = {
+			discord.ActivityType.unknown: 'Desconocido ',
+			discord.ActivityType.playing: 'Jugando a ',
+			discord.ActivityType.streaming: 'Transmitiendo ',
+			discord.ActivityType.listening: 'Escuchando ',
+			discord.ActivityType.watching: 'Viendo ',
+			discord.ActivityType.custom:''
 		}
-		if interaction.guild.get_member(user.id) is not None:
-			user = interaction.guild.get_member(user.id)
-			data_dict.update({
-				'Apodo':user.nick,
-				'Fecha de entrada al servidor': core.fix_date(user.joined_at, elapsed=True, newline=True),
-				'Permisos en este canal~': f'Integer: `{interaction.channel.permissions_for(user).value}`\n' + ', '.join((f'{("`"+perm[0].replace("_"," ").capitalize()+"`") if perm[1] else ""}' for perm in tuple(filter(lambda x: x[1], tuple(interaction.channel.permissions_for(user)))))),
-				'Boosteando el servidor desde': core.fix_date(user.premium_since, elapsed=True, newline=True) if user.premium_since is not None else None,
-				'Actividades':'\n'.join(({
-					discord.ActivityType.unknown: 'Desconocido ',
-					discord.ActivityType.playing: 'Jugando a ',
-					discord.ActivityType.streaming: 'Transmitiendo ',
-					discord.ActivityType.listening: 'Escuchando ',
-					discord.ActivityType.watching: 'Viendo ',
-					discord.ActivityType.custom:''
-					}[activity.type]+(f'**{activity.name}**' if activity.type != discord.ActivityType.custom else str(user.activity)) for activity in user.activities)) if len(user.activities) > 0 else None,
-				'Color HEX':str(user.color),
-				'Estados':'\n'.join((client[0]+{
-						'online': 'En linea',
-						'offline': 'Desconectado',
-						'idle': 'Ausente',
-						'dnd': 'No molestar'
-					}[str(client[1])] for client in ((':desktop: ', user.desktop_status), (':iphone: ', user.mobile_status), (':globe_with_meridians: ', user.web_status)))),
-				})
-		embed = discord.Embed(title='Información del usuario', colour=db.default_color(interaction)).set_thumbnail(url=user.display_avatar.url)
-		for data in data_dict:
-			if data_dict[data] is not None:
-				if data == 'Apodo':
-					embed.insert_field_at(1, name=data, value=data_dict[data])
-				else:	
-					embed.add_field(name=data.replace('~', ''), value=data_dict[data], inline=not data.endswith('~'))
+
+		status_descriptions = {
+			discord.Status.online: 'En linea',
+			discord.Status.offline: 'Desconectado',
+			discord.Status.idle: 'Ausente',
+			discord.Status.dnd: 'No molestar'
+		}
+
+		user_type = 'Bot' if user.bot else 'Usuario'
+		if user.system:
+			user_type += ' del sistema'
+		user_creation = core.fix_date(user.created_at, elapsed=True, newline=True)
+		
+		(embed
+			.add_field(name='Usuario', value=str(user))
+			.add_field(name='ID', value=user.id)
+			.add_field(name='Tipo de cuenta', value=user_type, inline=False)
+			.add_field(name='Fecha de creación de la cuenta', value=user_creation)
+		)
+
+		if isinstance(user, discord.Member):
+
+			if user.nick:
+				embed.insert_field_at(1, name='Apodo', value=user.nick)
+
+			if user.joined_at is not None:
+				joined_at = core.fix_date(user.joined_at, elapsed=True, newline=True)
+				embed.add_field(name='Fecha de entrada al servidor', value=joined_at)
+
+			if isinstance(interaction.channel, discord.abc.GuildChannel):
+				permissions = interaction.channel.permissions_for(user)
+				true_permissions = [f'`{perm}`' for perm, value in permissions if value]
+				permission_list = ', '.join(true_permissions)
+				perm_field_val = f'Integer: `{permissions.value}`\n{permission_list}'
+				embed.add_field(name='Permisos en este canal', value=perm_field_val, inline=False)
+				
+			if user.premium_since is not None:
+				boost_date = core.fix_date(user.premium_since, elapsed=True, newline=True)
+				embed.add_field(name='Boosteando desde', value=boost_date)
+			
+			if user.activities:
+				activity_list = [
+					f'- {custom}' for custom in user.activities 
+					if custom.type == discord.ActivityType.custom
+				] + [
+					f'- {activity_descriptions[activity.type]} **{activity.name}**'
+					for activity in user.activities
+				]
+				embed.add_field(name='Actividades', value='\n'.join(activity_list))
+
+			embed.add_field(name='Color', value=str(user.color))
+
+			client_emojis = (':desktop:', user.desktop_status), (':iphone:', user.mobile_status), (':globe_with_meridians:', user.web_status)
+
+			stati = [
+				f'{client} {status_descriptions[status]}'
+				for client, status in client_emojis
+			]
+
+			embed.add_field(name='Estados', value='\n'.join(stati))
+
 		await interaction.response.send_message(embed=embed)
 
 
@@ -742,21 +781,45 @@ class Util(commands.Cog):
 	@commands.guild_only()
 	async def roleinfo(self, interaction: discord.Interaction, role: discord.Role):
 		"""Obtiene información de un rol"""
-		data_dict = {
-			'Nombre': role.name,
-			'Mención': role.mention,
-			'ID': role.id,
-			'Posición': f'{role.position} de {len(interaction.guild.roles)-1}',
-			'Mencionable': core.bools[role.mentionable],
-			'Aparece separado': core.bools[role.hoist],
-			'Manejado por una integración': core.bools[role.managed],
-			'Color HEX': str(role.color),
-			'Fecha de creación': core.fix_date(role.created_at, elapsed=True, newline=True),
-			'Cantidad de usuarios': f'{len(role.members)} de {len(interaction.guild.members)}',
-			'Permisos~': f'Integer: `{role.permissions.value}`\n' + ', '.join((f'{("`"+perm[0].replace("_"," ").capitalize()+"`") if perm[1] else ""}' for perm in tuple(filter(lambda x: x[1], tuple(role.permissions)))))
-		}
 		embed = discord.Embed(title='Información del rol', colour=db.default_color(interaction))
-		embed = core.add_fields(embed, data_dict)
+
+		(embed
+			.add_field(name='Nombre', value=role.name)
+			.add_field(name='Mención', value=role.mention)
+			.add_field(name='ID', value=role.id)
+		)
+
+		if interaction.guild is not None:
+			(embed
+				.add_field(
+					name='Posición',
+					value=f'{role.position} de {len(interaction.guild.roles)-1}'
+				)
+				.add_field(
+					name='Cantidad de usuarios',
+					value=f'{len(role.members)} de {len(interaction.guild.members)}'
+				)
+			)
+
+		(embed
+			.add_field(name='Mencionable', value=core.bools[role.mentionable])
+			.add_field(name='Aparece separado', value=core.bools[role.hoist])
+			.add_field(name='Manejado por una integración', value=core.bools[role.managed])
+			.add_field(name='Color', value=str(role.color))
+			.add_field(
+				name='Fecha de creación',
+				value=core.fix_date(role.created_at, elapsed=True, newline=True)
+			)
+		)
+
+		permissions = role.permissions
+		perm_list = [f'`{perm}`' for perm, value in permissions if value]
+		embed.add_field(
+			name='Permisos',
+			value=f'Integer: `{permissions.value}`\n{", ".join(perm_list)}',
+			inline=False
+		)
+
 		await interaction.response.send_message(embed=embed)
 
 
@@ -764,95 +827,178 @@ class Util(commands.Cog):
 	@app_commands.checks.cooldown(1, 3)
 	@app_commands.command()
 	@app_commands.rename(channel='canal')
-	async def channelinfo(self, interaction: discord.Interaction, channel: app_commands.AppCommandChannel | None):
+	async def channelinfo(
+			self,
+			interaction: discord.Interaction,
+			channel: discord.abc.GuildChannel | None # type: ignore
+		):
 		"""Obtiene la información de un canal de cualquier tipo o una categoría"""
+		channel: (
+			discord.abc.GuildChannel
+			| discord.DMChannel
+			| discord.GroupChannel
+			| discord.Thread
+			| None
+		)
+
+		embed = discord.Embed(
+			title='Información del canal',
+			colour=db.default_color(interaction)
+		)
+
 		if channel is None:
 			channel = interaction.channel
+
+		if channel is None:
+			await interaction.response.send_message(
+				core.Warning.error('Canal inválido')
+			)
+			return
+
+		if interaction.guild is None:
+			await interaction.response.send_message(
+				core.Warning.error('Servidore inválido')
+			)
+			return
+		guild = interaction.guild
+
 		if isinstance(channel, app_commands.AppCommandChannel):
 			channel = await channel.fetch()
-		data_dict = {
-			'Nombre': str(channel),
-			'ID': channel.id,
-			'Fecha de creación': core.fix_date(channel.created_at, elapsed=True, newline=True),
-			'Tipo de canal': {
-				discord.ChannelType.text: 'Canal de texto',
-				discord.ChannelType.voice: 'Canal de voz',
-				discord.ChannelType.private: 'Mensaje directo',
-				discord.ChannelType.category: 'Categoría',
-				discord.ChannelType.news: 'Canal de noticias',
-				discord.ChannelType.stage_voice: 'Escenario',
-				discord.ChannelType.news_thread: 'Hilo de noticias',
-				discord.ChannelType.public_thread: 'Hilo público',
-				discord.ChannelType.private_thread: 'Hilo privado',
-				discord.ChannelType.forum: 'Foro'
-			}[channel.type]
+
+		if not channel.created_at:
+			created_at = 'Desconocido'
+		else:
+			created_at = core.fix_date(channel.created_at, elapsed=True, newline=True)
+
+		types = {
+			discord.ChannelType.text: 'Canal de texto',
+			discord.ChannelType.voice: 'Canal de voz',
+			discord.ChannelType.private: 'Mensaje directo',
+			discord.ChannelType.group: 'Grupo', # This should be impossible
+			discord.ChannelType.category: 'Categoría',
+			discord.ChannelType.news: 'Canal de noticias',
+			discord.ChannelType.stage_voice: 'Escenario',
+			discord.ChannelType.news_thread: 'Hilo de noticias',
+			discord.ChannelType.public_thread: 'Hilo público',
+			discord.ChannelType.private_thread: 'Hilo privado',
+			discord.ChannelType.forum: 'Foro'
 		}
 
+		(embed
+			.add_field(name='Nombre', value=str(channel))
+			.add_field(name='ID', value=channel.id)
+			.add_field(name='Fecha de creación', value=created_at)
+			.add_field(name='Tipo de canal', value=types[channel.type])
+		)
+
+		# Discord.py API is so dumb that I just have to spam type: ignore
+		data_dict = {}
+
 		if channel.type in (discord.ChannelType.text, discord.ChannelType.news):
+			thread_hide = core.fix_delta(
+				timedelta(minutes=channel.default_auto_archive_duration), # type: ignore
+				compact=False
+			)
+			slowmode = core.fix_delta(
+				timedelta(seconds=channel.slowmode_delay), # type: ignore
+				compact=False
+			)
 			data_dict.update({
-				'Posición': f'{channel.position+1} de {len(interaction.guild.text_channels)}',
-				'Categoría': channel.category,
-				'Cantidad de hilos activos': len(channel.threads),
-				'Hilos se ocultan después de:': core.fix_delta(timedelta(minutes=channel.default_auto_archive_duration), compact=False),
-				'Tema': channel.topic,
-				'Slowmode': core.fix_delta(timedelta(seconds=channel.slowmode_delay), compact=False),
-				'Miembros que pueden ver el canal': f'{len(channel.members)} de {len(interaction.guild.members)}',
-				'Es NSFW': core.bools[channel.nsfw]
+				'Posición': f'{channel.position+1} de {len(guild.text_channels)}', # type: ignore
+				'Categoría': channel.category, # type: ignore
+				'Cantidad de hilos activos': len(channel.threads), # type: ignore
+				'Hilos se ocultan después de:': thread_hide,
+				'Tema': channel.topic, # type: ignore
+				'Slowmode': slowmode,
+				'Miembros que pueden ver el canal': 
+					f'{len(channel.members)} de {len(interaction.guild.members)}', # type: ignore
+				'Es NSFW': core.bools[channel.nsfw] # type: ignore
 			})
 
 		elif channel.type in (discord.ChannelType.news_thread, discord.ChannelType.public_thread, discord.ChannelType.private_thread):
+			slowmode = core.fix_delta(
+				timedelta(seconds=channel.slowmode_delay), # type: ignore
+				compact=False
+			)
 			data_dict.update({
-				'Categoría': channel.category,
-				'Archivado': core.bools[channel.archived],
-				'Bloqueado': core.bools[channel.locked],
-				'Dueño': str(channel.owner),
-				'Canal principal': str(channel.parent),
-				'Slowmode': core.fix_delta(timedelta(seconds=channel.slowmode_delay), compact=False),
+				'Categoría': channel.category, # type: ignore
+				'Archivado': core.bools[channel.archived], # type: ignore
+				'Bloqueado': core.bools[channel.locked], # type: ignore
+				'Dueño': str(channel.owner), # type: ignore
+				'Canal principal': str(channel.parent), # type: ignore
+				'Slowmode': slowmode,
 			})
 
 		elif channel.type == discord.ChannelType.stage_voice:
+			user_count = (
+				f'{len(channel.members)} usuarios\n' # type: ignore
+				f'{len(channel.speakers)} oradores\n' # type: ignore
+				f'{len(channel.listeners)} oyentes\n' # type: ignore
+				f'{len(channel.moderators)} moderadores\n' # type: ignore
+				f'{len(channel.requesting_to_speak)} solicitudes para hablar' # type: ignore
+			) if channel.members else None # type: ignore
+
 			data_dict.update({
 				'Posición': f'{channel.position+1} de {len(interaction.guild.stage_channels)}',
 				'Categoría': channel.category,
-				'Es NSFW': core.bools[channel.nsfw],
-				'Bitrate': f'{channel.bitrate//1000}kbps',
-				'Límite de usuarios': channel.user_limit if channel.user_limit != 0 else 'Sin límite',
-				'Cantidad de usuarios en el canal': f'{len(channel.members)} usuarios\n{len(channel.speakers)} oradores\n{len(channel.listeners)} oyentes\n{len(channel.moderators)} moderadores\n{len(channel.requesting_to_speak)} solicitudes para hablar' if channel.members != [] else None,
+				'Es NSFW': core.bools[channel.nsfw], # type: ignore
+				'Bitrate': f'{channel.bitrate//1000}kbps', # type: ignore
+				'Límite de usuarios':
+					channel.user_limit if channel.user_limit != 0 else 'Sin límite', # type: ignore
+				'Cantidad de usuarios en el canal': user_count,
 			})
 
 		elif channel.type == discord.ChannelType.forum:
+			thread_hide = core.fix_delta(
+				timedelta(minutes=channel.default_auto_archive_duration), # type: ignore
+				compact=False
+			)
+			layout = {
+				discord.ForumLayoutType.not_set: 'Sin seleccionar',
+				discord.ForumLayoutType.list_view: 'Vista de lista',
+				discord.ForumLayoutType.gallery_view: 'Vista de galería'
+			}[channel.default_layout] # type: ignore
+
 			data_dict.update({
 				'Posición': f'{channel.position+1} de {len(interaction.guild.text_channels)}',
 				'Categoría': channel.category,
-				'Cantidad de hilos activos': len(channel.threads),
-				'Emoji de reacción por defecto': channel.default_reaction_emoji,
-				'Hilos se ocultan después de:': core.fix_delta(timedelta(minutes=channel.default_auto_archive_duration), compact=False),
-				'Layout': {
-					discord.ForumLayoutType.not_set: 'Sin seleccionar',
-					discord.ForumLayoutType.list_view: 'Vista de lista',
-					discord.ForumLayoutType.gallery_view: 'Vista de galería'
-				}[channel.default_layout],
-				'Slowmode': core.fix_delta(timedelta(seconds=channel.slowmode_delay), compact=False),
-				'Es NSFW': core.bools[channel.nsfw],
+				'Cantidad de hilos activos': len(channel.threads), # type: ignore
+				'Emoji de reacción por defecto': channel.default_reaction_emoji, # type: ignore
+				'Hilos se ocultan después de:': thread_hide,
+				'Layout': layout,
+				'Slowmode':
+					core.fix_delta(timedelta(seconds=channel.slowmode_delay), compact=False), # type: ignore
+				'Es NSFW': core.bools[channel.nsfw], # type: ignore
 			})
 
 		elif channel.type == discord.ChannelType.voice:
+			if channel.members: # type: ignore
+				user_count = f'{len(channel.members)} de {len(interaction.guild.members)}' # type: ignore
+			else:
+				user_count = None
+
 			data_dict.update({
 				'Posición': f'{channel.position+1} de {len(interaction.guild.voice_channels)}',
 				'Categoría': channel.category,
-				'Bitrate': f'{channel.bitrate//1000}kbps',
-				'Límite de usuarios': channel.user_limit if channel.user_limit != 0 else 'Sin límite',
-				'Cantidad de usuarios en el canal': f'{len(channel.members)} de {len(interaction.guild.members)}' if channel.members != [] else None,
+				'Bitrate': f'{channel.bitrate//1000}kbps', # type: ignore
+				'Límite de usuarios':
+					channel.user_limit if channel.user_limit != 0 else 'Sin límite', # type: ignore
+				'Cantidad de usuarios en el canal': user_count,
 			})
 
 		elif channel.type == discord.ChannelType.category:
+			channel_count = (
+				f'De texto: {len(channel.text_channels)}\n' # type: ignore
+				f'De voz: {len(channel.voice_channels)}\n' # type: ignore
+				f'Total: {len(channel.channels)}' # type: ignore
+			)
+
 			data_dict.update({
 				'Posición': f'{channel.position+1} de {len(interaction.guild.channels)}',
-				'Es NSFW': core.bools[channel.nsfw],
-				'Cantidad de canales': f'De texto: {len(channel.text_channels)}\nDe voz: {len(channel.voice_channels)}\nTotal: {len(channel.channels)}'
+				'Es NSFW': core.bools[channel.nsfw], # type: ignore
+				'Cantidad de canales': channel_count
 			})
 
-		embed = discord.Embed(title='Información del canal', colour=db.default_color(interaction))
 		embed = core.add_fields(embed, data_dict)
 		await interaction.response.send_message(embed=embed)
 
@@ -864,45 +1010,104 @@ class Util(commands.Cog):
 	async def serverinfo(self, interaction: discord.Interaction):
 		"""Obtiene la información de este servidor"""
 		guild = interaction.guild
-		data_dict = {
-			'Nombre': guild.name,
-			'ID': guild.id,
-			'Fecha de creación~': core.fix_date(guild.created_at, elapsed=True),
-			'Límite AFK': core.fix_delta(timedelta(seconds=guild.afk_timeout), compact=False),
-			'Canal AFK': guild.afk_channel.mention if guild.afk_channel is not None else None,
-			'Canal de mensajes del sistema': guild.system_channel.mention if guild.system_channel is not None else None,
-			'Dueño': guild.owner.mention,
-			'Máximo de miembros': guild.max_members,
-			'Descripción': guild.description,
-			'Autenticación de 2 factores': core.bools[bool(guild.mfa_level)],
-			'Nivel de verificación~': {
-				discord.VerificationLevel.none: 'Ninguno',
-				discord.VerificationLevel.low: 'Bajo: Los miembros deben tener un email verificado en su cuenta',
-				discord.VerificationLevel.medium: 'Medio: Los miembros deben tener un email verificado y estar registrados por más de 5 minutos',
-				discord.VerificationLevel.high: 'Alto: Los miembros deben tener un email verificado, estar registrados por más de 5 minutos y estar en el servidor por más de 10 minutos',
-				discord.VerificationLevel.highest: 'Muy alto: Los miembros deben tener un teléfono verificado en su cuenta'
-			}[guild.verification_level],
-			'Filtro de contenido explícito~': {
-				discord.ContentFilter.disabled: 'Deshabilitado',
-				discord.ContentFilter.no_role: 'Analizar el contenido multimedia de los miembros sin rol',
-				discord.ContentFilter.all_members: 'Analizar el contenido multimedia de todos los miembros'
-			}[guild.explicit_content_filter],
-			'Nivel NSFW~': {
-				discord.NSFWLevel.default: 'Por defecto: El servidor aún no ha sido categorizado',
-				discord.NSFWLevel.safe: 'Seguro: El servidor no tiene contenido NSFW',
-				discord.NSFWLevel.explicit: 'Explícito: El servidor tiene contenido NSFW',
-				discord.NSFWLevel.age_restricted: 'Restringido por edad: El servidor podría tener contenido NSFW'
-			}[guild.nsfw_level],
-			'Características~': ', '.join((f'`{feature}`' for feature in guild.features)),
-			'Número de canales': f'De texto: {len(guild.text_channels)}\nDe voz: {len(guild.voice_channels)}\nEscenarios: {len(guild.stage_channels)}\nForos: {len(guild.forums)}\nCategorías: {len(guild.categories)}\nTotal: {len(guild.channels)}',
-			'Cantidad de miembros': f'Usuarios: {len(tuple(filter(lambda x: not x.bot, guild.members)))}\nBots: {len(tuple(filter(lambda x: x.bot, guild.members)))}\nTotal: {len(guild.members)}',
-			'Cantidad de roles': len(guild.roles)
-		}
+		assert guild is not None
 
-		embed = discord.Embed(title='Información del servidor', colour=db.default_color(interaction))
-		if str(guild.icon.url) != '':
+		embed = discord.Embed(
+			title='Información del servidor',
+			colour=db.default_color(interaction)
+		)
+
+		if guild.icon:
 			embed.set_thumbnail(url=guild.icon.url)
-		embed = core.add_fields(embed, data_dict)
+
+		created_at = core.fix_date(guild.created_at, elapsed=True)
+		afk_limit = core.fix_delta(
+			timedelta(seconds=guild.afk_timeout),
+			compact=False
+		)
+
+		if guild.afk_channel:
+			afk_channel = guild.afk_channel.mention
+		else:
+			afk_channel = 'Ninguno'
+
+		if guild.system_channel:
+			system_channel = guild.system_channel.mention
+		else:
+			system_channel = 'Ninguno'
+
+		mfa = core.bools[guild.mfa_level == discord.MFALevel.require_2fa]
+
+		verification_level = {
+			discord.VerificationLevel.none: 'Ninguno',
+			discord.VerificationLevel.low:
+				'Bajo: Los miembros deben tener un email verificado en su cuenta',
+			discord.VerificationLevel.medium:
+				'Medio: Los miembros deben tener un email verificado '
+				'y estar registrados por más de 5 minutos',
+			discord.VerificationLevel.high:
+				'Alto: Los miembros deben tener un email verificado, estar registrados '
+				'por más de 5 minutos y estar en el servidor por más de 10 minutos',
+			discord.VerificationLevel.highest:
+				'Muy alto: Los miembros deben tener un teléfono verificado en su cuenta'
+		}[guild.verification_level]
+
+		content_filter = {
+			discord.ContentFilter.disabled: 'Deshabilitado',
+			discord.ContentFilter.no_role:
+				'Analizar el contenido multimedia de los miembros sin rol',
+			discord.ContentFilter.all_members:
+				'Analizar el contenido multimedia de todos los miembros'
+		}[guild.explicit_content_filter]
+
+		nsfw_level = {
+			discord.NSFWLevel.default:
+				'Por defecto: El servidor aún no ha sido categorizado',
+			discord.NSFWLevel.safe:
+				'Seguro: El servidor no tiene contenido NSFW',
+			discord.NSFWLevel.explicit:
+				'Explícito: El servidor tiene contenido NSFW',
+			discord.NSFWLevel.age_restricted:
+				'Restringido por edad: El servidor podría tener contenido NSFW'
+		}[guild.nsfw_level]
+
+		features = ', '.join([f'`{feature}`' for feature in guild.features])
+
+		channel_count = (
+			f'De texto: {len(guild.text_channels)}\n'
+			f'De voz: {len(guild.voice_channels)}\n'
+			f'Escenarios: {len(guild.stage_channels)}\n'
+			f'Foros: {len(guild.forums)}\n'
+			f'Categorías: {len(guild.categories)}\n'
+			f'Total: {len(guild.channels)}'
+		)
+
+		member_count = (
+			f'Usuarios: {len(tuple(filter(lambda x: not x.bot, guild.members)))}\n'
+			f'Bots: {len(tuple(filter(lambda x: x.bot, guild.members)))}\n'
+			f'Total: {len(guild.members)}'
+		)
+
+		(embed
+			.add_field(name='Nombre', value=guild.name)
+			.add_field(name='ID', value=guild.id)
+			.add_field(name='Fecha de creación', value=created_at, inline=False)
+			.add_field(name='Límite AFK', value=afk_limit)
+			.add_field(name='Canal AFK', value=afk_channel)
+			.add_field(name='Canal de mensajes del sistema', value=system_channel)
+			.add_field(name='Dueño', value=guild.owner.mention if guild.owner else 'Ninguno')
+			.add_field(name='Límite de miembros', value=guild.max_members)
+			.add_field(name='Descripción', value=guild.description)
+			.add_field(name='Autenticación de 2 factores', value=mfa)
+			.add_field(name='Nivel de verificación', value=verification_level, inline=False)
+			.add_field(name='Filtro de contenido explícito', value=content_filter, inline=False)
+			.add_field(name='Nivel NSFW', value=nsfw_level, inline=False)
+			.add_field(name='Características', value=features, inline=False)
+			.add_field(name='Cantidad de canales', value=channel_count)
+			.add_field(name='Cantidad de miembros', value=member_count)
+			.add_field(name='Cantidad de roles', value=len(guild.roles))
+		)
+
 		await interaction.response.send_message(embed=embed)
 
 
