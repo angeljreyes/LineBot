@@ -918,27 +918,45 @@ class Util(commands.Cog):
 		to_count
 			Palabra que contar en el texto. Dejar vacío para contar cualquier palabra o carácter
 		"""
-		count = text.count(to_count)
-		embed = discord.Embed(title='Contador de palabras', colour=db.default_color(interaction))
+		embed = discord.Embed(
+			title='Contador de palabras',
+			colour=db.default_color(interaction)
+		)
+		WORD = r'\w+'
+
 		if to_count is None:
-			data_dict = {
-				'Cantidad de caracteres': len(text),
-				'Cantidad de palabras': len(findall(r'[A-Za-z]+', text))
-			}
+			count = len(text)
+			(embed
+				.add_field(name='Cantidad de caracteres', value=count)
+				.add_field(name='Cantidad de palabras', value=len(findall(WORD, text)))
+			)
 
 		else:
-			if to_count.startswith(' ') or to_count.endswith(' '):
-				to_count = f'"{to_count}"'
-			data_dict = {
-				'Palabras a contar~': to_count,
-				'Caracteres que coinciden': f'{len(to_count*count)} de {len(text)}\n{round(100 / (len(text) / len(to_count*count)), 4) if count > 0 else 0}%'
-			}
+			if to_count.startswith('"') and to_count.endswith('"'):
+				to_count = to_count[1:-1]
+
+			count = text.count(to_count)
+
+			matching_chars = len(to_count) * count
+			text_len = len(text)
+			chars_percent = round(100 / (text_len / matching_chars), 4) if count > 0 else 0
+
+			(embed
+				.add_field(name='Término a contar', value=f'"{to_count}"', inline=False)
+				.add_field(
+					name='Caracteres que coinciden',
+					value=f'{matching_chars} de {text_len}\n{chars_percent}%'
+				)
+			)
+
 			if len(to_count) > 1:
-				spaced_count = len(findall(r'[^A-Za-z]' + to_count + r'[^A-Za-z]', text))
-				data_dict.update({
-					'Palabras que coinciden': f'{spaced_count} de {len(text.split(" "))}\n{round(100 / (len(text.split(" ")) / spaced_count), 4) if spaced_count > 0 else 0}%',
-				})
-		embed = core.add_fields(embed, data_dict)
+				all_word_count = len(findall(WORD, text))
+				word_percent = round(100 / (all_word_count / count), 4) if count > 0 else 0
+				embed.add_field(
+					name='Palabras que coinciden',
+					value=f'{count} de {all_word_count}\n{word_percent}%'
+				)
+
 		await interaction.response.send_message(embed=embed)
 
 
