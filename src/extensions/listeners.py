@@ -25,7 +25,7 @@ class Listeners(commands.Cog):
 						error_msg = 'El mensaje supera los 2000 caracteres'
 				
 				case commands.CommandNotFound():
-					error_msg = None
+					error_msg = ''
 
 				case commands.BadArgument():
 					if 'Member' in note:
@@ -76,7 +76,7 @@ class Listeners(commands.Cog):
 							error_msg = message
 
 				case exceptions.DisabledTagsError():
-					error_msg = None
+					error_msg = ''
 				
 				case exceptions.ExistentTagError():
 					error_msg = 'Este tag ya existe'
@@ -99,25 +99,25 @@ class Listeners(commands.Cog):
 						error_msg = 'Este servidor no tiene tags'
 
 				# If the error remains unidentified, send a generic error message
-				case _:
-					embed = discord.Embed(
-						title=f'Ha ocurrido un error',
-						description=f'```py\n{repr(error)}\n```',
-						colour=db.default_color(interaction)
-					).set_author(
-						name=interaction.user.name,
-						icon_url=interaction.user.display_avatar.url
-					).set_footer(text='Este error ha sido notificado y será investigado para su posterior correción.')
-					if not interaction.response.is_done():
-						await interaction.response.send_message(embed=embed, ephemeral=True)
-					else:
-						await interaction.edit_original_response(content=None, embed=embed, attachments=[], view=None)
-						await (await interaction.original_response()).clear_reactions()
-					core.logger.error('An error has ocurred', exc_info=error)
-					return
+			if error_msg is None:
+				embed = discord.Embed(
+					title=f'Ha ocurrido un error',
+					description=f'```py\n{repr(error)}\n```',
+					colour=db.default_color(interaction)
+				).set_author(
+					name=interaction.user.name,
+					icon_url=interaction.user.display_avatar.url
+				).set_footer(text='Este error ha sido notificado y será investigado para su posterior correción.')
+				if not interaction.response.is_done():
+					await interaction.response.send_message(embed=embed, ephemeral=True)
+				else:
+					await interaction.edit_original_response(content=None, embed=embed, attachments=[], view=None)
+					await (await interaction.original_response()).clear_reactions()
+				core.logger.error('An error has ocurred', exc_info=error)
+				return
 
 			# If the error message is an empty string, don't do anything
-			if error_msg is None:
+			if not error_msg:
 				return
 
 			try:
