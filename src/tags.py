@@ -1,6 +1,7 @@
 from typing import Self, cast
 
 import discord
+from discord.ext import commands
 
 import db
 import exceptions
@@ -65,7 +66,7 @@ class Tag:
 		)
 
 
-async def tag_check(interaction: discord.Interaction) -> None:
+async def tag_check(interaction: discord.Interaction[commands.Bot]) -> None:
 	if interaction.guild is None:
 		raise Exception('The developer missed a guild_only check :(')
 	

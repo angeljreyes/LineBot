@@ -185,24 +185,27 @@ def config_commands(bot: commands.Bot) -> None:
 
 
 async def fetch_app_command(
-		interaction: discord.Interaction,
+		interaction: discord.Interaction[commands.Bot],
 		command: str,
-	) -> app_commands.AppCommand | None:
-	stack = command.split(' ')
-	stack.reverse()
-	commands: list[app_commands.AppCommand] = await interaction.client.tree.fetch_commands(guild=get_bot_guild(interaction))
+	) -> app_commands.AppCommand | app_commands.AppCommandGroup:
+	names = command.split(' ')
+	commands = await interaction.client.tree.fetch_commands(guild=get_bot_guild(interaction))
 
-	while stack:
-		curr = stack.pop()
-		for command in commands:
-			if command.name == curr:
-				if (command.options and
-					isinstance(command.options[0], app_commands.AppCommandGroup)):
-					commands = command.options
-					break
-				return command
+	subcmd = None
+	curr_cmds = commands
+	for name in names:
+		for subcmd in curr_cmds:
+			if isinstance(subcmd, app_commands.Argument):
+				raise KeyError(f'Parent command of "{subcmd.name}" is not a command group')
+			if subcmd.name == name:
+				curr_cmds = subcmd.options
+				break
+		else:
+			subcmd = None
 
-	return None
+	if subcmd is None:
+		raise KeyError(f'Command "{command}" not found')
+	return subcmd
 
 
 def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True) -> str:
