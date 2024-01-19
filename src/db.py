@@ -1,6 +1,5 @@
 from random import choice
 from sqlite3 import connect
-from pathlib import Path
 
 import discord
 
@@ -34,11 +33,15 @@ def default_color(interaction: discord.Interaction) -> int | discord.Color:
 	return int(color[0])
 
 
-def check_blacklist(interaction: discord.Interaction, user=None, raises=True) -> bool:
-	user = interaction.user if user is None else user
+def check_blacklist(
+		interaction: discord.Interaction,
+		user: discord.abc.User | None = None,
+		raises=True
+	) -> bool:
+	user = user or interaction.user
 	cursor.execute("SELECT user FROM blacklist WHERE user=?", (user.id,))
-	check = cursor.fetchall()
-	if check == []:
+	check: tuple[int] | None = cursor.fetchone()
+	if check is None:
 		return True
 	if raises:
 		raise exceptions.BlacklistUserError('This user is in the blacklist')
