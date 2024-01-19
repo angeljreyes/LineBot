@@ -3,7 +3,7 @@ import tomllib
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, TypeVar
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 
 import discord
 from discord import app_commands
@@ -165,23 +165,43 @@ def get_bot_guild(interaction: discord.Interaction) -> discord.Guild | None:
 
 def owner_only():
 	def predicate(interaction: discord.Interaction) -> bool:
-		if interaction.user.id == interaction.client.application.owner.id:
-			return True
-		else:
+		app = interaction.client.application
+		if app is None or interaction.user != app.owner:
 			raise exceptions.NotOwner()
+		return True
+
 	return app_commands.check(predicate)
+
+
+def for_each_app_command(
+		func: Callable[[app_commands.Command | app_commands.ContextMenu], None],
+		command: app_commands.Command | app_commands.Group | app_commands.ContextMenu,
+		*,
+		ignore_ctx_menu=False
+	) -> None:
+	# We do a little DFS
+	if isinstance(command, app_commands.Group):
+		for subcommand in command.commands:
+			for_each_app_command(func, subcommand)
+		return
+
+	elif ignore_ctx_menu and isinstance(command, app_commands.ContextMenu):
+		return
+
+	func(command)
 
 
 def config_commands(bot: commands.Bot) -> None:
 	if not bot_guilds:
 		return
 
-	for command in bot.tree.get_commands(guild=bot_guilds[0]):
-		if isinstance(command, app_commands.Group):
-			for subcommand in command.commands:
-				subcommand.add_check(db.check_blacklist)
-		else:
-			command.add_check(db.check_blacklist)
+	if isinstance(bot_guilds, Missing):
+		guild = None
+	else:
+		guild = bot_guilds[0]
+
+	for command in bot.tree.get_commands(guild=guild):
+		for_each_app_command(lambda cmd: cmd.add_check(db.check_blacklist), command)
 
 
 async def fetch_app_command(
