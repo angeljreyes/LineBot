@@ -12,7 +12,7 @@ RawTag = tuple[int, int, str, str, int]
 
 
 class Tag:
-	__slots__ = ('interaction', 'guild', 'user', 'name', 'content', 'img', 'nsfw')
+	__slots__ = ('interaction', 'guild', 'user', 'name', 'content', 'nsfw')
 
 	def __init__(self, interaction: discord.Interaction, guild_id: int, user_id: int, name: str, content: str, nsfw: bool):
 		self.interaction = interaction
