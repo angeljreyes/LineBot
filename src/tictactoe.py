@@ -1,7 +1,8 @@
-import discord
 import asyncio
 from random import choice
 from typing import cast
+
+import discord
 
 import core
 
