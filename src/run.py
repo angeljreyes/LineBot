@@ -33,8 +33,9 @@ class LineBot(commands.Bot):
 
 		# Add descriptions to the commands from the core.descs dict and syncs the commands
 		core.config_commands(self)
-		for guild in core.bot_guilds:
-			await self.tree.sync(guild=guild)
+		if not isinstance(core.bot_guilds, core.Missing):
+			for guild in core.bot_guilds:
+				await self.tree.sync(guild=guild)
 
 # Set the intents
 intents = discord.Intents.all()
@@ -47,7 +48,7 @@ intents.message_content = False
 
 bot = LineBot(command_prefix=[], help_command=None, intents=intents)
 
-@bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds)
+@bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds) # type: ignore
 @app_commands.checks.cooldown(1, 15)
 async def tictactoe_context(interaction: discord.Interaction, user: discord.Member) -> None:
 	if not user.bot:
