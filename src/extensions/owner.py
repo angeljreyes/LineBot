@@ -1,8 +1,8 @@
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Sequence
 from math import floor
 from re import findall
-from timeit import default_timer as timer
-from typing import Any, cast
+from time import perf_counter
+from typing import Any
 
 import discord
 from discord import app_commands
@@ -10,6 +10,10 @@ from discord.ext import commands
 
 import core
 import db
+from exceptions import EvalReturn
+
+
+evalcmd: Callable[[discord.Interaction], Awaitable[Any]] | None = None
 
 
 class Owner(commands.Cog):
@@ -43,14 +47,22 @@ class Owner(commands.Cog):
 
 
 	# eval
-	@app_commands.command()
+	@app_commands.command(name='eval')
 	@core.owner_only()
-	async def eval(self,
-		interaction: discord.Interaction,
+	async def eval_(
+		self,
+		interaction: discord.Interaction[commands.Bot],
 		ephemeral: bool = False,
-		silent: bool = False
+		silent: bool = False,
+		expression: bool = True
 	):
 		"""Ejecuta código"""
+		global evalcmd
+		global _return
+		INDENT = ' ' * 4
+		def _return(value: Any) -> None:
+			raise EvalReturn(value)
+
 		class CodeModal(discord.ui.Modal, title='Eval'):
 			answer = discord.ui.TextInput(label='Código', style=discord.TextStyle.paragraph)
 
@@ -58,63 +70,61 @@ class Owner(commands.Cog):
 				super().__init__()
 				self.bot = bot
 
-			async def on_submit(self, interaction:discord.Interaction):
-				await interaction.response.defer(ephemeral=ephemeral or silent, thinking=True)
-				code = self.answer.value
-				if not silent:
-					return_line = findall(r'[^ ].+$', code.splitlines()[-1])[0]
-					code = code[:-(len(return_line))] + f'core.eval_returned_value = {return_line}'
+			async def on_submit(self, sub_interaction: discord.Interaction):
+				global evalcmd
+				global _return
+				return_value: Any | None = None
+				await sub_interaction.response.defer(ephemeral=ephemeral or silent, thinking=True)
 
-				code = ('@self.bot.tree.command()\n'
-						'@core.owner_only()\n'
+				code = self.answer.value
+				code_lines = [INDENT + line for line in code.splitlines()]
+				if not silent and expression:
+					return_line = code_lines.pop()
+					whitespace: str = findall(r'^\s+', return_line)[0]
+					code_lines.append(f'{whitespace}_return({return_line.strip()})')
+				code = '\n'.join(code_lines)
+
+				code = ('global evalcmd\n'
 						'async def evalcmd(interaction):\n'
-						'\t' + code.replace('\n','\n\t'))
+						f'{INDENT}global _return\n'
+						f'{code}')
+
+				start = perf_counter()
 				try:
 					exec(code)
-					start = timer()
-					try:
-						cmd = cast(app_commands.Command, self.bot.tree.get_command('evalcmd'))
-						callback = cast(
-							Callable[[discord.Interaction], Coroutine[Any, Any, Any]],
-							cmd.callback
-						)
-						await callback(interaction)
-					except Exception as e:
-						core.eval_returned_value = e
-					end = timer()
-					if not silent:
-						types = ''
-						returned_value = core.eval_returned_value
-						while True:
-							try:
-								types += str(type(returned_value))
-								if not isinstance(returned_value, str):
-									iter(returned_value) # type: ignore
-								else:
-									raise TypeError
-							except TypeError:
-								break
-							else:
-								try:
-									if len(returned_value) == 0: # type: ignore
-										break
-									returned_value = returned_value[0] # type: ignore
-								except (TypeError, KeyError):
-									returned_value = tuple(returned_value)[0] # type: ignore
+					await evalcmd(sub_interaction) # type: ignore
+				except EvalReturn as e:
+					return_value = e.value
+				except Exception as e:
+					return_value = e
+				end = perf_counter()
 
-						await interaction.followup.send(embed=discord.Embed(
-							title='Resultados del eval',
-							description=f'Tipo de dato y resultado:\n```py\n{types}\n```\n```py\n{core.eval_returned_value}\n```',
-							colour=db.default_color(interaction)
-						).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms'))
-						core.eval_returned_value = None
-					else:
-						await interaction.followup.send(u'\U00002705')
-				finally:
-					try:
-						self.bot.tree.remove_command('evalcmd')
-					except TypeError:
-						pass
+				if silent:
+					await sub_interaction.followup.send(u'\U00002705')
+					return
+
+				types = ''
+				sub_value = return_value
+				if not silent:
+					while True:
+						types += str(type(sub_value))
+						if (isinstance(sub_value, Sequence)
+							and not isinstance(sub_value, str)
+							and len(sub_value)):
+							sub_value = sub_value[0]
+							continue
+						break
+
+				embed = discord.Embed(
+					title='Resultados del eval',
+					description=(
+						f'Tipo de dato y resultado:\n'
+						f'```py\n{types}\n```'
+						f'\n```py\n{return_value}\n```'
+					),
+					colour=db.default_color(sub_interaction)
+				).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms')
+				await sub_interaction.followup.send(embed=embed)
 
 		await interaction.response.send_modal(CodeModal(self.bot))
 

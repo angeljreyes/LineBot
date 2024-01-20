@@ -1,3 +1,4 @@
+from typing import Any
 from discord.app_commands import AppCommandError
 
 
@@ -18,3 +19,9 @@ class ImageNotFound(AppCommandError):
 
 class NotOwner(AppCommandError):
 	pass
+
+class EvalReturn(AppCommandError):
+	def __init__(self, value: Any):
+		super().__init__()
+		self.value = value
+
