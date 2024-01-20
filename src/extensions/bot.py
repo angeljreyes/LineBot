@@ -114,7 +114,7 @@ class About(commands.Cog):
 			new_value = 0
 		else:
 			try:
-				ctx = cast(commands.Context, interaction)
+				ctx = await self.bot.get_context(interaction)
 				new_value = (await commands.ColourConverter().convert(ctx, value)).value
 			except (commands.CommandError, commands.BadArgument):
 				await interaction.response.send_message(core.Warning.error(
