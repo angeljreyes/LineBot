@@ -53,7 +53,10 @@ bot = LineBot(command_prefix=[], help_command=None, intents=intents)
 async def tictactoe_context(interaction: discord.Interaction, user: discord.Member) -> None:
 	if not user.bot:
 		ask_view = core.Confirm(interaction, user)
-		ask_string = f'{user.mention} ¿Quieres unirte a la partida de Tic Tac Toe de **{interaction.user.name}**?' if user.id != interaction.user.id else f'¿Estás tratando de jugar contra ti mismo?'
+		if user == interaction.user:
+			ask_string = '¿Estás tratando de jugar contra ti mismo?'
+		else:
+			ask_string = f'{user.mention} ¿Quieres unirte a la partida de Tic Tac Toe de **{interaction.user.name}**?'
 		await interaction.response.send_message(ask_string, view=ask_view)
 		await ask_view.wait()
 		
