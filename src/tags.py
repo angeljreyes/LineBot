@@ -8,7 +8,7 @@ import exceptions
 import core
 
 
-RawTag = tuple[int, int, str, str, int]
+type RawTag = tuple[int, int, str, str, int]
 
 
 class Tag:

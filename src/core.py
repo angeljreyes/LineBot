@@ -2,7 +2,7 @@ import logging
 import tomllib
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Any, TypeVar
+from typing import Any
 from collections.abc import Callable, Generator
 
 import discord
@@ -13,7 +13,6 @@ import exceptions
 import db
 
 
-T = TypeVar('T')
 Missing = discord.utils._MissingSentinel
 
 CONF_DIR = '../bot_conf.toml'
@@ -278,7 +277,7 @@ def embed_author(embed: discord.Embed, user: discord.abc.User) -> discord.Embed:
 	return embed.set_author(name=user.name, icon_url=user.display_avatar.url)
 
 
-def split_list(lst: list[T], n: int) -> Generator[list[T], None, None]:
+def split_list[T](lst: list[T], n: int) -> Generator[list[T], None, None]:
 	for i in range(0, len(lst), n):
 		yield lst[i : i+n]
 
