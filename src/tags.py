@@ -71,9 +71,9 @@ async def tag_check(interaction: discord.Interaction[commands.Bot]) -> None:
 		raise Exception('The developer missed a guild_only check :(')
 	
 	db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild.id,))
-	check = db.cursor.fetchone()
+	check: tuple[int] | None = db.cursor.fetchone()
 
-	if not check:
+	if check is None:
 		if interaction.channel is None:
 			raise exceptions.DisabledTagsError('Invalid channel')
 

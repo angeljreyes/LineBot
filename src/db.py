@@ -17,9 +17,9 @@ commandstats_commands: list[str] = [command[0] for command in cursor.fetchall()]
 def default_color(interaction: discord.Interaction) -> int | discord.Color:
 	# Check the color of the user in the database
 	cursor.execute("SELECT value FROM colors WHERE id=?", (interaction.user.id,))
-	color: tuple[int] = cursor.fetchone()
+	color: tuple[int] | None = cursor.fetchone()
 
-	if not color:
+	if color is None:
 		if interaction.guild is None:
 			return discord.Color.blue()
 		try:
