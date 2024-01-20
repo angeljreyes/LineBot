@@ -3,25 +3,25 @@ from discord.app_commands import AppCommandError
 
 
 class ExistentTagError(AppCommandError):
-	pass
+    pass
 
 class NonExistentTagError(AppCommandError):
-	pass
+    pass
 
 class DisabledTagsError(AppCommandError):
-	pass
+    pass
 
 class BlacklistUserError(AppCommandError):
-	pass
+    pass
 
 class ImageNotFound(AppCommandError):
-	pass
+    pass
 
 class NotOwner(AppCommandError):
-	pass
+    pass
 
 class EvalReturn(AppCommandError):
-	def __init__(self, value: Any):
-		super().__init__()
-		self.value = value
+    def __init__(self, value: Any):
+        super().__init__()
+        self.value = value
 
