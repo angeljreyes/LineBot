@@ -305,11 +305,11 @@ class Confirm(discord.ui.View):
 		await self._interaction.edit_original_response(view=self)
 		
 	@discord.ui.button(label='Sí', emoji=check_emoji, style=discord.ButtonStyle.green)
-	async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def confirm(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		self.respond(interaction, True)
 
 	@discord.ui.button(label='No', emoji=cross_emoji, style=discord.ButtonStyle.red)
-	async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		self.respond(interaction, False)
 
 	def respond(self, interaction: discord.Interaction, value: bool) -> None:

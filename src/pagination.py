@@ -120,23 +120,23 @@ class Paginator(discord.ui.View):
 
 
 	@discord.ui.button(emoji=core.first_emoji, style=discord.ButtonStyle.blurple, disabled=True)
-	async def first(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def first(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		await self.set_page(interaction, 1)
 
 	@discord.ui.button(emoji=core.back_emoji, style=discord.ButtonStyle.blurple, disabled=True)
-	async def back(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def back(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		await self.set_page(interaction, self.page_num - 1)
 
 	@discord.ui.button(emoji=core.next_emoji, style=discord.ButtonStyle.blurple)
-	async def next(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def next(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		await self.set_page(interaction, self.page_num + 1)
 
 	@discord.ui.button(emoji=core.last_emoji, style=discord.ButtonStyle.blurple)
-	async def last(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def last(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		await self.set_page(interaction, len(self.pages))
 
 	@discord.ui.button(emoji=core.search_emoji, style=discord.ButtonStyle.blurple)
-	async def search(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+	async def search(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
 		total_pages = len(self.pages)
 
 		class SearchModal(discord.ui.Modal, title='Escribe un número de página'):
