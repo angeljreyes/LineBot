@@ -80,7 +80,7 @@ async def main() -> None:
     # Create the event that catches any unknown errors and logs them
     @bot.event
     async def on_error(event: str, *args, **kwargs) -> None:
-        log = f'Ha ocurrido un error. Evento: "{event}"\nargs: {args}\nkwargs: {kwargs}'
+        log = f'An error has ocurred. Event: "{event}"\nargs: {args}\nkwargs: {kwargs}'
         core.logger.error(f'{log}\n{format_exc()}')
 
         if core.error_logging_channel:
@@ -93,7 +93,7 @@ async def main() -> None:
 
             if (error_channel is None
                 or isinstance(error_channel, invalid_channels)):
-                core.logger.error(f'error_logging_channel no es un canal válido')
+                core.logger.error(f'error_logging_channel is not a valid channel')
                 return
 
             if bot.application:

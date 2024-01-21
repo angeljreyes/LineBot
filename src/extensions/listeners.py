@@ -127,12 +127,12 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener('on_ready')
     async def ready(self) -> None:
-        core.logger.info('Bot iniciado')
+        core.logger.info('Bot started')
 
 
     @commands.Cog.listener('on_resumed')
     async def resume(self) -> None:
-        core.logger.info('Sesión resumida')
+        core.logger.info('Current session resumed')
 
 
     @commands.Cog.listener('on_app_command_completion')
@@ -142,9 +142,9 @@ class Listeners(commands.Cog):
             command: app_commands.Command | app_commands.ContextMenu
         ) -> None:
         core.logger.info(
-            f'Se he usado un comando: "{command.name} {interaction.namespace}", '
-            f'servidor "{interaction.guild} <{interaction.guild.id if interaction.guild else "?"}>", '
-            f'canal "{interaction.channel} <{interaction.channel.id if interaction.channel else "?"}>" {interaction.data}'
+            f'A command has been used: "{command.name} {interaction.namespace}", '
+            f'guild "{interaction.guild} <{interaction.guild.id if interaction.guild else "?"}>", '
+            f'channel "{interaction.channel} <{interaction.channel.id if interaction.channel else "?"}>" {interaction.data}'
         )
 
         if core.bot_mode == 'stable':
@@ -164,12 +164,12 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener('on_guild_join')
     async def guild_join_logging(self, guild: discord.Guild) -> None:
-        core.logger.info(f'El bot ha entrado a un servidor: {repr(guild)}')
+        core.logger.info(f'The bot has joined a guild: {repr(guild)}')
 
 
     @commands.Cog.listener('on_guild_remove')
     async def guild_leave_logging(self, guild: discord.Guild) -> None:
-        core.logger.info(f'El bot ha salido de un servidor: {repr(guild)}')
+        core.logger.info(f'The bot has left a guild: {repr(guild)}')
 
 
 async def setup(bot: commands.Bot) -> None:
