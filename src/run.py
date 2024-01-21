@@ -107,7 +107,7 @@ async def main() -> None:
     # Start the bot
     async with bot:
         with open(core.CONF_DIR, 'rb') as f:
-            token = (
+            token: str | None = (
                 tomllib.load(f)
                     .get('token', {})
                     .get(core.bot_mode, None)

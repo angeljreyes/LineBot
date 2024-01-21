@@ -2,7 +2,7 @@ import logging
 import tomllib
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, TypedDict
 from collections.abc import Callable, Generator
 
 import discord
@@ -21,8 +21,44 @@ if not os.path.isfile(CONF_DIR):
     print('The configuration file wasn\'t found. Create one by running setup.py')
     exit(1)
 
+
+class ConfToken(TypedDict):
+    stable: str
+    dev: str
+
+
+class ConfLinks(TypedDict):
+    topgg: str
+    invite: str
+    vote: str
+
+
+class ConfEmoji(TypedDict):
+    check: str
+    cross: str
+    circle: str
+    empty: str
+    first: str
+    back: str
+    next: str
+    last: str
+    search: str
+
+
+class BotConf(TypedDict):
+    dev_mode: bool
+    guilds: list[int]
+    error_channel_id: int
+    links: ConfLinks
+    emoji: ConfEmoji
+
+
+class BotConfPlus(BotConf):
+    token: ConfToken
+
+
 with open(CONF_DIR, 'rb') as f:
-    conf = tomllib.load(f)
+    conf: BotConf = tomllib.load(f) # type: ignore
 
 # For security reasons, tokens are not accesible from core.conf
 # and have to be loaded independently
