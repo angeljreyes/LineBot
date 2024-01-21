@@ -140,6 +140,32 @@ class Listeners(commands.Cog):
     async def ready(self) -> None:
         core.logger.info('Bot started')
 
+        # Set presence
+        presence_conf = core.conf['presence']
+
+        statuses = (discord.Status.online, discord.Status.offline,
+                    discord.Status.dnd, discord.Status.invisible)
+        activities = (None, discord.Game, discord.CustomActivity)
+
+        status_setting = presence_conf['status']
+        if not 0 <= status_setting < len(statuses):
+            status_setting = 0
+
+        activity_setting = presence_conf['activity']
+        if not 0 <= activity_setting < len(activities):
+            activity_setting = 0
+
+        status = statuses[status_setting]
+        activity_type = activities[activity_setting]
+        name = presence_conf['name']
+
+        activity = activity_type(name=name) if activity_type and name else None
+
+        await self.bot.change_presence(
+            status=status,
+            activity=activity
+        )
+
 
     @commands.Cog.listener('on_resumed')
     async def resume(self) -> None:

@@ -9,6 +9,13 @@ error_channel_id = 0
 stable = "" # <---- YOUR TOKEN GOES HERE
 dev = "" # <- or here
 
+[presence]
+status = 0 # 0 = online; 1 = offline; 2 = idle; 3 = dnd; 4 = invisible
+activity = 0 # 0 = None; 1 = Game; 2 = Custom
+name = ""
+# If you want more customization,
+# code your own activity with discord.Activity
+
 [links]
 topgg = ""
 invite = ""

@@ -27,6 +27,12 @@ class ConfToken(TypedDict):
     dev: str
 
 
+class ConfPresence(TypedDict):
+    status:int
+    activity: int
+    name: str
+
+
 class ConfLinks(TypedDict):
     topgg: str
     invite: str
@@ -49,6 +55,7 @@ class BotConf(TypedDict):
     dev_mode: bool
     guilds: list[int]
     error_channel_id: int
+    presence: ConfPresence
     links: ConfLinks
     emoji: ConfEmoji
 
