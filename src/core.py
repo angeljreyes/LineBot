@@ -15,7 +15,7 @@ import db
 
 Missing = discord.utils._MissingSentinel
 
-CONF_DIR = '../bot_conf.toml'
+CONF_DIR = './bot_conf.toml'
 
 if not os.path.isfile(CONF_DIR):
     print('The configuration file wasn\'t found. Create one by running setup.py')

@@ -1,7 +1,11 @@
 import asyncio
 import tomllib
-from os.path import isfile
+import os
 from traceback import format_exc
+
+# If the current working directory is ./src/
+# change it to its parent, the git root directory
+os.chdir(os.getcwd().removesuffix('src'))
 
 from icecream import install
 install() # Set up icecream
@@ -9,7 +13,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-if not isfile('../line.db'):
+if not os.path.isfile('./line.db'):
     print('The database wasn\'t found. Create a databse by running setup.py')
     exit(1)
 import core

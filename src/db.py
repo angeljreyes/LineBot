@@ -7,7 +7,7 @@ import core
 import exceptions
 
 
-conn = connect('../line.db')
+conn = connect('./line.db')
 cursor = conn.cursor()
 
 cursor.execute("SELECT command FROM commandstats")
