@@ -126,11 +126,6 @@ class Listeners(commands.Cog):
                 await interaction.followup.send(core.Warning.error(error_msg))
 
 
-    @commands.Cog.listener('on_connect')
-    async def connect(self) -> None:
-        core.logger.info('Successfully connected to Discord')
-
-
     @commands.Cog.listener('on_disconnect')
     async def disconnect(self) -> None:
         core.logger.info('Client disconnected from Discord')
@@ -165,11 +160,6 @@ class Listeners(commands.Cog):
             status=status,
             activity=activity
         )
-
-
-    @commands.Cog.listener('on_resumed')
-    async def resume(self) -> None:
-        core.logger.info('Current session resumed')
 
 
     @commands.Cog.listener('on_app_command_completion')
