@@ -27,7 +27,7 @@ class Owner(commands.Cog):
     async def die(self, interaction: discord.Interaction):
         """Apaga el bot"""
         await interaction.response.send_message(u'\U0001f480', ephemeral=True)
-        print('\nBot apagado')
+        core.logging.info('Trying to end execution through /die command')
         try:
             await self.bot.close()
         except RuntimeError:

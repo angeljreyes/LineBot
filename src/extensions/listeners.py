@@ -125,6 +125,17 @@ class Listeners(commands.Cog):
             except discord.InteractionResponded:
                 await interaction.followup.send(core.Warning.error(error_msg))
 
+
+    @commands.Cog.listener('on_connect')
+    async def connect(self) -> None:
+        core.logger.info('Successfully connected to Discord')
+
+
+    @commands.Cog.listener('on_disconnect')
+    async def disconnect(self) -> None:
+        core.logger.info('Client disconnected from Discord')
+
+
     @commands.Cog.listener('on_ready')
     async def ready(self) -> None:
         core.logger.info('Bot started')
