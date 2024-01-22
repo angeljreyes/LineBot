@@ -11,7 +11,6 @@ from scraper import scrape
 import core
 import pagination
 import db
-import tags
 
 
 class Util(commands.Cog):
