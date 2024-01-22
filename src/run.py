@@ -29,7 +29,7 @@ class LineBot(commands.Bot):
             'bot',
             'modtxt',
             'util',
-            'tags',
+            'tag',
             'fun',
             'owner',
             'image'
