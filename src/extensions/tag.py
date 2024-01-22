@@ -90,7 +90,7 @@ class TagsCog(
                 )
                 content = core.Warning.success(
                     'Se activaron los tags en este servidor'
-                ),
+                )
 
             else:
                 content = core.Warning.cancel(
