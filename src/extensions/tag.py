@@ -224,7 +224,8 @@ class TagsCog(
             ctx = await self.bot.get_context(interaction)
             content = core.Warning.success(
                 f'El tag **{await commands.clean_content().convert(ctx, tag.name)}** '
-                'ha sido regalado a {tag.user.name} por parte de {interaction.user.name}'
+                f'ha sido regalado a **{tag.user.name}** por '
+                f'parte de **{interaction.user.name}**'
             )
 
         else:
