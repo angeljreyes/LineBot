@@ -421,6 +421,7 @@ class Util(commands.Cog):
 
     # someone
     @app_commands.checks.cooldown(3, 10)
+    @commands.guild_only()
     @app_commands.command()
     @app_commands.rename(mention='mencionar')
     async def someone(self, interaction: discord.Interaction, mention: bool = False):
@@ -429,6 +430,9 @@ class Util(commands.Cog):
         mention
             Determina si mencionar o no al usuario. Requiere permiso para hacer @everyone
         """
+        assert (isinstance(interaction.user, discord.Member)
+                and isinstance(interaction.guild, discord.Guild)
+                and interaction.channel is not None)
         if mention and interaction.channel.permissions_for(interaction.user).mention_everyone:
             await interaction.response.send_message(choice(interaction.guild.members).mention)
         else:
