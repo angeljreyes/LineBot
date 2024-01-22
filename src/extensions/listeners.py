@@ -75,8 +75,15 @@ class Listeners(commands.Cog):
                         if error_note in note:
                             error_msg = message
 
-                case exceptions.DisabledTagsError():
-                    error_msg = ''
+                case exceptions.DisabledTagsError(ctx=ctx):
+                    member = ctx.member
+                    has_permission = ctx.channel.permissions_for(member).manage_guild
+                    toggle_command = await core.fetch_app_command(ctx.interaction, 'tag toggle')
+                    error_msg = core.Warning.info(
+                        'Los tags están desactivados en este servidor. ' +
+                        ('Actívalos ' if has_permission else 'Pídele a un administrador que los active ') +
+                        f'con el comando {toggle_command.mention}'
+                    )
                 
                 case exceptions.ExistentTagError():
                     error_msg = 'Este tag ya existe'

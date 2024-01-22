@@ -13,24 +13,24 @@ type RawTag = tuple[int, int, str, str, int]
 
 
 class Tag:
-    __slots__ = ('interaction', 'guild', 'user', 'name', 'content', 'nsfw')
+    __slots__ = ('ctx', 'guild', 'user', 'name', 'content', 'nsfw')
 
-    def __init__(self, interaction: discord.Interaction, guild_id: int, user_id: int, name: str, content: str, nsfw: bool):
-        self.interaction = interaction
+    def __init__(self, ctx: 'TagContext', guild_id: int, user_id: int, name: str, content: str, nsfw: bool):
+        self.ctx = ctx
 
-        guild = interaction.client.get_guild(guild_id)
+        guild = ctx.interaction.client.get_guild(guild_id)
         if guild is None:
             raise KeyError('Invalid guild')
         self.guild = guild
 
-        user = interaction.client.get_user(user_id)
+        user = ctx.interaction.client.get_user(user_id)
         if user is None:
             raise KeyError('Invalid user')
         self.user = user
 
         self.name = name
         self.content = content
-        self.nsfw = bool(nsfw)
+        self.nsfw = nsfw
 
     def __str__(self) -> str:
         return self.name
@@ -56,9 +56,9 @@ class Tag:
         db.conn.commit()
 
     @classmethod
-    def from_db(cls, interaction: discord.Interaction, data: RawTag) -> Self:
+    def from_db(cls, ctx: 'TagContext', data: RawTag) -> Self:
         return cls(
-            interaction,
+            ctx,
             guild_id=data[0],
             user_id=data[1],
             name=data[2],
@@ -67,95 +67,80 @@ class Tag:
         )
 
 
-async def tag_check(interaction: discord.Interaction[commands.Bot]) -> None:
-    if interaction.guild is None:
-        raise Exception('The developer missed a guild_only check :(')
-    
-    db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild.id,))
-    check: tuple[int] | None = db.cursor.fetchone()
+class TagSafeInteraction:
+    def __init__(self, interaction: discord.Interaction[commands.Bot]):
+        # Bunch of conditions to get rid of type checking errors
+        if (interaction.channel is None
+            or isinstance(interaction.channel, discord.abc.PrivateChannel)
+            or isinstance(interaction.user, discord.User)
+            or interaction.guild is None
+            or interaction.guild_id is None
+            or interaction.guild.id is None):
+            raise commands.NoPrivateMessage()
 
-    if check is None:
-        if interaction.channel is None:
-            raise exceptions.DisabledTagsError('Invalid channel')
-
-        member = cast(discord.Member, interaction.user)
-        has_permission = interaction.channel.permissions_for(member).manage_guild
-        toggle_command = await core.fetch_app_command(interaction, 'tag toggle')
-
-        if toggle_command is not None:
-            await interaction.response.send_message(core.Warning.info(
-                'Los tags están desactivados en este servidor. ' +
-                ('Actívalos ' if has_permission else 'Pídele a un administrador que los active ') +
-                f'con el comando {toggle_command.mention}'
-            ))
-
-        raise exceptions.DisabledTagsError('Tags are not enabled on this guild')
+        self.interaction = interaction
+        self.channel = interaction.channel
+        self.member = interaction.user
+        self.guild = interaction.guild
+        self.guild_id = interaction.guild_id
 
 
-def add_tag(interaction: discord.Interaction, name: str, content: str, nsfw: bool) -> None:
-    if interaction.guild is None:
-        raise Exception('The developer missed a guild_only check :(')
-        
-    db.cursor.execute("INSERT INTO tags VALUES(?,?,?,?,?)", (interaction.guild.id, interaction.user.id, name, content, int(nsfw)))
-    db.conn.commit()
+class TagContext(TagSafeInteraction):
+    def __init__(self, interaction: discord.Interaction[commands.Bot], *, bypass=False):
+        super().__init__(interaction)
+        db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (self.guild.id,))
+        check: tuple[int] | None = db.cursor.fetchone()
+        if check is None and not bypass:
+            raise exceptions.DisabledTagsError('Tags are not enabled on this guild', ctx=self)
 
 
-def check_tag_name(interaction: discord.Interaction, tag_name: str) -> None:
-    for char in tag_name:
-        if char in (' ', '_', '~', '*', '`', '|', ''):
-            raise ValueError('Invalid characters detected')
-    if tag_name in [tag.name for tag in get_guild_tags(interaction)]:
-        raise exceptions.ExistentTagError(f'Tag "{tag_name}" already exists')
+    def get_tag(self, name: str, guild_id: int | None = None) -> Tag:
+        guild_id = guild_id or self.guild_id
+        db.cursor.execute("SELECT * FROM tags WHERE guild=? AND name=?", (guild_id, name))
+        tag: RawTag | None = db.cursor.fetchone()
+        if tag is None:
+            raise exceptions.NonExistentTagError('This tag does not exist')
+
+        return Tag.from_db(self, tag)
 
 
-def get_tag(
-        interaction: discord.Interaction,
-        name: str,
-        guild: discord.Guild | None = None,
-        *,
-        raises=True
-    ) -> Tag | None:
-    guild_id = interaction.guild_id if guild is None else guild.id
-    db.cursor.execute("SELECT * FROM tags WHERE guild=? AND name=?", (guild_id, name))
-    tag: RawTag | None = db.cursor.fetchone()
-    if tag is not None:
-        return Tag.from_db(interaction, tag)
-
-    if raises:
-        raise exceptions.NonExistentTagError('This tag does not exist')
-    
-    return None
+    def add_tag(self, name: str, content: str, nsfw: bool) -> None:
+        db.cursor.execute(
+            "INSERT INTO tags VALUES(?,?,?,?,?)",
+            (self.guild.id, self.member.id, name, content, int(nsfw)))
+        db.conn.commit()
 
 
-def get_member_tags(interaction: discord.Interaction, user: discord.Member, *, raises=False) -> list[Tag]:
-    if interaction.guild is None:
-        raise Exception('The developer missed a guild_only check :(')
-        
-    db.cursor.execute("SELECT * FROM tags WHERE guild=? AND user=?", (interaction.guild.id, user.id))
-    tags: list[RawTag] = db.cursor.fetchall()
-    if tags:
-        return [Tag.from_db(interaction, tag) for tag in tags]
+    def check_name(self, name: str) -> None:
+        for char in name:
+            if char in (' ', '_', '~', '*', '`', '|', ''):
+                raise ValueError('Invalid characters detected')
 
-    if raises:
-        raise exceptions.NonExistentTagError('This user doesn\'t have tags')
+        db.cursor.execute(
+            "SELECT guild FROM tags WHERE guild=? AND name=?",
+            (self.guild_id, name)
+        )
+        check: tuple[int] | None = db.cursor.fetchone()
+        if check is not None:
+            raise exceptions.ExistentTagError(f'Tag "{name}" already exists')
 
-    return []
+
+    def get_member_tags(self, user: discord.Member) -> list[Tag]:
+        db.cursor.execute(
+            "SELECT * FROM tags WHERE guild=? AND user=?",
+            (self.guild_id, user.id)
+        )
+        tags: list[RawTag] = db.cursor.fetchall()
+        return [Tag.from_db(self, tag) for tag in tags]
 
 
-def get_guild_tags(interaction: discord.Interaction, *, raises=False) -> list[Tag]:
-    if interaction.guild is None:
-        raise Exception('The developer missed a guild_only check :(')
-        
-    db.cursor.execute("SELECT * FROM tags WHERE guild=?", (interaction.guild.id,))
-    tags: list[RawTag] = db.cursor.fetchall()
-
-    if tags:
-        return [Tag.from_db(interaction, tag) for tag in tags]
-
-    if raises:
-        raise exceptions.NonExistentTagError('This server doesn\'t have tags')
-
-    return []
+    def get_guild_tags(self) -> list[Tag]:
+        db.cursor.execute(
+            "SELECT * FROM tags WHERE guild=?",
+            (self.guild_id,)
+        )
+        tags: list[RawTag] = db.cursor.fetchall()
+        return [Tag.from_db(self, tag) for tag in tags]
 
 
 @app_commands.guild_only()
