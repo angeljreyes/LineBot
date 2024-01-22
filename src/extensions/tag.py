@@ -441,7 +441,7 @@ class TagsCog(
     async def tag_serverlist(self, interaction: discord.Interaction[commands.Bot]):
         """Muestra los tags de todo el servidor"""
         tag_ctx = TagContext(interaction)
-        tag_list = [f'"{tag}"' for tag in tag_ctx.get_guild_tags()]
+        tag_list = [f'{tag.user}: "{tag}"' for tag in tag_ctx.get_guild_tags()]
         if not tag_list:
             raise exceptions.NonExistentTagError('This server does not have any tags', ctx=tag_ctx)
         pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
