@@ -1,4 +1,4 @@
-from typing import Self, cast
+from typing import Self
 
 import discord
 from discord.ext import commands
@@ -7,6 +7,7 @@ from discord import app_commands
 import db
 import exceptions
 import core
+import pagination
 
 
 type RawTag = tuple[int, int, str, str, int]
@@ -156,66 +157,119 @@ class TagsCog(
     # tag show
     @app_commands.command(name='show')
     @app_commands.rename(tag_name='tag')
-    async def tag_show(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
+    async def tag_show(
+            self,
+            interaction: discord.Interaction[commands.Bot],
+            tag_name: app_commands.Range[str, 1, 32]
+        ):
         """Muestra el contenido de un tag
 
         tag_name
             Nombre de un tag
         """
-        await tag_check(interaction)
-        tag = get_tag(interaction, tag_name)
-        if not (not interaction.channel.is_nsfw() and bool(tag.nsfw)):
-            await interaction.response.send_message(await commands.clean_content().convert(interaction, tag.content))
+        tag_ctx = TagContext(interaction)
+        tag = tag_ctx.get_tag(tag_name)
+        if tag_ctx.channel.is_nsfw() or not bool(tag.nsfw):
+            ctx = await self.bot.get_context(interaction)
+            await interaction.response.send_message(
+                await commands.clean_content().convert(ctx, tag.content))
         else:
-            await interaction.response.send_message(core.Warning.error('Este tag solo puede mostrarse en canales NSFW'), ephemeral=True)
+            await interaction.response.send_message(
+                core.Warning.error('Este tag solo puede mostrarse en canales NSFW'),
+                ephemeral=True
+            )
 
 
     # tag toggle
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.guild_id)
     @app_commands.command(name='toggle')
-    async def tag_toggle(self, interaction: discord.Interaction):
+    async def tag_toggle(self, interaction: discord.Interaction[commands.Bot]):
         """Activa los tags en el servidor"""
-        if interaction.channel.permissions_for(interaction.user).manage_guild:
-            db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
-            check: tuple[int] | None = db.cursor.fetchone()
-            if check is None:
-                confirmation = core.Confirm(interaction, interaction.user)
-                await interaction.response.send_message(core.Warning.question('Los tags en este servidor están desactivados. ¿Quieres activarlos?'), view=confirmation, ephemeral=True)
-                await confirmation.wait()
+        tag_interaction = TagSafeInteraction(interaction)
+        if not tag_interaction.channel.permissions_for(tag_interaction.member).manage_guild:
+            await interaction.response.send_message(
+                core.Warning.error(
+                    'Necesitas permiso de gestionar el '
+                    'servidor para activar o desactivar los tags'
+                ),
+                ephemeral=True
+            )
+            return
 
-                if confirmation.value is None:
-                    return
+        db.cursor.execute(
+            "SELECT guild FROM tagsenabled WHERE guild=?",
+            (tag_interaction.guild_id,)
+        )
+        check: tuple[int] | None = db.cursor.fetchone()
+        if check is None:
+            confirmation = core.Confirm(interaction, interaction.user)
+            await interaction.response.send_message(
+                core.Warning.question(
+                    'Los tags en este servidor están '
+                    'desactivados. ¿Quieres activarlos?'
+                ),
+                view=confirmation,
+                ephemeral=True
+            )
+            await confirmation.wait()
 
-                confirmation.clear_items()
+            if confirmation.value is None:
+                return
 
-                if confirmation.value:
-                    db.cursor.execute("INSERT INTO tagsenabled VALUES(?)", (interaction.guild_id,))
-                    await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se activaron los tags en este servidor'), view=confirmation)
+            confirmation.clear_items()
 
-                else:
-                    await confirmation.last_interaction.response.edit_message(content=core.Warning.cancel('No se activaran los tags en este servidor'), view=confirmation)
+            if confirmation.value:
+                db.cursor.execute(
+                    "INSERT INTO tagsenabled VALUES(?)",
+                    (tag_interaction.guild_id,)
+                )
+                content = core.Warning.success(
+                    'Se activaron los tags en este servidor'
+                ),
 
             else:
-                confirmation = core.Confirm(interaction, interaction.user)
-                await interaction.response.send_message(core.Warning.question('Los tags en este servidor están activados. ¿Quieres desactivarlos?'), view=confirmation, ephemeral=True)
-                await confirmation.wait()
+                content = core.Warning.cancel(
+                    'No se activarán los tags en este servidor'
+                )
 
-                if confirmation.value is None:
-                    return
-
-                confirmation.clear_items()
-
-                if confirmation.value:
-                    db.cursor.execute("DELETE FROM tagsenabled WHERE guild=?", (interaction.guild_id,))
-                    await confirmation.last_interaction.response.edit_message(content=core.Warning.success('Se desactivaron los tags en este servidor'), view=confirmation)
-
-                else:
-                    await confirmation.last_interaction.response.edit_message(content=core.Warning.cancel('No se desactivarán los tags en este servidor'), view=confirmation)
-            
-            db.conn.commit()
 
         else:
-            await interaction.response.send_message(core.Warning.error('Necesitas permiso de gestionar servidor para activar o desactivar los tags'), ephemeral=True)
+            confirmation = core.Confirm(interaction, interaction.user)
+            await interaction.response.send_message(
+                core.Warning.question(
+                    'Los tags en este servidor están activados. '
+                    '¿Quieres desactivarlos?'
+                ),
+                view=confirmation,
+                ephemeral=True
+            )
+            await confirmation.wait()
+
+            if confirmation.value is None:
+                return
+
+            confirmation.clear_items()
+
+            if confirmation.value:
+                db.cursor.execute(
+                    "DELETE FROM tagsenabled WHERE guild=?",
+                    (tag_interaction.guild_id,)
+                )
+                content = core.Warning.success(
+                    'Se desactivaron los tags en este servidor'
+                )
+
+            else:
+                content = core.Warning.cancel(
+                        'No se desactivarán los tags en este servidor'
+                    )
+
+        await confirmation.last_interaction.response.edit_message(
+            content=content,
+            view=confirmation
+        )
+        
+        db.conn.commit()
 
 
     # tag add
@@ -224,7 +278,7 @@ class TagsCog(
     @app_commands.rename(tag_name='nombre', tag_content='contenido')
     async def tag_add(
             self,
-            interaction: discord.Interaction, 
+            interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32], 
             tag_content: str,
             nsfw: bool = False
@@ -238,12 +292,16 @@ class TagsCog(
         nsfw
             Determina si el tag puede mostrarse únicamente en canales NSFW
         """
-        await tag_check(interaction)
-        check_tag_name(interaction, tag_name)
-        if interaction.channel.nsfw:
+        tag_ctx = TagContext(interaction)
+        tag_ctx.check_name(tag_name)
+        if tag_ctx.channel.is_nsfw():
             nsfw = True
-        add_tag(interaction, tag_name, tag_content, nsfw)
-        await interaction.response.send_message(core.Warning.success(f'Se agregó el tag **{await commands.clean_content().convert(interaction, tag_name)}**'))
+        tag_ctx.add_tag(tag_name, tag_content, nsfw)
+        ctx = await self.bot.get_context(interaction)
+        clean_name = await commands.clean_content().convert(ctx, tag_name)
+        await interaction.response.send_message(core.Warning.success(
+            f'Se agregó el tag **{clean_name}**'
+        ))
 
 
     # tag gift
@@ -252,36 +310,64 @@ class TagsCog(
     @app_commands.rename(tag_name='tag', user='usuario')
     async def tag_gift(
             self,
-            interaction: discord.Interaction, 
+            interaction: discord.Interaction[commands.Bot], 
             tag_name: app_commands.Range[str, 1, 32],
             user: discord.Member
         ):
         """Regala un tag a otro usuario"""
-        await tag_check(interaction)
-        if user == interaction.user:
-            await interaction.response.send_message(core.Warning.error('No puedes regalarte un tag a ti mismo'), ephemeral=True)
-        elif user.bot:
-            await interaction.response.send_message(core.Warning.error('No puedes regalarle un tag a un bot'), ephemeral=True)
+        tag_ctx = TagContext(interaction)
+        if user == tag_ctx.member:
+            await interaction.response.send_message(
+                core.Warning.error('No puedes regalarte un tag a ti mismo'),
+                ephemeral=True
+            )
+            return
+        if user.bot:
+            await interaction.response.send_message(
+                core.Warning.error('No puedes regalarle un tag a un bot'),
+                ephemeral=True
+            )
+            return
+
+        tag = tag_ctx.get_tag(tag_name)
+        if tag.user != interaction.user:
+            await interaction.response.send_message(
+                core.Warning.error('No puedes regalar el tag de otra persona'),
+                ephemeral=True
+            )
+            return
+
+        gift_permission = core.Confirm(interaction, user)
+        ctx = await self.bot.get_context(interaction)
+        clean_tag_name = await commands.clean_content().convert(ctx, tag.name)
+        await interaction.response.send_message(
+            core.Warning.question(
+                f'{user.mention} ¿Quieres aceptar el tag '
+                f'**{clean_tag_name}** por parte de {interaction.user.name}?'
+            ),
+            view=gift_permission
+        )
+        await gift_permission.wait()
+
+        if gift_permission.value is None:
+            return
+        
+        gift_permission = gift_permission.clear_items()
+
+        if gift_permission.value:
+            tag.gift(user)
+            ctx = await self.bot.get_context(interaction)
+            content = core.Warning.success(
+                f'El tag **{await commands.clean_content().convert(ctx, tag.name)}** '
+                'ha sido regalado a {tag.user.name} por parte de {interaction.user.name}'
+            )
+
         else:
-            tag: Tag = get_tag(interaction, tag_name)
-            if tag.user.id != interaction.user.id:
-                await interaction.response.send_message(core.Warning.error('No puedes regalar el tag de otra persona'), ephemeral=True)
-                return
-            gift_permission = core.Confirm(interaction, user)
-            await interaction.response.send_message(core.Warning.question(f'{user.mention} ¿Quieres aceptar el tag **{await commands.clean_content().convert(interaction, tag.name)}** por parte de {interaction.user.name}?'), view=gift_permission)
-            await gift_permission.wait()
+            content = core.Warning.cancel(
+                f'{interaction.user.mention} El regalo fue rechazado'
+            )
 
-            if gift_permission.value is None:
-                return
-            
-            gift_permission = gift_permission.clear_items()
-
-            if gift_permission.value:
-                tag.gift(user)
-                await gift_permission.last_interaction.response.edit_message(content=core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag.name)}** fue regalado a {await commands.clean_content().convert(interaction, tag.user.name)} por parte de {await commands.clean_content().convert(interaction, interaction.user.name)}'), view=gift_permission)
-
-            elif not gift_permission.value:
-                await gift_permission.last_interaction.response.edit_message(content=core.Warning.cancel(f'{interaction.user.mention} El regalo fue rechazado'), view=gift_permission)
+        await gift_permission.last_interaction.response.edit_message(content=content, view=gift_permission)
 
 
     # tag rename
@@ -290,23 +376,37 @@ class TagsCog(
     @app_commands.rename(old_name='tag', new_name='nuevo')
     async def tag_rename(
             self,
-            interaction: discord.Interaction,
+            interaction: discord.Interaction[commands.Bot],
             old_name: app_commands.Range[str, 1, 32],
             new_name: app_commands.Range[str, 1, 32]
         ):
         """Cambia el nombre de uno de tus tags"""
-        await tag_check(interaction)
-        check_tag_name(interaction, new_name)
-        tag = get_tag(interaction, old_name)
-        if tag.user.id == interaction.user.id:
-            if tag.name == new_name:
-                await interaction.response.send_message(core.Warning.error('No puedes ponerle el mismo nombre a un tag'), ephemeral=True)
-            else:
-                tag.rename(new_name)
-                await interaction.response.send_message(core.Warning.success(f'El nombre del tag **{await commands.clean_content().convert(interaction, old_name)}** se ha cambiado a **{await commands.clean_content().convert(interaction, new_name)}**'))
+        tag_ctx = TagContext(interaction)
+        tag_ctx.check_name(new_name)
+        tag = tag_ctx.get_tag(old_name)
 
-        else:
-            await interaction.response.send_message(core.Warning.error('No puedes renombarar el tag de otro usuario'), ephemeral=True)
+        if tag.user != tag_ctx.member:
+            await interaction.response.send_message(
+                core.Warning.error('No puedes renombarar el tag de otro usuario'),
+                ephemeral=True
+            )
+            return
+
+        if tag.name == new_name:
+            await interaction.response.send_message(
+                core.Warning.error('No puedes ponerle el mismo nombre a un tag'),
+                ephemeral=True
+            )
+            return
+
+        tag.rename(new_name)
+        ctx = await self.bot.get_context(interaction)
+        clean_old_name = await commands.clean_content().convert(ctx, old_name)
+        clean_new_name = await commands.clean_content().convert(ctx, new_name)
+        await interaction.response.send_message(core.Warning.success(
+            f'El nombre del tag **{clean_old_name}** ha sido'
+            f'cambiado a **{clean_new_name}**'
+        ))
 
 
     # tag edit
@@ -315,7 +415,7 @@ class TagsCog(
     @app_commands.rename(tag_name='tag', tag_content='contenido')
     async def tag_edit(
             self,
-            interaction: discord.Interaction,
+            interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32],
             tag_content: str,
             nsfw: bool = False
@@ -329,45 +429,69 @@ class TagsCog(
         nsfw
             Determina si el tag puede mostrarse únicamente en canales NSFW
         """
-        await tag_check(interaction)
-        tag = get_tag(interaction, tag_name)
-        if interaction.user.id == tag.user.id:
-            if interaction.channel.nsfw:
-                nsfw = True
-            tag.edit(tag_content, nsfw)
-            await interaction.response.send_message(core.Warning.success(f'Se editó el tag **{await commands.clean_content().convert(interaction, tag_name)}**'))
-        
-        else:
+        tag_ctx = TagContext(interaction)
+        tag = tag_ctx.get_tag(tag_name)
+        if interaction.user != tag.user:
             await interaction.response.send_message(core.Warning.error('No puedes editar tags de otros usuarios'), ephemeral=True)
+            return
+
+        if tag_ctx.channel.is_nsfw():
+            nsfw = True
+
+        tag.edit(tag_content, nsfw)
+        ctx = await self.bot.get_context(interaction)
+        clean_tag_name = await commands.clean_content().convert(ctx, tag_name)
+        await interaction.response.send_message(core.Warning.success(
+            f'Se editó el tag **{clean_tag_name}**'
+        ))
+        
 
 
     # tag delete
     @app_commands.checks.cooldown(1, 5)
     @app_commands.command(name='delete')
     @app_commands.rename(tag_name='tag')
-    async def tag_delete(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
+    async def tag_delete(
+            self,
+            interaction: discord.Interaction[commands.Bot],
+            tag_name: app_commands.Range[str, 1, 32]
+        ):
         """Elimina uno de tus tags"""
-        await tag_check(interaction)
-        tag = get_tag(interaction, tag_name)
-        if interaction.user.id == tag.user.id:
-            confirmation = core.Confirm(interaction, interaction.user)
-            await interaction.response.send_message(core.Warning.question(f'¿Quieres eliminar el tag **{await commands.clean_content().convert(interaction, tag_name)}**?'), view=confirmation)
-            await confirmation.wait()
-            
-            if confirmation.value is None:
-                return
-            
-            confirmation = confirmation.clear_items()
+        tag_ctx = TagContext(interaction)
+        tag = tag_ctx.get_tag(tag_name)
+        if interaction.user != tag.user:
+            await interaction.response.send_message(core.Warning.error(
+                'No puedes eliminar tags de otros usuarios'
+            ), ephemeral=True)
+            return
 
-            if confirmation.value:
-                tag.delete()
-                await confirmation.last_interaction.response.edit_message(content=core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag_name)}** ha sido eliminado'), view=confirmation)
-            
-            elif not confirmation.value:
-                await confirmation.last_interaction.response.edit_message(content=core.Warning.cancel(f'El tag no será eliminado'), view=confirmation)
+        confirmation = core.Confirm(interaction, interaction.user)
+        ctx = await self.bot.get_context(interaction)
+        clean_tag_name = await commands.clean_content().convert(ctx, tag_name)
+        await interaction.response.send_message(core.Warning.question(
+            f'¿Quieres eliminar el tag **{clean_tag_name}**?'
+        ), view=confirmation)
+        await confirmation.wait()
+        
+        if confirmation.value is None:
+            return
+        
+        confirmation = confirmation.clear_items()
 
-        else: 
-            await interaction.response.send_message(core.Warning.error('No puedes eliminar tags de otros usuarios'), ephemeral=True)
+        if confirmation.value:
+            tag.delete()
+            await confirmation.last_interaction.response.edit_message(
+                content=core.Warning.success(
+                    f'El tag **{clean_tag_name}** ha sido eliminado'
+                ),
+                view=confirmation
+            )
+        
+        else:
+            await confirmation.last_interaction.response.edit_message(
+                content=core.Warning.cancel(f'El tag no será eliminado'),
+                view=confirmation
+            )
 
 
     # tag forcedelete
@@ -375,54 +499,92 @@ class TagsCog(
     @core.owner_only()
     async def forcedelete(
             self,
-            interaction: discord.Interaction,
+            interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32],
             guild_id: str | None,
             silent: bool = False
         ):
         """Reservado"""
+        tag_ctx = TagContext(interaction, bypass=True)
         guild = interaction.guild if guild_id is None else self.bot.get_guild(int(guild_id))
-        tag = get_tag(interaction, tag_name, guild)
+
+        if guild is None:
+            await interaction.response.send_message(
+                core.Warning.error('No se encontró el servidor')
+            )
+            return
+
+        tag = tag_ctx.get_tag(tag_name, guild.id)
         tag.delete()
-        await interaction.response.send_message(core.Warning.success(f'El tag **{await commands.clean_content().convert(interaction, tag_name)}** ha sido eliminado'), ephemeral=silent)
+        ctx = await self.bot.get_context(interaction)
+        clean_tag_name = await commands.clean_content().convert(ctx, tag_name)
+        await interaction.response.send_message(core.Warning.success(
+            f'El tag **{clean_tag_name}** ha sido eliminado'
+        ), ephemeral=silent)
 
 
     # tag owner
     @app_commands.checks.cooldown(1, 3)
     @app_commands.command(name='owner')
     @app_commands.rename(tag_name='tag')
-    async def tag_owner(self, interaction: discord.Interaction, tag_name: app_commands.Range[str, 1, 32]):
+    async def tag_owner(
+            self,
+            interaction: discord.Interaction[commands.Bot],
+            tag_name: app_commands.Range[str, 1, 32]
+        ):
         """Muestra el propietario de un tag"""
-        await tag_check(interaction)
-        tag = get_tag(interaction, tag_name)
-        await interaction.response.send_message(core.Warning.info(f'El dueño del tag **{await commands.clean_content().convert(interaction, tag.name)}** es `{await commands.clean_content().convert(interaction, str(tag.user))}`'))
+        tag_ctx = TagContext(interaction)
+        tag = tag_ctx.get_tag(tag_name)
+        ctx = await self.bot.get_context(interaction)
+        clean_tag_name = await commands.clean_content().convert(ctx, tag.name)
+        await interaction.response.send_message(core.Warning.info(
+            f'El dueño del tag **{clean_tag_name}** es `{str(tag.user)}`'))
 
 
     # tag list
     @app_commands.checks.cooldown(1, 10)
     @app_commands.command(name='list')
     @app_commands.rename(user='usuario')
-    async def tag_list(self, interaction: discord.Interaction, user: discord.Member | None):
+    async def tag_list(
+            self,
+            interaction: discord.Interaction[commands.Bot],
+            user: discord.Member | None
+        ):
         """Muestra una lista de tus tags o de los tags de otro usuario"""
-        await tag_check(interaction)
-        if user is None:
-            user = interaction.user
-        tag_list = list(map(lambda tag: f'"{tag}"', get_member_tags(interaction, user, raises=True)))
-        pages = pagination.Page.from_list(interaction, f'Tags de {user.name}', tag_list)
-        paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(tag_list))
-        await interaction.response.send_message(embed=pages[0].embed, view=paginator)
+        tag_ctx = TagContext(interaction)
+        user = user or tag_ctx.member
+        tag_list = [f'"{tag}"' for tag in tag_ctx.get_member_tags(user)]
+        if not tag_list:
+            raise exceptions.NonExistentTagError('This user does not have any tags')
+        pages = pagination.Page.from_list(
+            interaction,
+            f'Tags de {user.name}',
+            tag_list
+        )
+        paginator = pagination.Paginator.optional(
+            interaction,
+            pages=pages,
+            entries=len(tag_list)
+        )
+        await interaction.response.send_message(embed=pages[0].embed, view=paginator) # type: ignore
 
 
     # tag serverlist
     @app_commands.checks.cooldown(1, 20)
     @app_commands.command(name='serverlist')
-    async def tag_serverlist(self, interaction: discord.Interaction):
+    async def tag_serverlist(self, interaction: discord.Interaction[comands.Bot]):
         """Muestra los tags de todo el servidor"""
-        await tag_check(interaction)
-        tag_list = list(map(lambda tag: f'{tag.user.name}: "{tag}"', get_guild_tags(interaction, raises=True)))
+        tag_ctx = TagContext(interaction)
+        tag_list = [f'"{tag}"' for tag in tag_ctx.get_guild_tags()]
+        if not tag_list:
+            raise exceptions.NonExistentTagError('This server does not have any tags')
         pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
-        paginator = pagination.Paginator.optional(interaction, pages=pages, entries=len(tag_list))
-        await interaction.response.send_message(embed=pages[0].embed, view=paginator)
+        paginator = pagination.Paginator.optional(
+            interaction,
+            pages=pages,
+            entries=len(tag_list)
+        )
+        await interaction.response.send_message(embed=pages[0].embed, view=paginator) # type: ignore
 
 
 async def setup(bot: commands.Bot) -> None:
