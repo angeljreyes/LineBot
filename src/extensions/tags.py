@@ -572,7 +572,7 @@ class TagsCog(
     # tag serverlist
     @app_commands.checks.cooldown(1, 20)
     @app_commands.command(name='serverlist')
-    async def tag_serverlist(self, interaction: discord.Interaction[comands.Bot]):
+    async def tag_serverlist(self, interaction: discord.Interaction[commands.Bot]):
         """Muestra los tags de todo el servidor"""
         tag_ctx = TagContext(interaction)
         tag_list = [f'"{tag}"' for tag in tag_ctx.get_guild_tags()]
