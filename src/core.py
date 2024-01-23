@@ -2,7 +2,7 @@ import logging
 import tomllib
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Any, NamedTuple, TypedDict
+from typing import Any, TypedDict
 from collections.abc import Callable, Generator
 
 import discord
@@ -306,8 +306,7 @@ def fix_delta(
 
 
 def fix_date(date: datetime, *, elapsed=False, newline=False) -> str:
-    epoch = int(date.replace(tzinfo=timezone.utc).timestamp())
-    result = f'<t:{epoch}:f>\n<t:{epoch}:R>'
+    result = f'{date.day}/{date.month}/{date.year} {date.hour}:{date.minute}:{date.second} UTC'
     if elapsed:
         delta = fix_delta(datetime.now(timezone.utc) - date)
         result += ('\n' if newline else ' ') + f'(Hace {delta})'
