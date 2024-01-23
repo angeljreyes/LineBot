@@ -2,7 +2,7 @@ import logging
 import tomllib
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict
 from collections.abc import Callable, Generator
 
 import discord
@@ -270,33 +270,44 @@ async def fetch_app_command(
     return subcmd
 
 
-def fix_delta(delta: timedelta, *, ms=False, limit=3, compact=True) -> str:
+def fix_delta(
+        delta: timedelta,
+        *,
+        ms=False,
+        limit: int | None = 3,
+        compact=True
+    ) -> str:
     years = delta.days // 365
     days = delta.days - years * 365
     hours = delta.seconds // 3600
     minutes = (delta.seconds - hours * 3600) // 60
     seconds = (delta.seconds - minutes * 60 - hours * 3600)
-    seconds += float(str(delta.microseconds / 1000000)[:3]) if ms and seconds < 10 else 0
-    measures = {
-        'años': years,
-        'días': days,
-        'horas': hours,
-        'minutos': minutes,
-        'segundos': seconds
-    }
-    for key in tuple(filter(lambda x: measures[x] == 0, measures)):
-        measures.pop(key)
-    for key in tuple(filter(lambda x: tuple(measures).index(x)+1 > limit, measures)):
-        measures.pop(key)
+    seconds += float(str(delta.microseconds / 1e6)[:3]) if ms and seconds < 10 else 0
+
+    timings: list[float] = [years, days, hours, minutes, seconds]
+    units = ['año', 'día', 'hora', 'minuto', 'segundo']
 
     if compact:
-        return ' '.join((f'{measures[measure]}{measure[0]}' for measure in measures))
+        # Only show the first letter
+        units = [u[0] for u in units]
     else:
-        return ' '.join((f'{measures[measure]} {measure if measures[measure] != 1 else measure[:-1]}' for measure in measures))
+        # Add spaces to words and make them plural if needed
+        units = [f' {u}s' if t != 1 else f' {u}' 
+                 for u, t in (units, timings)]
+
+    # Ignore timings equal to 0 or past the limit
+    measures: list[str] = []
+    for t, u in zip(timings, units):
+        if t:
+            measures.append(f'{t}{u}')
+    measures = measures[:limit]
+
+    return ' '.join(measures)
 
 
 def fix_date(date: datetime, *, elapsed=False, newline=False) -> str:
-    result = f'{date.day}/{date.month}/{date.year} {date.hour}:{date.minute}:{date.second} UTC'
+    epoch = int(date.replace(tzinfo=timezone.utc).timestamp())
+    result = f'<t:{epoch}:f>\n<t:{epoch}:R>'
     if elapsed:
         delta = fix_delta(datetime.now(timezone.utc) - date)
         result += ('\n' if newline else ' ') + f'(Hace {delta})'
