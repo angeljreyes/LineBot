@@ -18,7 +18,8 @@ name = ""
 
 [links]
 topgg = ""
-invite = ""
+bot_invite = ""
+guild_invite = ""
 vote = ""
 
 [emoji]

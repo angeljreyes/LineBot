@@ -35,7 +35,8 @@ class ConfPresence(TypedDict):
 
 class ConfLinks(TypedDict):
     topgg: str
-    invite: str
+    bot_invite: str
+    guild_invite: str
     vote: str
 
 
@@ -179,10 +180,12 @@ bucket_types = {
 bools = {True: 'Sí', False: 'No'}
 
 links = {
-    'Invítame a un servidor': conf['links']['invite'],
+    'Invítame a un servidor': conf['links']['bot_invite'],
+    'Mi servidor': conf['links']['guild_invite'],
     'Mi página de top.gg': conf['links']['topgg'],
     'Vota por mí': conf['links']['vote']
 }
+assert len(links) <= 5 # Button rows can't go past 5 buttons
 
 
 async def sync_tree(bot: commands.Bot) -> None:
