@@ -165,7 +165,7 @@ class TagsCog(
         ctx = await self.bot.get_context(interaction)
         clean_name = await commands.clean_content().convert(ctx, tag_name)
         await interaction.response.send_message(core.Warning.success(
-            f'Se agregó el tag **{clean_name}**'
+            f'Se agregó el tag `{clean_name}`'
         ))
 
 
@@ -208,7 +208,7 @@ class TagsCog(
         await interaction.response.send_message(
             core.Warning.question(
                 f'{user.mention} ¿Quieres aceptar el tag '
-                f'**{clean_tag_name}** por parte de {interaction.user.name}?'
+                f'`{clean_tag_name}` por parte de **{interaction.user}**?'
             ),
             view=gift_permission
         )
@@ -223,9 +223,9 @@ class TagsCog(
             tag.gift(user)
             ctx = await self.bot.get_context(interaction)
             content = core.Warning.success(
-                f'El tag **{await commands.clean_content().convert(ctx, tag.name)}** '
-                f'ha sido regalado a **{tag.user.name}** por '
-                f'parte de **{interaction.user.name}**'
+                f'El tag `{await commands.clean_content().convert(ctx, tag.name)}` '
+                f'ha sido regalado a **{tag.user}** por '
+                f'parte de **{interaction.user}**'
             )
 
         else:
@@ -270,8 +270,8 @@ class TagsCog(
         clean_old_name = await commands.clean_content().convert(ctx, old_name)
         clean_new_name = await commands.clean_content().convert(ctx, new_name)
         await interaction.response.send_message(core.Warning.success(
-            f'El nombre del tag **{clean_old_name}** ha sido'
-            f'cambiado a **{clean_new_name}**'
+            f'El nombre del tag `{clean_old_name}` ha sido'
+            f'cambiado a `{clean_new_name}`'
         ))
 
 
@@ -308,7 +308,7 @@ class TagsCog(
         ctx = await self.bot.get_context(interaction)
         clean_tag_name = await commands.clean_content().convert(ctx, tag_name)
         await interaction.response.send_message(core.Warning.success(
-            f'Se editó el tag **{clean_tag_name}**'
+            f'Se editó el tag `{clean_tag_name}`'
         ))
         
 
@@ -335,7 +335,7 @@ class TagsCog(
         ctx = await self.bot.get_context(interaction)
         clean_tag_name = await commands.clean_content().convert(ctx, tag_name)
         await interaction.response.send_message(core.Warning.question(
-            f'¿Quieres eliminar el tag **{clean_tag_name}**?'
+            f'¿Quieres eliminar el tag `{clean_tag_name}`?'
         ), view=confirmation)
         await confirmation.wait()
         
@@ -348,14 +348,14 @@ class TagsCog(
             tag.delete()
             await confirmation.last_interaction.response.edit_message(
                 content=core.Warning.success(
-                    f'El tag **{clean_tag_name}** ha sido eliminado'
+                    f'El tag `{clean_tag_name}` ha sido eliminado'
                 ),
                 view=confirmation
             )
         
         else:
             await confirmation.last_interaction.response.edit_message(
-                content=core.Warning.cancel(f'El tag no será eliminado'),
+                content=core.Warning.cancel('El tag no será eliminado'),
                 view=confirmation
             )
 
@@ -385,7 +385,7 @@ class TagsCog(
         ctx = await self.bot.get_context(interaction)
         clean_tag_name = await commands.clean_content().convert(ctx, tag_name)
         await interaction.response.send_message(core.Warning.success(
-            f'El tag **{clean_tag_name}** ha sido eliminado'
+            f'El tag `{clean_tag_name}` ha sido eliminado'
         ), ephemeral=silent)
 
 
@@ -404,7 +404,7 @@ class TagsCog(
         ctx = await self.bot.get_context(interaction)
         clean_tag_name = await commands.clean_content().convert(ctx, tag.name)
         await interaction.response.send_message(core.Warning.info(
-            f'El dueño del tag **{clean_tag_name}** es `{str(tag.user)}`'))
+            f'El dueño del tag `{clean_tag_name}` es **{str(tag.user)}**'))
 
 
     # tag list
@@ -419,7 +419,7 @@ class TagsCog(
         """Muestra una lista de tus tags o de los tags de otro usuario"""
         tag_ctx = TagContext(interaction)
         user = user or tag_ctx.member
-        tag_list = [f'"{tag}"' for tag in tag_ctx.get_member_tags(user)]
+        tag_list = [f'`{tag}`' for tag in tag_ctx.get_member_tags(user)]
         if not tag_list:
             raise exceptions.NonExistentTagError('This user does not have any tags', ctx=tag_ctx)
         pages = pagination.Page.from_list(
@@ -441,7 +441,7 @@ class TagsCog(
     async def tag_serverlist(self, interaction: discord.Interaction[commands.Bot]):
         """Muestra los tags de todo el servidor"""
         tag_ctx = TagContext(interaction)
-        tag_list = [f'{tag.user}: "{tag}"' for tag in tag_ctx.get_guild_tags()]
+        tag_list = [f'{tag.user}: `{tag}`' for tag in tag_ctx.get_guild_tags()]
         if not tag_list:
             raise exceptions.NonExistentTagError('This server does not have any tags', ctx=tag_ctx)
         pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
