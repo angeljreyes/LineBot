@@ -318,11 +318,23 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
     for data in data_dict:
         if data_dict[data] not in (None, ''):
             if inline is not None:
-                embed.add_field(name=data, value=str(data_dict[data]), inline=inline)
+                embed.add_field(
+                    name=data,
+                    value=str(data_dict[data]),
+                    inline=inline
+                )
             elif inline_char != '':
-                embed.add_field(name=data.replace(inline_char, ''), value=str(data_dict[data]), inline=not data.endswith(inline_char))
+                embed.add_field(
+                    name=data.replace(inline_char, ''),
+                    value=str(data_dict[data]),
+                    inline=not data.endswith(inline_char)
+                )
             else:
-                embed.add_field(name=data, value=str(data_dict[data]), inline=False)
+                embed.add_field(
+                    name=data,
+                    value=str(data_dict[data]),
+                    inline=False
+                )
     return embed
 
 
