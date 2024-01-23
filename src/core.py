@@ -361,33 +361,33 @@ class Confirm(discord.ui.View):
 
 
 class Warning:
-    @staticmethod
-    def success(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':white_check_mark:', u'\U00002705'), text, unicode)
+    @classmethod
+    def success(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':white_check_mark:', u'\U00002705'), text, unicode)
 
-    @staticmethod
-    def cancel(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':negative_squared_cross_mark:', u'\U0000274e'), text, unicode)
+    @classmethod
+    def cancel(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':negative_squared_cross_mark:', u'\U0000274e'), text, unicode)
 
-    @staticmethod
-    def error(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':warning:', u'\U000026a0'), text, unicode)
+    @classmethod
+    def error(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':warning:', u'\U000026a0'), text, unicode)
 
-    @staticmethod
-    def question(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':grey_question:', u'\U00002754'), text, unicode)
+    @classmethod
+    def question(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':grey_question:', u'\U00002754'), text, unicode)
 
-    @staticmethod
-    def info(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':information_source:', u'\U00002139'), text, unicode)
+    @classmethod
+    def info(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':information_source:', u'\U00002139'), text, unicode)
 
-    @staticmethod
-    def loading(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':arrows_counterclockwise:', u'\U0001f504'), text, unicode)
+    @classmethod
+    def loading(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':arrows_counterclockwise:', u'\U0001f504'), text, unicode)
 
-    @staticmethod
-    def searching(text: str, unicode=False) -> str:
-        return Warning.emoji_warning((':mag:', u'\U0001f50d'), text, unicode)
+    @classmethod
+    def searching(cls, text: str, unicode=False) -> str:
+        return cls.emoji_warning((':mag:', u'\U0001f50d'), text, unicode)
 
     @staticmethod
     def emoji_warning(emoji: tuple[str, str], text: str, unicode: bool) -> str:
