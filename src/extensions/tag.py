@@ -20,9 +20,9 @@ class TagsCog(
 
 
     # tag show
-    @app_commands.command(name='show')
+    @app_commands.command()
     @app_commands.rename(tag_name='tag')
-    async def tag_show(
+    async def show(
             self,
             interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32]
@@ -47,8 +47,8 @@ class TagsCog(
 
     # tag toggle
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.guild_id)
-    @app_commands.command(name='toggle')
-    async def tag_toggle(self, interaction: discord.Interaction[commands.Bot]):
+    @app_commands.command()
+    async def toggle(self, interaction: discord.Interaction[commands.Bot]):
         """Activa los tags en el servidor"""
         tag_interaction = TagSafeInteraction(interaction)
         if not tag_interaction.channel.permissions_for(tag_interaction.member).manage_guild:
@@ -139,9 +139,9 @@ class TagsCog(
 
     # tag add
     @app_commands.checks.cooldown(1, 10)
-    @app_commands.command(name='add')
+    @app_commands.command()
     @app_commands.rename(tag_name='nombre', tag_content='contenido')
-    async def tag_add(
+    async def add(
             self,
             interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32], 
@@ -171,9 +171,9 @@ class TagsCog(
 
     # tag gift
     @app_commands.checks.cooldown(1, 10)
-    @app_commands.command(name='gift')
+    @app_commands.command()
     @app_commands.rename(tag_name='tag', user='usuario')
-    async def tag_gift(
+    async def gift(
             self,
             interaction: discord.Interaction[commands.Bot], 
             tag_name: app_commands.Range[str, 1, 32],
@@ -238,9 +238,9 @@ class TagsCog(
 
     # tag rename
     @app_commands.checks.cooldown(1, 5)
-    @app_commands.command(name='rename')
+    @app_commands.command()
     @app_commands.rename(old_name='tag', new_name='nuevo')
-    async def tag_rename(
+    async def rename(
             self,
             interaction: discord.Interaction[commands.Bot],
             old_name: app_commands.Range[str, 1, 32],
@@ -277,9 +277,9 @@ class TagsCog(
 
     # tag edit
     @app_commands.checks.cooldown(1, 10)
-    @app_commands.command(name='edit')
+    @app_commands.command()
     @app_commands.rename(tag_name='tag', tag_content='contenido')
-    async def tag_edit(
+    async def edit(
             self,
             interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32],
@@ -315,9 +315,9 @@ class TagsCog(
 
     # tag delete
     @app_commands.checks.cooldown(1, 5)
-    @app_commands.command(name='delete')
+    @app_commands.command()
     @app_commands.rename(tag_name='tag')
-    async def tag_delete(
+    async def delete(
             self,
             interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32]
@@ -361,7 +361,7 @@ class TagsCog(
 
 
     # tag forcedelete
-    @app_commands.command(name='forcedelete')
+    @app_commands.command()
     @core.owner_only()
     async def forcedelete(
             self,
@@ -391,9 +391,9 @@ class TagsCog(
 
     # tag owner
     @app_commands.checks.cooldown(1, 3)
-    @app_commands.command(name='owner')
+    @app_commands.command()
     @app_commands.rename(tag_name='tag')
-    async def tag_owner(
+    async def owner(
             self,
             interaction: discord.Interaction[commands.Bot],
             tag_name: app_commands.Range[str, 1, 32]
@@ -411,7 +411,7 @@ class TagsCog(
     @app_commands.checks.cooldown(1, 10)
     @app_commands.command(name='list')
     @app_commands.rename(user='usuario')
-    async def tag_list(
+    async def list_(
             self,
             interaction: discord.Interaction[commands.Bot],
             user: discord.Member | None
@@ -437,8 +437,8 @@ class TagsCog(
 
     # tag serverlist
     @app_commands.checks.cooldown(1, 20)
-    @app_commands.command(name='serverlist')
-    async def tag_serverlist(self, interaction: discord.Interaction[commands.Bot]):
+    @app_commands.command()
+    async def serverlist(self, interaction: discord.Interaction[commands.Bot]):
         """Muestra los tags de todo el servidor"""
         tag_ctx = TagContext(interaction)
         tag_list = [f'{tag.user}: `{tag}`' for tag in tag_ctx.get_guild_tags()]
