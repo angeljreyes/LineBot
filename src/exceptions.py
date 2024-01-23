@@ -1,14 +1,20 @@
 from typing import Any
 from discord.app_commands import AppCommandError
 
+from tags import TagContext
 
-class ExistentTagError(AppCommandError):
+class TagError(AppCommandError):
+    def __init__(self, *args: object, ctx: 'TagContext') -> None:
+        super().__init__(*args)
+        self.ctx = ctx
+
+class ExistentTagError(TagError):
     pass
 
-class NonExistentTagError(AppCommandError):
+class NonExistentTagError(TagError):
     pass
 
-class DisabledTagsError(AppCommandError):
+class DisabledTagsError(TagError):
     pass
 
 class BlacklistUserError(AppCommandError):

@@ -7,6 +7,7 @@ from discord.ext import commands
 
 import core
 import db
+import exceptions
 
 
 class Listeners(commands.Cog):
@@ -75,12 +76,6 @@ class Listeners(commands.Cog):
                         if error_note in note:
                             error_msg = message
 
-                case exceptions.DisabledTagsError():
-                    error_msg = ''
-                
-                case exceptions.ExistentTagError():
-                    error_msg = 'Este tag ya existe'
-
                 case exceptions.ImageNotFound():
                     error_msg = 'No se encontró ninguna imagen en los últimos 30 mensajes'
 
@@ -90,13 +85,27 @@ class Listeners(commands.Cog):
                 case exceptions.BlacklistUserError():
                     error_msg = 'Estás en la lista negra. No tienes permitido usar el bot'
 
-                case exceptions.NonExistentTagError():
-                    if 'This tag' in note:
-                        error_msg = 'Este tag no existe'
-                    if 'This user' in note:
-                        error_msg = 'Este usuario no tiene tags'
-                    elif 'This server' in note:
-                        error_msg = 'Este servidor no tiene tags'
+                case exceptions.ExistentTagError():
+                    error_msg = 'Este tag ya existe'
+
+                case exceptions.NonExistentTagError() if 'This tag' in note:
+                    error_msg = 'Este tag no existe'
+
+                case exceptions.NonExistentTagError() if 'This user' in note:
+                    error_msg = 'Este usuario no tiene tags'
+
+                case exceptions.NonExistentTagError() if 'This server' in note:
+                    error_msg = 'Este servidor no tiene tags'
+
+                case exceptions.DisabledTagsError(ctx=ctx):
+                    member = ctx.member
+                    has_permission = ctx.channel.permissions_for(member).manage_guild
+                    toggle_command = await core.fetch_app_command(ctx.interaction, 'tag toggle')
+                    error_msg = core.Warning.info(
+                        'Los tags están desactivados en este servidor. ' +
+                        ('Actívalos ' if has_permission else 'Pídele a un administrador que los active ') +
+                        f'con el comando {toggle_command.mention}'
+                    )
 
                 # If the error remains unidentified, send a generic error message
             if error_msg is None:
