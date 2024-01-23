@@ -34,10 +34,10 @@ class TagsCog(
         """
         tag_ctx = TagContext(interaction)
         tag = tag_ctx.get_tag(tag_name)
-        if tag_ctx.channel.is_nsfw() or not bool(tag.nsfw):
+        if tag_ctx.channel.is_nsfw() or not tag.nsfw:
             ctx = await self.bot.get_context(interaction)
-            await interaction.response.send_message(
-                await commands.clean_content().convert(ctx, tag.content))
+            clean_tag_content = await commands.clean_content().convert(ctx, tag.content)
+            await interaction.response.send_message(clean_tag_content)
         else:
             await interaction.response.send_message(
                 core.Warning.error('Este tag solo puede mostrarse en canales NSFW'),
@@ -67,22 +67,26 @@ class TagsCog(
         )
         check: tuple[int] | None = db.cursor.fetchone()
         if check is None:
-            confirmation = core.Confirm(interaction, interaction.user)
-            await interaction.response.send_message(
-                core.Warning.question(
-                    'Los tags en este servidor están '
-                    'desactivados. ¿Quieres activarlos?'
-                ),
-                view=confirmation,
-                ephemeral=True
-            )
-            await confirmation.wait()
+            question_msg = ('Los tags en este servidor están '
+                            'desactivados. ¿Quieres activarlos?')
+        else:
+            question_msg = ('Los tags en este servidor están activados. '
+                            '¿Quieres desactivarlos?')
 
-            if confirmation.value is None:
-                return
+        confirmation = core.Confirm(interaction, interaction.user)
+        await interaction.response.send_message(
+            core.Warning.question(question_msg),
+            view=confirmation,
+            ephemeral=True
+        )
+        await confirmation.wait()
 
-            confirmation.clear_items()
+        if confirmation.value is None:
+            return
 
+        confirmation.clear_items()
+
+        if check is None:
             if confirmation.value:
                 db.cursor.execute(
                     "INSERT INTO tagsenabled VALUES(?)",
@@ -97,24 +101,7 @@ class TagsCog(
                     'No se activarán los tags en este servidor'
                 )
 
-
         else:
-            confirmation = core.Confirm(interaction, interaction.user)
-            await interaction.response.send_message(
-                core.Warning.question(
-                    'Los tags en este servidor están activados. '
-                    '¿Quieres desactivarlos?'
-                ),
-                view=confirmation,
-                ephemeral=True
-            )
-            await confirmation.wait()
-
-            if confirmation.value is None:
-                return
-
-            confirmation.clear_items()
-
             if confirmation.value:
                 db.cursor.execute(
                     "DELETE FROM tagsenabled WHERE guild=?",
@@ -126,8 +113,8 @@ class TagsCog(
 
             else:
                 content = core.Warning.cancel(
-                        'No se desactivarán los tags en este servidor'
-                    )
+                    'No se desactivarán los tags en este servidor'
+                )
 
         await confirmation.last_interaction.response.edit_message(
             content=content,
@@ -187,6 +174,7 @@ class TagsCog(
                 ephemeral=True
             )
             return
+
         if user.bot:
             await interaction.response.send_message(
                 core.Warning.error('No puedes regalarle un tag a un bot'),
@@ -233,7 +221,10 @@ class TagsCog(
                 f'{interaction.user.mention} El regalo fue rechazado'
             )
 
-        await gift_permission.last_interaction.response.edit_message(content=content, view=gift_permission)
+        await gift_permission.last_interaction.response.edit_message(
+            content=content,
+            view=gift_permission
+        )
 
 
     # tag rename
@@ -298,7 +289,9 @@ class TagsCog(
         tag_ctx = TagContext(interaction)
         tag = tag_ctx.get_tag(tag_name)
         if interaction.user != tag.user:
-            await interaction.response.send_message(core.Warning.error('No puedes editar tags de otros usuarios'), ephemeral=True)
+            await interaction.response.send_message(core.Warning.error(
+                'No puedes editar tags de otros usuarios'
+            ), ephemeral=True)
             return
 
         if tag_ctx.channel.is_nsfw():
@@ -420,18 +413,25 @@ class TagsCog(
         tag_ctx = TagContext(interaction)
         user = user or tag_ctx.member
         tag_list = [f'`{tag}`' for tag in tag_ctx.get_member_tags(user)]
+
         if not tag_list:
-            raise exceptions.NonExistentTagError('This user does not have any tags', ctx=tag_ctx)
+            raise exceptions.NonExistentTagError(
+                'This user does not have any tags',
+                ctx=tag_ctx
+            )
+
         pages = pagination.Page.from_list(
             interaction,
             f'Tags de {user.name}',
             tag_list
         )
+
         paginator = pagination.Paginator.optional(
             interaction,
             pages=pages,
             entries=len(tag_list)
         )
+
         await interaction.response.send_message(embed=pages[0].embed, view=paginator) # type: ignore
 
 
@@ -442,14 +442,25 @@ class TagsCog(
         """Muestra los tags de todo el servidor"""
         tag_ctx = TagContext(interaction)
         tag_list = [f'{tag.user}: `{tag}`' for tag in tag_ctx.get_guild_tags()]
+
         if not tag_list:
-            raise exceptions.NonExistentTagError('This server does not have any tags', ctx=tag_ctx)
-        pages = pagination.Page.from_list(interaction, f'Tags de {interaction.guild}', tag_list)
+            raise exceptions.NonExistentTagError(
+                'This server does not have any tags',
+                ctx=tag_ctx
+            )
+
+        pages = pagination.Page.from_list(
+            interaction,
+            f'Tags de {interaction.guild}',
+            tag_list
+        )
+
         paginator = pagination.Paginator.optional(
             interaction,
             pages=pages,
             entries=len(tag_list)
         )
+
         await interaction.response.send_message(embed=pages[0].embed, view=paginator) # type: ignore
 
 
