@@ -93,9 +93,6 @@ handler = logging.FileHandler(filename=logging_file, encoding='utf-8', mode='a')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-default_prefix = {'stable':'l!', 'dev':'ld!'}[bot_mode]
-prefix_table = {'stable':"PREFIXES", 'dev':"DEVPREFIXES"}[bot_mode]
-
 error_logging_channel = conf['error_channel_id']
 
 check_emoji = conf['emoji']['check']
