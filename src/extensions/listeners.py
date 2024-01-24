@@ -154,10 +154,16 @@ class Listeners(commands.Cog):
 
         status_setting = presence_conf['status']
         if not 0 <= status_setting < len(statuses):
+            core.logger.warning(
+                'presence.status is an invalid value, 0 (online) will be used instead'
+            )
             status_setting = 0
 
         activity_setting = presence_conf['activity']
         if not 0 <= activity_setting < len(activities):
+            core.logger.warning(
+                'presence.activity is an invalid value, 0 (None) will be used instead'
+            )
             activity_setting = 0
 
         status = statuses[status_setting]
