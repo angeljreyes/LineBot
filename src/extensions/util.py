@@ -139,9 +139,9 @@ class Util(commands.Cog):
 
     # someone
     @app_commands.checks.cooldown(3, 10)
-    @commands.guild_only()
     @app_commands.command()
     @app_commands.rename(mention='mencionar')
+    @app_commands.guild_only()
     async def someone(self, interaction: discord.Interaction, mention: bool = False):
         """Menciona a alguien aleatorio del servidor
 
@@ -413,7 +413,7 @@ class Util(commands.Cog):
     @app_commands.checks.cooldown(1, 5)
     @app_commands.command()
     @app_commands.rename(user='usuario')
-    @commands.guild_only()
+    @app_commands.guild_only()
     async def userinfo(self, interaction: discord.Interaction, user: discord.Member | discord.User | None):
         """Obtiene información de un usuario. Habrá más información si el usuario se encuentra en el servidor"""
         if user is None:
@@ -500,7 +500,7 @@ class Util(commands.Cog):
     @app_commands.checks.cooldown(1, 3)
     @app_commands.command()
     @app_commands.rename(role='rol')
-    @commands.guild_only()
+    @app_commands.guild_only()
     async def roleinfo(self, interaction: discord.Interaction, role: discord.Role):
         """Obtiene información de un rol"""
         embed = discord.Embed(title='Información del rol', colour=db.default_color(interaction))
@@ -728,7 +728,7 @@ class Util(commands.Cog):
     # serverinfo
     @app_commands.checks.cooldown(1, 3)
     @app_commands.command()
-    @commands.guild_only()
+    @app_commands.guild_only()
     async def serverinfo(self, interaction: discord.Interaction):
         """Obtiene la información de este servidor"""
         guild = interaction.guild
