@@ -290,6 +290,12 @@ class Fun(commands.Cog):
         opponent
             Usuario contra el que quieres jugar
         """
+        if interaction.guild is None:
+            await interaction.response.send_message(
+                'No hay nadie con quien jugar...'
+            )
+            return
+
         if opponent is None:
             join_view = ttt.JoinView(interaction)
             await interaction.response.send_message(
