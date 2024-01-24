@@ -1,5 +1,5 @@
 # Line Bot
-Line is a multipurpose bot made specifically for spanish-speaking communities. You can invite Line to your Discord server with [this link](https://discord.com/oauth2/authorize?client_id=582009564724199434&scope=bot&permissions=-9).
+Line is a multipurpose bot made specifically for spanish-speaking communities. You can invite Line to your Discord server with [this link](https://discord.com/oauth2/authorize?client_id=582009564724199434&scope=bot&permissions=277094067264).
 
 ## Features
 ### Utility
