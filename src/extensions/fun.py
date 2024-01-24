@@ -270,21 +270,21 @@ class Fun(commands.Cog):
     )
 
 
-    #tictactoe against-machine
-    @tictactoe_group.command(name='against-machine')
+    #tictactoe cpu
+    @tictactoe_group.command(name='cpu')
     @app_commands.checks.cooldown(1, 15)
-    async def against_machine(self, interaction: discord.Interaction):
+    async def ttt_cpu(self, interaction: discord.Interaction):
         """Juega una partida de Tic Tac Toe contra la máquina"""
         bot = cast(discord.ClientUser, interaction.client.user)
         game = ttt.TicTacToe(interaction, interaction.user, bot)
         await interaction.response.send_message(game.get_content(), view=game)
 
 
-    #tictactoe against-player
-    @tictactoe_group.command(name='against-player')
+    #tictactoe versus
+    @tictactoe_group.command(name='versus')
     @app_commands.checks.cooldown(1, 15)
     @app_commands.rename(opponent='oponente')
-    async def against_player(self, interaction: discord.Interaction, opponent: discord.Member | None):
+    async def ttt_versus(self, interaction: discord.Interaction, opponent: discord.Member | None):
         """Juega una partida de Tic tac Toe contra otra persona
 
         opponent
