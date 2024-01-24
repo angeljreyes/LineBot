@@ -48,7 +48,6 @@ intents.bans = False
 intents.integrations = False
 intents.webhooks = False
 intents.invites = False
-intents.voice_states = False
 intents.message_content = False
 
 bot = LineBot(command_prefix=[], help_command=None, intents=intents)
