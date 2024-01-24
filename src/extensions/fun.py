@@ -384,3 +384,32 @@ class Fun(commands.Cog):
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Fun(bot), guilds=core.bot_guilds) # type: ignore
+
+    @bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds) # type: ignore
+    @app_commands.checks.cooldown(1, 15)
+    async def tictactoe_context(interaction: discord.Interaction, user: discord.Member) -> None:
+        if not user.bot:
+            ask_view = core.Confirm(interaction, user)
+            if user == interaction.user:
+                ask_string = '¿Estás tratando de jugar contra ti mismo?'
+            else:
+                ask_string = f'{user.mention} ¿Quieres unirte a la partida de Tic Tac Toe de **{interaction.user.name}**?'
+            await interaction.response.send_message(ask_string, view=ask_view)
+            await ask_view.wait()
+            
+            if ask_view.value is None:
+                await interaction.edit_original_response(view=ask_view)
+                return
+                
+            if not ask_view.value:
+                await ask_view.last_interaction.response.edit_message(content=core.Warning.cancel('La partida fue rechazada'), view=ask_view)
+                return
+
+            await ask_view.last_interaction.response.defer()
+
+        game = ttt.TicTacToe(interaction, interaction.user, user)
+        if interaction.response.is_done():
+            await interaction.edit_original_response(content=game.get_content(), view=game)
+        else:
+            await interaction.response.send_message(content=game.get_content(), view=game)
+
