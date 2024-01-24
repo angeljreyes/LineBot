@@ -238,13 +238,12 @@ def for_each_app_command(
 
 
 def config_commands(bot: commands.Bot) -> None:
-    if not bot_guilds:
-        return
-
     """Add blacklist check to every command."""
     if isinstance(bot_guilds, Missing):
         guild = None
     else:
+        if not bot_guilds:
+            return
         guild = bot_guilds[0]
 
     for command in bot.tree.get_commands(guild=guild):
