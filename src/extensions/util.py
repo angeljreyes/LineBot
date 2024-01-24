@@ -549,6 +549,7 @@ class Util(commands.Cog):
     @app_commands.checks.cooldown(1, 3)
     @app_commands.command()
     @app_commands.rename(channel='canal')
+    @app_commands.guild_only()
     async def channelinfo(
             self,
             interaction: discord.Interaction,
