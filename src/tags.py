@@ -11,6 +11,11 @@ type RawTag = tuple[int, int, str, str, int]
 
 
 class Tag:
+    """A class that contains processed tag information.
+
+    This class also allows you to manipulate the database with the
+    data of each instance.
+    """
     __slots__ = ('ctx', 'guild', 'user', 'name', 'content', 'nsfw')
 
     def __init__(self, ctx: 'TagContext', guild_id: int, user_id: int, name: str, content: str, nsfw: bool):
@@ -34,27 +39,32 @@ class Tag:
         return self.name
 
     def gift(self, user: discord.Member) -> None:
+        """Set the tag's owner."""
         db.cursor.execute("UPDATE tags SET user=? WHERE guild=? AND name=?", (user.id, self.guild.id, self.name))
         db.conn.commit()
         self.user = user
 
     def rename(self, name: str) -> None:
+        """Set the tag's name."""
         db.cursor.execute("UPDATE tags SET name=? WHERE guild=? AND name=?", (name, self.guild.id, self.name))
         db.conn.commit()
         self.name = name
 
     def edit(self, content: str, nsfw: bool) -> None:
+        """Set the tag's content."""
         self.content = content
         self.nsfw = nsfw
         db.cursor.execute("UPDATE tags SET content=?, nsfw=? WHERE guild=? AND name=?", (self.content, int(self.nsfw), self.guild.id, self.name))
         db.conn.commit()
 
     def delete(self) -> None:
+        """Delete the tag from the database."""
         db.cursor.execute("DELETE FROM tags WHERE guild=? AND name=?", (self.guild.id, self.name,))
         db.conn.commit()
 
     @classmethod
     def from_db(cls, ctx: 'TagContext', data: RawTag) -> Self:
+        """Take a database entry and return a Tag object."""
         return cls(
             ctx,
             guild_id=data[0],
@@ -66,6 +76,11 @@ class Tag:
 
 
 class TagSafeInteraction:
+    """A type checked wrapper around an Interaction.
+
+    Raises NoPrivateMessage if the interactions shows any signs of
+    not being generated from a guild.
+    """
     def __init__(self, interaction: discord.Interaction[commands.Bot]):
         # Bunch of conditions to get rid of type checking errors
         if (interaction.channel is None
@@ -84,6 +99,11 @@ class TagSafeInteraction:
 
 
 class TagContext(TagSafeInteraction):
+    """TagSafeInteraction that interfaces with tags.
+
+    Raises DisabledTagsError if interaction.guild doesn't have tags
+    enabled.
+    """
     def __init__(self, interaction: discord.Interaction[commands.Bot], *, bypass=False):
         super().__init__(interaction)
         db.cursor.execute("SELECT guild FROM tagsenabled WHERE guild=?", (self.guild.id,))
@@ -93,6 +113,7 @@ class TagContext(TagSafeInteraction):
 
 
     def get_tag(self, name: str, guild_id: int | None = None) -> Tag:
+        """Return a Tag object from the database that matches."""
         guild_id = guild_id or self.guild_id
         db.cursor.execute("SELECT * FROM tags WHERE guild=? AND name=?", (guild_id, name))
         tag: RawTag | None = db.cursor.fetchone()
@@ -103,6 +124,7 @@ class TagContext(TagSafeInteraction):
 
 
     def add_tag(self, name: str, content: str, nsfw: bool) -> None:
+        """Insert a tag into the database"""
         db.cursor.execute(
             "INSERT INTO tags VALUES(?,?,?,?,?)",
             (self.guild.id, self.member.id, name, content, int(nsfw)))
@@ -110,6 +132,7 @@ class TagContext(TagSafeInteraction):
 
 
     def check_name(self, name: str) -> None:
+        """Check if name has invalid characters or already exists."""
         for char in name:
             if char in (' ', '_', '~', '*', '`', '|', ''):
                 raise ValueError('Invalid characters detected')
@@ -124,6 +147,7 @@ class TagContext(TagSafeInteraction):
 
 
     def get_member_tags(self, user: discord.Member) -> list[Tag]:
+        """Return list of Tag from the specified user."""
         db.cursor.execute(
             "SELECT * FROM tags WHERE guild=? AND user=?",
             (self.guild_id, user.id)
@@ -133,6 +157,7 @@ class TagContext(TagSafeInteraction):
 
 
     def get_guild_tags(self) -> list[Tag]:
+        """Return list of Tag found in the guild."""
         db.cursor.execute(
             "SELECT * FROM tags WHERE guild=?",
             (self.guild_id,)

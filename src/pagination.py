@@ -8,6 +8,10 @@ import db
 
 
 class Page:
+    """This class stores a message content and embed.
+
+    This is meant to be used with a Paginator object.
+    """
     __slots__ = ('content', 'embed')
 
     def __init__(
@@ -28,6 +32,11 @@ class Page:
             *,
             colour=None
         ) -> list[Self]:
+        """Return a list of Page from an iterable of strings.
+
+        Each string gets enumerated and each page can contain up to
+        20 of these strings (20 lines).
+        """
         formated: list[str] = []
 
         if colour is None:
@@ -51,6 +60,7 @@ class Page:
 
 
 class Paginator(discord.ui.View):
+    """A View that contains buttons for page navigation."""
     def __init__(
             self,
             interaction: discord.Interaction,
@@ -91,6 +101,11 @@ class Paginator(discord.ui.View):
 
 
     def set_pages(self, pages: list[Page]) -> Self:
+        """Set the internal list of Page objects.
+
+        This method appends the page number and total amount
+        of entries to the footer of the embed of each page.
+        """
         self.pages = []
         final_length = len(pages)
 
@@ -183,6 +198,10 @@ class Paginator(discord.ui.View):
             interaction: discord.Interaction,
             page: int
         ) -> Self:
+        """Set the current page index and change button state.
+
+        Indeces start at one.
+        """
         self.page = self.pages[page-1]
         self.page_num = page
         self.children[0].disabled = self.page_num == 1

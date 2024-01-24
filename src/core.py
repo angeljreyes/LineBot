@@ -189,6 +189,7 @@ assert len(links) <= 5 # Button rows can't go past 5 buttons
 
 
 async def sync_tree(bot: commands.Bot) -> None:
+    """Sync the command tree globally or per guild according to bot_mode."""
     logger.info('Syncing command tree...')
     if isinstance(bot_guilds, Missing):
         await bot.tree.sync()
@@ -199,6 +200,7 @@ async def sync_tree(bot: commands.Bot) -> None:
 
 
 def get_bot_guild(interaction: discord.Interaction) -> discord.Guild | None:
+    """Return None in stable mode and interaction.guild in dev mode."""
     if not conf['dev_mode']:
         return None
 
@@ -206,6 +208,7 @@ def get_bot_guild(interaction: discord.Interaction) -> discord.Guild | None:
 
 
 def owner_only():
+    """Raise NotOwner if interaction.user is not the owner."""
     def predicate(interaction: discord.Interaction) -> bool:
         app = interaction.client.application
         if app is None or interaction.user != app.owner:
@@ -221,6 +224,7 @@ def for_each_app_command(
         *,
         ignore_ctx_menu=False
     ) -> None:
+    """Call func recursively for each app command in the command tree."""
     # We do a little DFS
     if isinstance(command, app_commands.Group):
         for subcommand in command.commands:
@@ -237,6 +241,7 @@ def config_commands(bot: commands.Bot) -> None:
     if not bot_guilds:
         return
 
+    """Add blacklist check to every command."""
     if isinstance(bot_guilds, Missing):
         guild = None
     else:
@@ -250,6 +255,7 @@ async def fetch_app_command(
         interaction: discord.Interaction[commands.Bot],
         command: str,
     ) -> app_commands.AppCommand | app_commands.AppCommandGroup:
+    """Return an app command from Discord's API."""
     names = command.split(' ')
     commands = await interaction.client.tree.fetch_commands(guild=get_bot_guild(interaction))
 
@@ -277,6 +283,7 @@ def fix_delta(
         limit: int | None = 3,
         compact=True
     ) -> str:
+    """Return a pretty version of a timedelta."""
     years = delta.days // 365
     days = delta.days - years * 365
     hours = delta.seconds // 3600
@@ -306,6 +313,7 @@ def fix_delta(
 
 
 def fix_date(date: datetime, *, elapsed=False, newline=False) -> str:
+    """Return a pretty version of a datetime"""
     result = f'{date.day}/{date.month}/{date.year} {date.hour}:{date.minute}:{date.second} UTC'
     if elapsed:
         delta = fix_delta(datetime.now(timezone.utc) - date)
@@ -314,6 +322,10 @@ def fix_date(date: datetime, *, elapsed=False, newline=False) -> str:
 
 
 def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_char='~') -> discord.Embed:
+    """Add fields to an embed.
+    
+    This is a bad and useless function, don't use it.
+    """
     inline_char = '' if inline_char is None else inline_char
     for data in data_dict:
         if data_dict[data] not in (None, ''):
@@ -339,15 +351,23 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
 
 
 def embed_author(embed: discord.Embed, user: discord.abc.User) -> discord.Embed:
+    """Set author to embed with user's name an icon."""
     return embed.set_author(name=user.name, icon_url=user.display_avatar.url)
 
 
 def split_list[T](lst: list[T], n: int) -> Generator[list[T], None, None]:
+    """Return a generator that splits the list in chunks of size n."""
     for i in range(0, len(lst), n):
         yield lst[i : i+n]
 
 
 class Confirm(discord.ui.View):
+    """View that contains Yes/No buttons.
+    
+    You can access the response value with View.value after the View
+    stops waiting. View.value is None if the user didn't answer, True
+    if answered yes, and False if answered no.
+    """
     def __init__(
             self, interaction: discord.Interaction,
             user: discord.abc.User,
@@ -386,6 +406,7 @@ class Confirm(discord.ui.View):
 
 
 class Warning:
+    """A class with functions that add emoji to your messages."""
     @classmethod
     def success(cls, text: str, unicode=False) -> str:
         return cls.emoji_warning((':white_check_mark:', u'\U00002705'), text, unicode)
