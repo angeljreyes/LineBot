@@ -147,8 +147,9 @@ class Listeners(commands.Cog):
         # Set presence
         presence_conf = core.conf['presence']
 
-        statuses = (discord.Status.online, discord.Status.offline,
-                    discord.Status.dnd, discord.Status.invisible)
+        statuses = (discord.Status.online, discord.Status.offline, 
+                    discord.Status.idle, discord.Status.dnd,
+                    discord.Status.invisible)
         activities = (None, discord.Game, discord.CustomActivity)
 
         status_setting = presence_conf['status']
