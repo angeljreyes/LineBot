@@ -59,7 +59,7 @@ class TicTacToeButton(discord.ui.Button['TicTacToe']):
 
     # This function is called whenever this particular button is pressed
     # This is part of the "meat" of the game logic
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         assert self.view is not None
         view: TicTacToe = self.view
         state = view.board[self.y][self.x]
@@ -107,7 +107,7 @@ class TicTacToe(discord.ui.View):
             for y in range(3):
                 self.add_item(TicTacToeButton(x, y))
 
-    def get_content(self, status=None):
+    def get_content(self, status: str | None = None) -> str:
         """Return the content that shows info about the game.
 
         Status represents the current state of the game. If it is None,
@@ -117,19 +117,19 @@ class TicTacToe(discord.ui.View):
             status = f':timer: Turno de {self.players[self.current_player].mention}'
         return f'__**Tic Tac Toe**__\n:crossed_swords: **{self.playerX.name}** vs **{self.playerO.name}**\n{status}'
 
-    def get_other_player(self, key=None):
-        """Return the non-current player."""
+    def get_other_player(self, key: int | None = None) -> int:
+        """Return the non-current player or the opposite of key."""
         if key is None:
             key = self.current_player
         return {self.X: self.O, self.O: self.X}[self.current_player]
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         for child in self.children:
             child.disabled = True
         self.stop()
         await self.interaction.edit_original_response(content=self.get_content(f':tada: **{self.players[self.current_player].name}** no realizo su jugada a tiempo. ¡**{self.players[self.get_other_player()].name}** ha ganado la partida!'), view=self)
     
-    async def play(self, interaction: discord.Interaction, x: int, y: int):
+    async def play(self, interaction: discord.Interaction, x: int, y: int) -> None:
         """Mark a square at the given coordinates.
 
         The square will be marked depending on the current player.
@@ -181,7 +181,7 @@ class TicTacToe(discord.ui.View):
             await self.play(interaction, button_x, button_y)
 
     # This method checks for the board winner -- it is used by the TicTacToeButton
-    def check_board_winner(self):
+    def check_board_winner(self) -> int | None:
         """Check if there is a winner and return it."""
         for across in self.board:
             value = sum(across)
