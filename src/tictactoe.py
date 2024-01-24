@@ -19,9 +19,9 @@ class JoinView(discord.ui.View):
         super().__init__()
         self.timeout = 180
         self._interaction = interaction
+        self.user: discord.Member | None = None
 
     async def on_timeout(self):
-        self.user = None
         self.children[0].disabled = True
         await self._interaction.edit_original_response(view=self)
 
