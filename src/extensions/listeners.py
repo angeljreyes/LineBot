@@ -185,7 +185,7 @@ class Listeners(commands.Cog):
             command: app_commands.Command | app_commands.ContextMenu
         ) -> None:
         core.logger.info(
-            f'A command has been used: "{command.name} {interaction.namespace}", '
+            f'A command has been used: "{command.qualified_name} {interaction.namespace}", '
             f'guild "{interaction.guild} <{interaction.guild.id if interaction.guild else "?"}>", '
             f'channel "{interaction.channel} <{interaction.channel.id if interaction.channel else "?"}>" {interaction.data}'
         )
