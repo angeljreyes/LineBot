@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 100
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+extend-select = ["E501"]
+
+[tool.ruff.format]
+quote-style = "single"
