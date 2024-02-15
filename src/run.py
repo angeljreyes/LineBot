@@ -4,6 +4,7 @@ from traceback import format_exc
 
 try:
     from icecream import install
+
     install()
 except ImportError:  # Graceful fallback if IceCream isn't installed.
     ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
@@ -26,13 +27,14 @@ class LineBot(commands.Bot):
             'tag',
             'fun',
             'owner',
-            'image'
+            'image',
         ):
             await bot.load_extension('extensions.' + extension)
 
         # Add descriptions to the commands from the core.descs dict and syncs the commands
         core.config_commands(self)
         await core.sync_tree(self)
+
 
 # Set the intents
 intents = discord.Intents.all()
@@ -43,6 +45,7 @@ intents.invites = False
 intents.message_content = False
 
 bot = LineBot(command_prefix=[], help_command=None, intents=intents)
+
 
 async def main() -> None:
     # Create the event that catches any unknown errors and logs them
@@ -56,26 +59,20 @@ async def main() -> None:
             invalid_channels = (
                 discord.ForumChannel,
                 discord.CategoryChannel,
-                discord.abc.PrivateChannel
+                discord.abc.PrivateChannel,
             )
 
-            if (error_channel is None
-                or isinstance(error_channel, invalid_channels)):
-                core.logger.error(f'error_logging_channel is not a valid channel')
+            if error_channel is None or isinstance(error_channel, invalid_channels):
+                core.logger.error('error_logging_channel is not a valid channel')
                 return
 
             if bot.application:
                 await error_channel.send(bot.application.owner.mention, delete_after=30)
 
-
     # Start the bot
     async with bot:
         with open(core.CONF_DIR, 'rb') as f:
-            token: str | None = (
-                tomllib.load(f)
-                    .get('token', {})
-                    .get(core.bot_mode, None)
-            )
+            token: str | None = tomllib.load(f).get('token', {}).get(core.bot_mode, None)
 
         if not token:
             print('No token for the selected mode was found in bot_conf.toml')
