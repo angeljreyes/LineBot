@@ -86,7 +86,7 @@ else:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
-LOG_DIR = '../logs/'
+LOG_DIR = './logs/'
 if not os.path.exists(LOG_DIR):
     os.mkdir(LOG_DIR)
 logging_file = f'{LOG_DIR}{datetime.today().date()}_{bot_mode}.log'
