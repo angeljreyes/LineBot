@@ -299,7 +299,7 @@ def fix_delta(
     else:
         # Add spaces to words and make them plural if needed
         units = [f' {u}s' if t != 1 else f' {u}' 
-                 for u, t in (units, timings)]
+                 for t, u in zip(timings, units)]
 
     # Ignore timings equal to 0 or past the limit
     measures: list[str] = []
