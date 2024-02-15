@@ -2,8 +2,11 @@ import asyncio
 import tomllib
 from traceback import format_exc
 
-from icecream import install
-install() # Set up icecream
+try:
+    from icecream import install
+    install()
+except ImportError:  # Graceful fallback if IceCream isn't installed.
+    ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 import discord
 from discord.ext import commands
 
