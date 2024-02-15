@@ -1,3 +1,4 @@
+import os
 from random import choice
 from sqlite3 import connect
 
@@ -6,6 +7,10 @@ import discord
 import core
 import exceptions
 
+
+if not os.path.isfile('./line.db'):
+    print('The database wasn\'t found. Create a databse by running setup.py')
+    exit(1)
 
 conn = connect('./line.db')
 cursor = conn.cursor()

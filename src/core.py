@@ -13,6 +13,10 @@ import exceptions
 import db
 
 
+# If the current working directory is ./src/
+# change it to its parent, the git root directory
+os.chdir(os.getcwd().removesuffix('src'))
+
 Missing = discord.utils._MissingSentinel
 
 CONF_DIR = './bot_conf.toml'
