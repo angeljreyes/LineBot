@@ -4,7 +4,8 @@ indent-width = 4
 target-version = "py312"
 
 [tool.ruff.lint]
-extend-select = ["E501"]
+select = ["E", "W", "N", "Q", "COM", "RSE", "RET"]
+flake8-quotes.inline-quotes = "single"
 
 [tool.ruff.format]
 quote-style = "single"

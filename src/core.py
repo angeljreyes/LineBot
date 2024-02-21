@@ -1,17 +1,16 @@
 import logging
-import tomllib
 import os
+import tomllib
+from collections.abc import Callable, Generator
 from datetime import datetime, timedelta, timezone
 from typing import Any, TypedDict
-from collections.abc import Callable, Generator
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-import exceptions
 import db
-
+import exceptions
 
 # If the current working directory is ./src/
 # change it to its parent, the git root directory
@@ -22,7 +21,7 @@ Missing = discord.utils._MissingSentinel
 CONF_DIR = './bot_conf.toml'
 
 if not os.path.isfile(CONF_DIR):
-    print('The configuration file wasn\'t found. Create one by running setup.py')
+    print("The configuration file wasn't found. Create one by running setup.py")
     exit(1)
 
 
@@ -70,7 +69,7 @@ class BotConfPlus(BotConf):
 
 
 with open(CONF_DIR, 'rb') as f:
-    conf: BotConf = tomllib.load(f) # type: ignore
+    conf: BotConf = tomllib.load(f)  # type: ignore
 
 # For security reasons, tokens are not accesible from core.conf
 # and have to be loaded independently
@@ -113,8 +112,8 @@ search_emoji = conf['emoji']['search']
 
 eval_returned_value: Any = None
 
-hidden = "WHERE hidden=0 " if bot_mode == 'stable' else ""
-sql = "SELECT version FROM changelog {}ORDER BY version DESC".format(hidden)
+hidden = 'WHERE hidden=0 ' if bot_mode == 'stable' else ''
+sql = 'SELECT version FROM changelog {}ORDER BY version DESC'.format(hidden)
 db.cursor.execute(sql)
 db_version_data: list[tuple[str]] = db.cursor.fetchall()
 cached_versions = [version[0] for version in db_version_data]
@@ -142,7 +141,7 @@ colors = {
     'dark grey': discord.Colour.dark_grey(),
     'darker grey': discord.Colour.darker_grey(),
     'blurple': discord.Colour.blurple(),
-    'greyple': discord.Colour.greyple()
+    'greyple': discord.Colour.greyple(),
 }
 
 colors_display = {
@@ -168,7 +167,7 @@ colors_display = {
     'dark grey': 'Gris oscuro',
     'darker grey': 'Gris más oscuro',
     'blurple': 'Blurple',
-    'greyple': 'Greyple'
+    'greyple': 'Greyple',
 }
 
 bucket_types = {
@@ -178,7 +177,7 @@ bucket_types = {
     commands.BucketType.channel: 'canal',
     commands.BucketType.member: 'miembro',
     commands.BucketType.category: 'categoría',
-    commands.BucketType.role: 'rol'
+    commands.BucketType.role: 'rol',
 }
 
 bools = {True: 'Sí', False: 'No'}
@@ -187,9 +186,9 @@ links = {
     'Invítame a un servidor': conf['links']['bot_invite'],
     'Mi servidor': conf['links']['guild_invite'],
     'Mi página de top.gg': conf['links']['topgg'],
-    'Vota por mí': conf['links']['vote']
+    'Vota por mí': conf['links']['vote'],
 }
-assert len(links) <= 5 # Button rows can't go past 5 buttons
+assert len(links) <= 5  # Button rows can't go past 5 buttons
 
 
 async def sync_tree(bot: commands.Bot) -> None:
@@ -212,22 +211,23 @@ def get_bot_guild(interaction: discord.Interaction) -> discord.Guild | None:
 
 
 def owner_only():
-    """Raise NotOwner if interaction.user is not the owner."""
+    """Raise NotOwnerError if interaction.user is not the owner."""
+
     def predicate(interaction: discord.Interaction) -> bool:
         app = interaction.client.application
         if app is None or interaction.user != app.owner:
-            raise exceptions.NotOwner()
+            raise exceptions.NotOwnerError
         return True
 
     return app_commands.check(predicate)
 
 
 def for_each_app_command(
-        func: Callable[[app_commands.Command | app_commands.ContextMenu], None],
-        command: app_commands.Command | app_commands.Group | app_commands.ContextMenu,
-        *,
-        ignore_ctx_menu=False
-    ) -> None:
+    func: Callable[[app_commands.Command | app_commands.ContextMenu], None],
+    command: app_commands.Command | app_commands.Group | app_commands.ContextMenu,
+    *,
+    ignore_ctx_menu=False,
+) -> None:
     """Call func recursively for each app command in the command tree."""
     # We do a little DFS
     if isinstance(command, app_commands.Group):
@@ -235,7 +235,7 @@ def for_each_app_command(
             for_each_app_command(func, subcommand)
         return
 
-    elif ignore_ctx_menu and isinstance(command, app_commands.ContextMenu):
+    if ignore_ctx_menu and isinstance(command, app_commands.ContextMenu):
         return
 
     func(command)
@@ -255,9 +255,9 @@ def config_commands(bot: commands.Bot) -> None:
 
 
 async def fetch_app_command(
-        interaction: discord.Interaction[commands.Bot],
-        command: str,
-    ) -> app_commands.AppCommand | app_commands.AppCommandGroup:
+    interaction: discord.Interaction[commands.Bot],
+    command: str,
+) -> app_commands.AppCommand | app_commands.AppCommandGroup:
     """Return an app command from Discord's API."""
     names = command.split(' ')
     commands = await interaction.client.tree.fetch_commands(guild=get_bot_guild(interaction))
@@ -280,18 +280,18 @@ async def fetch_app_command(
 
 
 def fix_delta(
-        delta: timedelta,
-        *,
-        ms=False,
-        limit: int | None = 3,
-        compact=True
-    ) -> str:
+    delta: timedelta,
+    *,
+    ms=False,
+    limit: int | None = 3,
+    compact=True,
+) -> str:
     """Return a pretty version of a timedelta."""
     years = delta.days // 365
     days = delta.days - years * 365
     hours = delta.seconds // 3600
     minutes = (delta.seconds - hours * 3600) // 60
-    seconds = (delta.seconds - minutes * 60 - hours * 3600)
+    seconds = delta.seconds - minutes * 60 - hours * 3600
     seconds += float(str(delta.microseconds / 1e6)[:3]) if ms and seconds < 10 else 0
 
     timings: list[float] = [years, days, hours, minutes, seconds]
@@ -302,7 +302,7 @@ def fix_delta(
         units = [u[0] for u in units]
     else:
         # Add spaces to words and make them plural if needed
-        units = [f' {u}s' if t != 1 else f' {u}' 
+        units = [f' {u}s' if t != 1 else f' {u}'
                  for t, u in zip(timings, units)]
 
     # Ignore timings equal to 0 or past the limit
@@ -324,9 +324,15 @@ def fix_date(date: datetime, *, elapsed=False, newline=False) -> str:
     return result
 
 
-def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_char='~') -> discord.Embed:
+def add_fields(
+    embed: discord.Embed,
+    data_dict: dict,
+    *,
+    inline=None,
+    inline_char='~',
+) -> discord.Embed:
     """Add fields to an embed.
-    
+
     This is a bad and useless function, don't use it.
     """
     inline_char = '' if inline_char is None else inline_char
@@ -336,19 +342,19 @@ def add_fields(embed: discord.Embed, data_dict: dict, *, inline=None, inline_cha
                 embed.add_field(
                     name=data,
                     value=str(data_dict[data]),
-                    inline=inline
+                    inline=inline,
                 )
             elif inline_char != '':
                 embed.add_field(
                     name=data.replace(inline_char, ''),
                     value=str(data_dict[data]),
-                    inline=not data.endswith(inline_char)
+                    inline=not data.endswith(inline_char),
                 )
             else:
                 embed.add_field(
                     name=data,
                     value=str(data_dict[data]),
-                    inline=False
+                    inline=False,
                 )
     return embed
 
@@ -366,23 +372,25 @@ def split_list[T](lst: list[T], n: int) -> Generator[list[T], None, None]:
 
 class Confirm(discord.ui.View):
     """View that contains Yes/No buttons.
-    
+
     You can access the response value with View.value after the View
     stops waiting. View.value is None if the user didn't answer, True
     if answered yes, and False if answered no.
     """
+
     def __init__(
-            self, interaction: discord.Interaction,
-            user: discord.abc.User,
-            *,
-            timeout: float = 180
-        ):
+        self,
+        interaction: discord.Interaction,
+        user: discord.abc.User,
+        *,
+        timeout: float = 180,
+    ):
         super().__init__()
         self._interaction = interaction
         self.user = user
         self.timeout = timeout
         self.value: bool | None = None
-        self.children: list[discord.ui.Button] # type: ignore [no-def]
+        self.children: list[discord.ui.Button]  # type: ignore [no-def]
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id == self.user.id
@@ -391,7 +399,7 @@ class Confirm(discord.ui.View):
         for child in self.children:
             child.disabled = True
         await self._interaction.edit_original_response(view=self)
-        
+
     @discord.ui.button(label='Sí', emoji=check_emoji, style=discord.ButtonStyle.green)
     async def confirm(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         self.respond(interaction, True)
@@ -410,33 +418,34 @@ class Confirm(discord.ui.View):
 
 class Warning:
     """A class with functions that add emoji to your messages."""
+
     @classmethod
     def success(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':white_check_mark:', u'\U00002705'), text, unicode)
+        return cls.emoji_warning((':white_check_mark:', '\U00002705'), text, unicode)
 
     @classmethod
     def cancel(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':negative_squared_cross_mark:', u'\U0000274e'), text, unicode)
+        return cls.emoji_warning((':negative_squared_cross_mark:', '\U0000274e'), text, unicode)
 
     @classmethod
     def error(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':warning:', u'\U000026a0'), text, unicode)
+        return cls.emoji_warning((':warning:', '\U000026a0'), text, unicode)
 
     @classmethod
     def question(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':grey_question:', u'\U00002754'), text, unicode)
+        return cls.emoji_warning((':grey_question:', '\U00002754'), text, unicode)
 
     @classmethod
     def info(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':information_source:', u'\U00002139'), text, unicode)
+        return cls.emoji_warning((':information_source:', '\U00002139'), text, unicode)
 
     @classmethod
     def loading(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':arrows_counterclockwise:', u'\U0001f504'), text, unicode)
+        return cls.emoji_warning((':arrows_counterclockwise:', '\U0001f504'), text, unicode)
 
     @classmethod
     def searching(cls, text: str, unicode=False) -> str:
-        return cls.emoji_warning((':mag:', u'\U0001f50d'), text, unicode)
+        return cls.emoji_warning((':mag:', '\U0001f50d'), text, unicode)
 
     @staticmethod
     def emoji_warning(emoji: tuple[str, str], text: str, unicode: bool) -> str:

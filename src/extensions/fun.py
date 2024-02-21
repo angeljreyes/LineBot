@@ -1,15 +1,15 @@
-import requests
 from random import choice, randint
-from urllib.parse import quote
 from typing import cast
+from urllib.parse import quote
 
 import discord
+import requests
 from discord import app_commands
 from discord.ext import commands
 
 import core
-import tictactoe as ttt
 import db
+import tictactoe as ttt
 
 
 class Fun(commands.Cog):
@@ -17,7 +17,6 @@ class Fun(commands.Cog):
         self.bot = bot
         self.DADJOKE_BASE_URL = 'https://icanhazdadjoke.com/'
         self.DADJOKE_HEADERS = {'Accept': 'application/json'}
-
 
     # soy
     @app_commands.command()
@@ -48,7 +47,7 @@ class Fun(commands.Cog):
             'Tu vieja',
             'No sé',
             'Eres un jugador de Genshin Impact al que hay que alejar de los niños cuanto antes',
-            'Eres un jugador de lol que pesa 180 kg'
+            'Eres un jugador de lol que pesa 180 kg',
         )))
 
 
@@ -77,40 +76,37 @@ class Fun(commands.Cog):
             '170, el Einstein te dicen',
             '200 :0000',
             '300, tu cerebro es una pc master race',
-            'infinito qqq'
+            'infinito qqq',
         )
         msg = f'{"Tienes" if user is None else user.name + ", tienes"} un IQ de {choice(iqs)}'
         await interaction.response.send_message(msg)
 
-
     # dadjoke
     dadjoke_group = app_commands.Group(
         name='dadjoke',
-        description='Envía chistes que dan menos risa que los de Siri'
+        description='Envía chistes que dan menos risa que los de Siri',
     )
 
-
     async def send_dadjoke(
-            self,
-            interaction: discord.Interaction,
-            *,
-            joke: str,
-            joke_id: str,
-            status: int,
-            is_image: bool
-        ) -> None:
+        self,
+        interaction: discord.Interaction,
+        *,
+        joke: str,
+        joke_id: str,
+        status: int,
+        is_image: bool,
+    ) -> None:
         if status != 200:
             await interaction.response.send_message(
                 core.Warning.error(f'Hubo un error con [la API]({self.DADJOKE_BASE_URL}) :('),
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
-        embed = (discord.Embed(
+        embed = discord.Embed(
             title='Dad joke',
-            colour=db.default_color(interaction)
-        )
-            .set_footer(text=f'Joke ID: {joke_id}'))
+            colour=db.default_color(interaction),
+        ).set_footer(text=f'Joke ID: {joke_id}')
 
         if is_image:
             image_url = f'{self.DADJOKE_BASE_URL}j/{joke_id}.png'
@@ -120,43 +116,38 @@ class Fun(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-
     # dadjoke random
     @dadjoke_group.command(name='random')
     @app_commands.checks.cooldown(1, 5.0)
     @app_commands.rename(is_image='imagen')
     async def dadjoke_random(self, interaction: discord.Interaction, is_image: bool = False):
         """Mostrar un chiste random
-        
+
         is_image
             Mostrar el chiste como imagen
         """
-        request: dict = requests.get(
-            self.DADJOKE_BASE_URL,
-            headers=self.DADJOKE_HEADERS
-        ).json()
+        request: dict = requests.get(self.DADJOKE_BASE_URL, headers=self.DADJOKE_HEADERS).json()
 
         await self.send_dadjoke(
             interaction,
             joke=request['joke'],
             joke_id=request['id'],
             status=request['status'],
-            is_image=is_image
+            is_image=is_image,
         )
-
 
     # dadjoke search
     @dadjoke_group.command(name='search')
     @app_commands.checks.cooldown(1, 5.0)
     @app_commands.rename(query='búsqueda', is_image='imagen')
     async def dadjoke_search(
-            self,
-            interaction: discord.Interaction,
-            query: str,
-            is_image: bool = False
-        ):
+        self,
+        interaction: discord.Interaction,
+        query: str,
+        is_image: bool = False,
+    ):
         """Buscar un chiste por su contenido
-        
+
         query
             Busca un chiste que contenga esta búsqueda
         is_image
@@ -165,13 +156,13 @@ class Fun(commands.Cog):
         request: dict = requests.get(
             f'{self.DADJOKE_BASE_URL}search',
             params={'term': query},
-            headers=self.DADJOKE_HEADERS
+            headers=self.DADJOKE_HEADERS,
         ).json()
 
         if not request.get('results', None):
             await interaction.response.send_message(
                 core.Warning.error('No se encontraron resultados'),
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
@@ -181,22 +172,21 @@ class Fun(commands.Cog):
             joke=result['joke'],
             joke_id=result['id'],
             status=request['status'],
-            is_image=is_image
+            is_image=is_image,
         )
-
 
     # dadjoke fetch
     @dadjoke_group.command(name='fetch')
     @app_commands.checks.cooldown(1, 5.0)
     @app_commands.rename(joke_id='id', is_image='imagen')
     async def dadjoke_fetch(
-            self,
-            interaction: discord.Interaction,
-            joke_id: str,
-            is_image: bool = False
-        ):
+        self,
+        interaction: discord.Interaction,
+        joke_id: str,
+        is_image: bool = False,
+    ):
         """Buscar un chiste por su ID
-        
+
         joke_id
             ID del chiste que quieres buscar
         is_image
@@ -204,13 +194,13 @@ class Fun(commands.Cog):
         """
         request: dict = requests.get(
             f'{self.DADJOKE_BASE_URL}j/{quote(joke_id)}',
-            headers=self.DADJOKE_HEADERS
+            headers=self.DADJOKE_HEADERS,
         ).json()
 
         if 'id' not in request:
             await interaction.response.send_message(
                 core.Warning.error('ID inválida'),
-                ephemeral=True
+                ephemeral=True,
             )
             return
 
@@ -219,16 +209,14 @@ class Fun(commands.Cog):
             joke=request['joke'],
             joke_id=request['id'],
             status=request['status'],
-            is_image=is_image
+            is_image=is_image,
         )
-
 
     # nothing
     @app_commands.command()
     async def nothing(self, _: discord.Interaction):
         """Literalmente no hace nada"""
         pass
-
 
     # gay
     @app_commands.command()
@@ -253,24 +241,22 @@ class Fun(commands.Cog):
             3: 'es el chico afeminado del grupo',
             2: 'aunque no lo acepte, le excita un poco el porno gay',
             1: 'hombre heterosexual promedio',
-            0: 'le dan asco los hombres'
-        }[percent//10]
+            0: 'le dan asco los hombres',
+        }[percent // 10]
         embed = discord.Embed(
             title='Medidor de homosexualidad',
             description=f'{username} es un {percent}% gay, {extra}.',
-            colour=db.default_color(interaction)
+            colour=db.default_color(interaction),
         )
         await interaction.response.send_message(embed=embed)
-
 
     # tictactoe
     tictactoe_group = app_commands.Group(
         name='tictactoe',
-        description='Juega una partida de Tic Tac Toe contra la máquina o contra otra persona'
+        description='Juega una partida de Tic Tac Toe contra la máquina o contra otra persona',
     )
 
-
-    #tictactoe cpu
+    # tictactoe cpu
     @tictactoe_group.command(name='cpu')
     @app_commands.checks.cooldown(1, 15)
     async def ttt_cpu(self, interaction: discord.Interaction):
@@ -279,8 +265,7 @@ class Fun(commands.Cog):
         game = ttt.TicTacToe(interaction, interaction.user, bot)
         await interaction.response.send_message(game.get_content(), view=game)
 
-
-    #tictactoe versus
+    # tictactoe versus
     @tictactoe_group.command(name='versus')
     @app_commands.checks.cooldown(1, 15)
     @app_commands.rename(opponent='oponente')
@@ -291,9 +276,7 @@ class Fun(commands.Cog):
             Usuario contra el que quieres jugar
         """
         if interaction.guild is None:
-            await interaction.response.send_message(
-                'No hay nadie con quien jugar...'
-            )
+            await interaction.response.send_message('No hay nadie con quien jugar...')
             return
 
         if opponent is None:
@@ -301,8 +284,9 @@ class Fun(commands.Cog):
             await interaction.response.send_message(
                 core.Warning.searching(
                     f'**{interaction.user.name}** está buscando un '
-                    'oponente para jugar Tic Tac Toe'),
-                view=join_view
+                    'oponente para jugar Tic Tac Toe',
+                ),
+                view=join_view,
             )
             await join_view.wait()
 
@@ -315,10 +299,10 @@ class Fun(commands.Cog):
         elif opponent.bot:
             await interaction.response.send_message(
                 core.Warning.error('No puedes jugar contra un bot'),
-                ephemeral=True
+                ephemeral=True,
             )
             return
-        
+
         else:
             ask_view = core.Confirm(interaction, opponent)
 
@@ -335,11 +319,11 @@ class Fun(commands.Cog):
 
             if ask_view.value is None:
                 return
-            
+
             if not ask_view.value:
                 await ask_view.last_interaction.response.edit_message(
                     content=core.Warning.cancel('La partida fue rechazada'),
-                    view=ask_view
+                    view=ask_view,
                 )
                 return
 
@@ -347,7 +331,6 @@ class Fun(commands.Cog):
 
         game = ttt.TicTacToe(interaction, interaction.user, opponent)
         await interaction.edit_original_response(content=game.get_content(), view=game)
-
 
     # 8ball
     @app_commands.command(name='8ball')
@@ -360,38 +343,49 @@ class Fun(commands.Cog):
             Pregunta que el bot responderá
         """
         if interaction.guild is not None:
-            random_member = choice(list(filter(
-                lambda x: not x.bot,
-                interaction.guild.members
-            ))).mention
+            random_member = choice(
+                list(filter(lambda x: not x.bot, interaction.guild.members)),
+            ).mention
         else:
             random_member = 'alguien más'
 
         await interaction.response.send_message(embed=core.embed_author(
-            user=interaction.user, 
+            user=interaction.user,
             embed=discord.Embed(
                 title='8ball',
                 description=question,
-                colour=db.default_color(interaction)
+                colour=db.default_color(interaction),
             ).add_field(
                 name='Respuesta',
                 value=choice((
-                    'Sí', 'No', 'En efecto', 'Quizás', 'Mañana', 'Imposible',
-                    'El simple hecho de que consideraras que eso podría ser cierto es un insulto hacia la inteligencia humana',
-                    '¿No era obvio que sí?', 'Está científicamente comprobado que sí',
-                    'No, imbécil', 'Es muy probable', 'Es casi imposible', 'Para nada',
-                    'Totalmente', 'No lo sé', 'h', 'No lo sé, busca en Google',
-                    f'No lo sé, preguntale a {random_member}'
-                ))
-            )
+                    'Sí',
+                    'No',
+                    'En efecto',
+                    'Quizás',
+                    'Mañana',
+                    'Imposible',
+                    'El simple hecho de que consideraras que eso podría ser cierto es un insulto '
+                    'hacia la inteligencia humana',
+                    '¿No era obvio que sí?',
+                    'Está científicamente comprobado que sí',
+                    'No, imbécil',
+                    'Es muy probable',
+                    'Es casi imposible',
+                    'Para nada',
+                    'Totalmente',
+                    'No lo sé',
+                    'h',
+                    'No lo sé, busca en Google',
+                    f'No lo sé, preguntale a {random_member}',
+                )),
+            ),
         ))
 
 
-
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(Fun(bot), guilds=core.bot_guilds) # type: ignore
+    await bot.add_cog(Fun(bot), guilds=core.bot_guilds)  # type: ignore
 
-    @bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds) # type: ignore
+    @bot.tree.context_menu(name='Tic Tac Toe', guilds=core.bot_guilds)  # type: ignore
     @app_commands.checks.cooldown(1, 15)
     async def tictactoe_context(interaction: discord.Interaction, user: discord.Member) -> None:
         if not user.bot:
@@ -399,16 +393,20 @@ async def setup(bot: commands.Bot) -> None:
             if user == interaction.user:
                 ask_string = '¿Estás tratando de jugar contra ti mismo?'
             else:
-                ask_string = f'{user.mention} ¿Quieres unirte a la partida de Tic Tac Toe de **{interaction.user.name}**?'
+                ask_string = f'{user.mention} ¿Quieres unirte a la partida de '
+                f'Tic Tac Toe de **{interaction.user.name}**?'
             await interaction.response.send_message(ask_string, view=ask_view)
             await ask_view.wait()
-            
+
             if ask_view.value is None:
                 await interaction.edit_original_response(view=ask_view)
                 return
-                
+
             if not ask_view.value:
-                await ask_view.last_interaction.response.edit_message(content=core.Warning.cancel('La partida fue rechazada'), view=ask_view)
+                await ask_view.last_interaction.response.edit_message(
+                    content=core.Warning.cancel('La partida fue rechazada'),
+                    view=ask_view,
+                )
                 return
 
             await ask_view.last_interaction.response.defer()
@@ -418,4 +416,3 @@ async def setup(bot: commands.Bot) -> None:
             await interaction.edit_original_response(content=game.get_content(), view=game)
         else:
             await interaction.response.send_message(content=game.get_content(), view=game)
-
