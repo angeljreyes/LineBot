@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from platform import platform, python_version
 from time import perf_counter
 from typing import cast
@@ -167,7 +167,7 @@ class About(commands.Cog):
         used_ram = virtual_memory().used // megabyte
         total_ram = virtual_memory().total // megabyte
 
-        uptime = core.fix_delta(datetime.utcnow() - core.bot_ready_at)
+        uptime = core.fix_delta(datetime.now(timezone.utc) - core.bot_ready_at)
 
         bot_owner = cast(discord.AppInfo, self.bot.application).owner
 
