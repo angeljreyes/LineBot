@@ -78,7 +78,7 @@ if 'token' in conf:
 
 # stable / dev
 bot_mode = 'dev' if conf['dev_mode'] else 'stable'
-bot_version = '2.0'
+bot_version = '2.0.1'
 bot_ready_at = datetime.now(timezone.utc)
 bot_guilds: list[discord.Object] | Missing
 if conf['dev_mode']:
