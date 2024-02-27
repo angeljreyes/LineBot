@@ -12,7 +12,6 @@ import core
 import db
 from exceptions import EvalReturn
 
-
 evalcmd: Callable[[discord.Interaction], Awaitable[Any]] | None = None
 
 
@@ -20,19 +19,17 @@ class Owner(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
     # die
     @app_commands.command()
     @core.owner_only()
     async def die(self, interaction: discord.Interaction):
         """Apaga el bot"""
-        await interaction.response.send_message(u'\U0001f480', ephemeral=True)
+        await interaction.response.send_message('\U0001f480', ephemeral=True)
         core.logging.info('Trying to end execution through /die command')
         try:
             await self.bot.close()
         except RuntimeError:
             pass
-
 
     # getmsg
     @app_commands.command()
@@ -45,7 +42,6 @@ class Owner(commands.Cog):
         msg = await interaction.channel.fetch_message(int(id))
         await interaction.response.send_message(f'```py\n{msg}\n```', ephemeral=True)
 
-
     # eval
     @app_commands.command(name='eval')
     @core.owner_only()
@@ -54,12 +50,13 @@ class Owner(commands.Cog):
         interaction: discord.Interaction[commands.Bot],
         ephemeral: bool = False,
         silent: bool = False,
-        expression: bool = True
+        expression: bool = True,
     ):
         """Ejecuta código"""
         global evalcmd
         global _return
-        INDENT = ' ' * 4
+        indent = ' ' * 4
+
         def _return(value: Any) -> None:
             raise EvalReturn(value)
 
@@ -77,22 +74,24 @@ class Owner(commands.Cog):
                 await sub_interaction.response.defer(ephemeral=ephemeral or silent, thinking=True)
 
                 code = self.answer.value
-                code_lines = [INDENT + line for line in code.splitlines()]
+                code_lines = [indent + line for line in code.splitlines()]
                 if not silent and expression:
                     return_line = code_lines.pop()
                     whitespace: str = findall(r'^\s+', return_line)[0]
                     code_lines.append(f'{whitespace}_return({return_line.strip()})')
                 code = '\n'.join(code_lines)
 
-                code = ('global evalcmd\n'
-                        'async def evalcmd(interaction):\n'
-                        f'{INDENT}global _return\n'
-                        f'{code}')
+                code = (
+                    'global evalcmd\n'
+                    'async def evalcmd(interaction):\n'
+                    f'{indent}global _return\n'
+                    f'{code}'
+                )
 
                 start = perf_counter()
                 try:
                     exec(code)
-                    await evalcmd(sub_interaction) # type: ignore
+                    await evalcmd(sub_interaction)  # type: ignore
                 except EvalReturn as e:
                     return_value = e.value
                 except Exception as e:
@@ -100,7 +99,7 @@ class Owner(commands.Cog):
                 end = perf_counter()
 
                 if silent:
-                    await sub_interaction.followup.send(u'\U00002705')
+                    await sub_interaction.followup.send('\U00002705')
                     return
 
                 types = ''
@@ -108,9 +107,11 @@ class Owner(commands.Cog):
                 if not silent:
                     while True:
                         types += str(type(sub_value))
-                        if (isinstance(sub_value, Sequence)
+                        if (
+                            isinstance(sub_value, Sequence)
                             and not isinstance(sub_value, str)
-                            and len(sub_value)):
+                            and len(sub_value)
+                        ):
                             sub_value = sub_value[0]
                             continue
                         break
@@ -122,12 +123,11 @@ class Owner(commands.Cog):
                         f'```py\n{types}\n```'
                         f'\n```py\n{return_value}\n```'
                     ),
-                    colour=db.default_color(sub_interaction)
+                    colour=db.default_color(sub_interaction),
                 ).set_footer(text=f'Ejecutado en {floor((end - start) * 1000)}ms')
                 await sub_interaction.followup.send(embed=embed)
 
         await interaction.response.send_modal(CodeModal(self.bot))
-
 
     # reload
     @app_commands.command()
@@ -140,8 +140,7 @@ class Owner(commands.Cog):
         core.logger.info(f'"{extension}" extension reloaded')
         if sync:
             await core.sync_tree(self.bot)
-        await interaction.followup.send(u'\U00002705')
-
+        await interaction.followup.send('\U00002705')
 
     # unload
     @app_commands.command()
@@ -154,8 +153,7 @@ class Owner(commands.Cog):
         core.logger.info(f'"{extension}" extension unloaded')
         if sync:
             await core.sync_tree(self.bot)
-        await interaction.followup.send(u'\U00002705')
-
+        await interaction.followup.send('\U00002705')
 
     # load
     @app_commands.command()
@@ -168,8 +166,7 @@ class Owner(commands.Cog):
         core.logger.info(f'"{extension}" extension unloaded')
         if sync:
             await core.sync_tree(self.bot)
-        await interaction.followup.send(u'\U00002705')
-
+        await interaction.followup.send('\U00002705')
 
     # blacklist
     @app_commands.command()
@@ -177,15 +174,15 @@ class Owner(commands.Cog):
     async def blacklist(self, interaction: discord.Interaction, user: discord.User):
         """Mete o saca a un usuario de la blacklist"""
         if db.check_blacklist(interaction, user, False):
-            db.cursor.execute("INSERT INTO blacklist VALUES(?)", (user.id,))
-            await interaction.response.send_message(u'\U00002935', ephemeral=True)
-        
+            db.cursor.execute('INSERT INTO blacklist VALUES(?)', (user.id,))
+            await interaction.response.send_message('\U00002935', ephemeral=True)
+
         else:
-            db.cursor.execute("DELETE FROM blacklist WHERE user=?", (user.id,))
-            await interaction.response.send_message(u'\U00002934', ephemeral=True)
+            db.cursor.execute('DELETE FROM blacklist WHERE user=?', (user.id,))
+            await interaction.response.send_message('\U00002934', ephemeral=True)
 
         db.conn.commit()
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(Owner(bot), guilds=core.bot_guilds) # type: ignore
+    await bot.add_cog(Owner(bot), guilds=core.bot_guilds)  # type: ignore

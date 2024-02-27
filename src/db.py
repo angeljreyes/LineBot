@@ -1,3 +1,4 @@
+import os
 from random import choice
 from sqlite3 import connect
 
@@ -6,17 +7,20 @@ import discord
 import core
 import exceptions
 
+if not os.path.isfile('./line.db'):
+    print("The database wasn't found. Create a databse by running setup.py")
+    exit(1)
 
 conn = connect('./line.db')
 cursor = conn.cursor()
 
-cursor.execute("SELECT command FROM commandstats")
+cursor.execute('SELECT command FROM commandstats')
 commandstats_commands: list[str] = [command[0] for command in cursor.fetchall()]
 
 
 def default_color(interaction: discord.Interaction) -> int | discord.Color:
     # Check the color of the user in the database
-    cursor.execute("SELECT value FROM colors WHERE id=?", (interaction.user.id,))
+    cursor.execute('SELECT value FROM colors WHERE id=?', (interaction.user.id,))
     color: tuple[int] | None = cursor.fetchone()
 
     if color is None:
@@ -34,16 +38,15 @@ def default_color(interaction: discord.Interaction) -> int | discord.Color:
 
 
 def check_blacklist(
-        interaction: discord.Interaction,
-        user: discord.abc.User | None = None,
-        raises=True
-    ) -> bool:
+    interaction: discord.Interaction,
+    user: discord.abc.User | None = None,
+    raises=True,
+) -> bool:
     user = user or interaction.user
-    cursor.execute("SELECT user FROM blacklist WHERE user=?", (user.id,))
+    cursor.execute('SELECT user FROM blacklist WHERE user=?', (user.id,))
     check: tuple[int] | None = cursor.fetchone()
     if check is None:
         return True
     if raises:
         raise exceptions.BlacklistUserError('This user is in the blacklist')
     return False
-    

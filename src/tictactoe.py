@@ -13,7 +13,8 @@ class JoinView(discord.ui.View):
     JoinView.user is None is no user joined after timeout, and
     a discord.Member otherwise.
     """
-    children: list[discord.ui.Button[discord.ui.View]] # type: ignore [no-redef]
+
+    children: list[discord.ui.Button[discord.ui.View]]  # type: ignore [no-redef]
 
     def __init__(self, interaction: discord.Interaction):
         super().__init__()
@@ -25,7 +26,7 @@ class JoinView(discord.ui.View):
         self.children[0].disabled = True
         await self._interaction.edit_original_response(view=self)
 
-    @discord.ui.button(label='Unirse', emoji=u'\U0001f4e5', style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label='Unirse', emoji='\U0001f4e5', style=discord.ButtonStyle.blurple)
     async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user == self._interaction.user:
             return
@@ -37,6 +38,7 @@ class JoinView(discord.ui.View):
 
 class TicTacToeButton(discord.ui.Button['TicTacToe']):
     """Each one of the 9 squares in the game as a Button."""
+
     def __init__(self, x: int, y: int):
         # A label is required, but we don't need one so a zero-width space is used
         # The row parameter tells the View which row to place the button under.
@@ -56,7 +58,6 @@ class TicTacToeButton(discord.ui.Button['TicTacToe']):
         await interaction.response.defer()
         return False
 
-
     # This function is called whenever this particular button is pressed
     # This is part of the "meat" of the game logic
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -72,29 +73,27 @@ class TicTacToeButton(discord.ui.Button['TicTacToe']):
 # This is our actual board View
 class TicTacToe(discord.ui.View):
     """Represents a TTT game."""
+
     # This tells the IDE or linter that all our children will be TicTacToeButtons
     # This is not required
-    children: list[TicTacToeButton] # type: ignore [type-redef]
+    children: list[TicTacToeButton]  # type: ignore [type-redef]
     X = -1
-    O = 1
+    O = 1  # noqa: E741
     Tie = 2
 
     def __init__(
-            self,
-            interaction: discord.Interaction,
-            playerX: discord.abc.User,
-            playerO: discord.abc.User
-        ):
+        self,
+        interaction: discord.Interaction,
+        player_x: discord.abc.User,
+        player_o: discord.abc.User,
+    ):
         super().__init__()
         self.interaction = interaction
         self.timeout = 90
         self.current_player = self.X
-        self.playerX = playerX
-        self.playerO = playerO
-        self.players = {
-            self.X: self.playerX,
-            self.O: self.playerO
-        }
+        self.playerX = player_x
+        self.playerO = player_o
+        self.players = {self.X: self.playerX, self.O: self.playerO}
         self.board = [
             [0, 0, 0],
             [0, 0, 0],
@@ -115,7 +114,10 @@ class TicTacToe(discord.ui.View):
         """
         if status is None:
             status = f':timer: Turno de {self.players[self.current_player].mention}'
-        return f'__**Tic Tac Toe**__\n:crossed_swords: **{self.playerX.name}** vs **{self.playerO.name}**\n{status}'
+        return (
+            f'__**Tic Tac Toe**__\n:crossed_swords: **{self.playerX.name}** f'
+            'vs **{self.playerO.name}**\n{status}'
+        )
 
     def get_other_player(self, key: int | None = None) -> int:
         """Return the non-current player or the opposite of key."""
@@ -127,15 +129,24 @@ class TicTacToe(discord.ui.View):
         for child in self.children:
             child.disabled = True
         self.stop()
-        await self.interaction.edit_original_response(content=self.get_content(f':tada: **{self.players[self.current_player].name}** no realizo su jugada a tiempo. ¡**{self.players[self.get_other_player()].name}** ha ganado la partida!'), view=self)
-    
+        await self.interaction.edit_original_response(
+            content=self.get_content(
+                f':tada: **{self.players[self.current_player].name}** no realizo su jugada a f'
+                'tiempo. ¡**{self.players[self.get_other_player()].name}** ha ganado la partida!',
+            ),
+            view=self,
+        )
+
     async def play(self, interaction: discord.Interaction, x: int, y: int) -> None:
         """Mark a square at the given coordinates.
 
         The square will be marked depending on the current player.
         """
         button = self.children[x*3 + y]
-        button.style = {self.X: discord.ButtonStyle.blurple, self.O: discord.ButtonStyle.green}[self.current_player]
+        button.style = {
+            self.X: discord.ButtonStyle.blurple,
+            self.O: discord.ButtonStyle.green,
+        }[self.current_player]
         button.emoji = {self.X: core.cross_emoji, self.O: core.circle_emoji}[self.current_player]
         button.disabled = True
         self.board[y][x] = self.current_player
@@ -144,7 +155,7 @@ class TicTacToe(discord.ui.View):
         if self.players[self.current_player].bot:
             for child in self.children:
                 child.disabled = True
-        
+
         winner = self.check_board_winner()
         if winner is not None:
             if winner in (self.X, self.O):
@@ -157,7 +168,10 @@ class TicTacToe(discord.ui.View):
 
             self.stop()
             if interaction.response.is_done():
-                await interaction.edit_original_response(content=self.get_content(status), view=self)
+                await interaction.edit_original_response(
+                    content=self.get_content(status),
+                    view=self,
+                )
             else:
                 await interaction.response.edit_message(content=self.get_content(status), view=self)
             return
@@ -169,10 +183,12 @@ class TicTacToe(discord.ui.View):
 
         if self.current_player == self.O and self.players[self.O].bot:
             await asyncio.sleep(1.5)
-            available_moves = [[x, y] if self.board[y][x] == 0 else None for x in range(3) for y in range(3)]
+            available_moves = [
+                [x, y] if self.board[y][x] == 0 else None for x in range(3) for y in range(3)
+            ]
             available_moves_filtered = cast(
                 list[list[int]],
-                list(filter(lambda x: x is not None, available_moves))
+                list(filter(lambda x: x is not None, available_moves)),
             )
             button_x, button_y = choice(available_moves_filtered)
             for child in self.children:
@@ -187,7 +203,7 @@ class TicTacToe(discord.ui.View):
             value = sum(across)
             if value == 3:
                 return self.O
-            elif value == -3:
+            if value == -3:
                 return self.X
 
         # Check vertical
@@ -195,20 +211,20 @@ class TicTacToe(discord.ui.View):
             value = self.board[0][line] + self.board[1][line] + self.board[2][line]
             if value == 3:
                 return self.O
-            elif value == -3:
+            if value == -3:
                 return self.X
 
         # Check diagonals
         diag = self.board[0][2] + self.board[1][1] + self.board[2][0]
         if diag == 3:
             return self.O
-        elif diag == -3:
+        if diag == -3:
             return self.X
 
         diag = self.board[0][0] + self.board[1][1] + self.board[2][2]
         if diag == 3:
             return self.O
-        elif diag == -3:
+        if diag == -3:
             return self.X
 
         # If we're here, we need to check if a tie was made
