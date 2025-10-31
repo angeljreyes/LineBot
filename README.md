@@ -47,7 +47,7 @@ Line is a multipurpose bot made specifically for spanish-speaking communities. Y
 ## Setup and Run
 ### 1. Clone the repository
 ```
-git clone https://github.com/DestopLine/LineBot.git
+git clone https://github.com/angeljreyes/LineBot.git
 ```
    
 ### 2. Move to the bot directory
@@ -102,7 +102,7 @@ python3 src/run.py
 **NOTE:** The bot should be ran from the Git root directory, as shown above. But running it from `src/` will automatically change the current working directory to the root directory, so feel free to run it from there if needed.
 
 ## Configure the Bot
-Your bot configuration file is located at `bot_conf.toml`, this file is created based on `src/template_conf.toml`, so you can always check this one to see the defaults. Every setting is required to exist, but if you want to leave it empty, just set it to `0` or to an empty string `""` depending on the data type. Future updates may include new settings, so you might need to copy the new settings from `src/template_conf.toml`. Most settings have comments to show you how to use them, so if you wanna know more about them, just read the [config file](https://github.com/DestopLine/LineBot/blob/main/src/template_conf.toml).
+Your bot configuration file is located at `bot_conf.toml`, this file is created based on `src/template_conf.toml`, so you can always check this one to see the defaults. Every setting is required to exist, but if you want to leave it empty, just set it to `0` or to an empty string `""` depending on the data type. Future updates may include new settings, so you might need to copy the new settings from `src/template_conf.toml`. Most settings have comments to show you how to use them, so if you wanna know more about them, just read the [config file](https://github.com/angeljreyes/LineBot/blob/main/src/template_conf.toml).
 
 ### Dev mode
 The `dev_mode` setting, when enabled will use the guilds (guild = server) specified in `guilds` (guild IDs as a comma separated list of integers), as guild commands, so commands will only be available in these guilds, as opposed to making all commands global, which is rate limited to 200 per day. Dev mode will also show you hidden changelogs (see Changelogs and Versions) and won't add uses to the `commandstats` table in the database.
